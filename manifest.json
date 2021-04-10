@@ -1,0 +1,11 @@
+{
+    "name": "CP-B-Dev-G",
+    "short_name": "CP",
+    "start_url": "index.html",
+    "display": "standalone",
+    "background_color": "#fdfdfd",
+    "theme_color": "#db4938",
+    "orientation": "portrait-primary",
+    "icons": [
+    ]
+  }
