@@ -1,0 +1,124 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Intersection Point of Lines - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/geometry/lines-intersection.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Intersection Point of Lines</h1>
+
+<p>You are given two lines, described via the equations $a_1 x + b_1 y + c_1 = 0$ and  $a_2 x + b_2 y + c_2 = 0$.
+We have to find the intersection point of the lines, or determine that the lines are parallel.</p>
+
+<h2>Solution</h2>
+
+<p>If two lines are not parallel, they intersect.
+To find their intersection point, we need to solve the following system of linear equations:</p>
+
+<p>$$\begin{cases} a_1 x + b_1 y + c_1 = 0 &#92;&#92;
+a_2 x + b_2 y + c_2 = 0
+\end{cases}$$</p>
+
+<p>Using Cramer's rule, we can immediately write down the solution for the system, which will give us the required intersection point of the lines:</p>
+
+<p>$$x = - \frac{\begin{vmatrix}c_1 &amp; b_1 \cr c_2 &amp; b_2\end{vmatrix}}{\begin{vmatrix}a_1 &amp; b_1 \cr a_2 &amp; b_2\end{vmatrix} } = - \frac{c_1 b_2 - c_2 b_1}{a_1 b_2 - a_2 b_1},$$
+$$y = - \frac{\begin{vmatrix}a_1 &amp; c_1 \cr a_2 &amp; c_2\end{vmatrix}}{\begin{vmatrix}a_1 &amp; b_1 \cr a_2 &amp; b_2\end{vmatrix}} = - \frac{a_1 c_2 - a_2 c_1}{a_1 b_2 - a_2 b_1}.$$</p>
+
+<p>If the denominator equals $0$, i.e.</p>
+
+<p>$$\begin{vmatrix}a_1 &amp; b_1 \cr a_2 &amp; b_2\end{vmatrix} = a_1 b_2 - a_2 b_1 = 0 $$</p>
+
+<p>then either the system has no solutions (the lines are parallel and distinct) or there are infinitely many solutions (the lines overlap).
+If we need to distinguish these two cases, we have to check if coefficients $c$ are proportional with the same ratio as the coefficients $a$ and $b$.
+To do that we only have calculate the following determinants, and if they both equal $0$, the lines overlap:</p>
+
+<p>$$\begin{vmatrix}a_1 &amp; c_1 \cr a_2 &amp; c_2\end{vmatrix}, \begin{vmatrix}b_1 &amp; c_1 \cr b_2 &amp; c_2\end{vmatrix} $$</p>
+
+<p>Notice, a different approach for computing the intersection point is explained in the article <a href="geometry/basic-geometry.html">Basic Geometry</a>.</p>
+
+<h2>Implementation</h2>
+
+<pre><code class="cpp">struct pt {
+    double x, y;
+};
+
+struct line {
+    double a, b, c;
+};
+
+const double EPS = 1e-9;
+
+double det(double a, double b, double c, double d) {
+    return a*d - b*c;
+}
+
+bool intersect(line m, line n, pt &amp; res) {
+    double zn = det(m.a, m.b, n.a, n.b);
+    if (abs(zn) &lt; EPS)
+        return false;
+    res.x = -det(m.c, m.b, n.c, n.b) / zn;
+    res.y = -det(m.a, m.c, n.a, n.c) / zn;
+    return true;
+}
+
+bool parallel(line m, line n) {
+    return abs(det(m.a, m.b, n.a, n.b)) &lt; EPS;
+}
+
+bool equivalent(line m, line n) {
+    return abs(det(m.a, m.b, n.a, n.b)) &lt; EPS
+        &amp;&amp; abs(det(m.a, m.c, n.a, n.c)) &lt; EPS
+        &amp;&amp; abs(det(m.b, m.c, n.b, n.c)) &lt; EPS;
+}
+</code></pre>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

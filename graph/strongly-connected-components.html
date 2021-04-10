@@ -1,0 +1,197 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Strongly Connected Components and Condensation graph  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/graph/strongly-connected-components.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Finding strongly connected components<br/>Building condensation graph</h1>
+
+<h2>Definitions</h2>
+
+<p>You are given a directed graph $G$ with vertices $V$ and edges $E$. It is possible that there are loops and multiple edges. Let's denote $n$ as number of vertices and $m$ as number of edges in $G$.</p>
+
+<p><strong>Strongly connected component</strong> is a maximal subset of vertices $C$ such that any two vertices of this subset are reachable from each other, i.e. for any $u, v \in C$:
+$$
+u \mapsto v, v \mapsto u
+$$
+where $\mapsto$ means reachability, i.e. existence of the path from first vertex to the second.</p>
+
+<p>It is obvious, that strongly connected components do not intersect each other, i.e. this is a partition of all graph vertices. Thus we can give a definition of condensation graph $G^{SCC}$ as a graph containing every strongly connected component as one vertex. Each vertex of the condensation graph corresponds to the strongly connected component of graph $G$. There is an oriented edge between two vertices $C_i$ and $C_j$ of the condensation graph if and only if there are two vertices $u \in C_i, v \in C_j$ such that there is an edge in initial graph, i.e. $(u, v) \in E$.</p>
+
+<p>The most important property of the condensation graph is that it is <strong>acyclic</strong>. Indeed, suppose that there is an edge between $C$ and $C'$, let's prove that there is no edge from $C'$ to $C$. Suppose that $C' \mapsto C$. Then there are two vertices $u' \in C$ and $v' \in C'$ such that $v' \mapsto u'$. But since $u$ and $u'$ are in the same strongly connected component then there is a path between them; the same for $v$ and $v'$. As a result, if we join these paths we have that $v \mapsto u$ and at the same time $u \mapsto v$. Therefore $u$ and $v$ should be at the same strongly connected component, so this is contradiction. This completes the proof.</p>
+
+<p>The algorithm described in the next section extracts all strongly connected components in a given graph. It is quite easy to build a condensation graph then.</p>
+
+<h2>Description of the algorithm</h2>
+
+<p>Described algorithm was independently suggested by Kosaraju and Sharir at 1979. This is an easy-to-implement algorithm based on two series of <a href="./graph/depth-first-search.html">depth first search</a>, and working for $O(n + m)$ time.</p>
+
+<p><strong>On the first step</strong> of the algorithm we are doing sequence of depth first searches, visiting the entire graph. We start at each vertex of the graph and run a depth first search from every non-visited vertex. For each vertex we are keeping track of <strong>exit time</strong> $tout[v]$. These exit times have a key role in an algorithm and this role is expressed in next theorem.</p>
+
+<p>First, let's make notations: let's define exit time $tout[C]$ from the strongly connected component $C$ as maximum of values $tout[v]$ by all $v \in C$. Besides, during the proof of the theorem we will mention entry times $tin[v]$ in each vertex and in the same way consider $tin[C]$ for each strongly connected component $C$ as minimum of values $tin[v]$ by all $v \in C$.</p>
+
+<p><strong>Theorem</strong>. Let $C$ and $C'$ are two different strongly connected components and there is an edge $(C, C')$ in a condensation graph between these two vertices. Then $tout[C] > tout[C']$.</p>
+
+<p>There are two main different cases at the proof depending on which component will be visited by depth first search first, i.e. depending on difference between $tin[C]$ and $tin[C']$:</p>
+
+<ul>
+<li><p>The component $C$ was reached first. It means that depth first search comes at some vertex $v$ of component $C$ at some moment, but all other vertices of components $C$ and $C'$ were not visited yet. By condition there is an edge $(C, C')$ in a condensation graph, so not only the entire component $C$ is reachable from $v$ but the whole component $C'$ is reachable as well. It means that depth first search that is running from vertex $v$ will visit all vertices of components $C$ and $C'$, so they will be descendants for $v$ in a depth first search tree, i.e. for each vertex $u \in C \cup C', u \ne v$ we have that $tout[v] > tout[u]$, as we claimed.</p></li>
+<li><p>Assume that component $C'$ was visited first. Similarly, depth first search comes at some vertex $v$ of component $C'$ at some moment, but all other vertices of components $C$ and $C'$ were not visited yet. But by condition there is an edge $(C, C')$ in the condensation graph, so, because of acyclic property of condensation graph, there is no back path from $C'$ to $C$, i.e. depth first search from vertex $v$ will not reach vertices of $C$. It means that vertices of $C$ will be visited by depth first search later, so $tout[C] > tout[C']$. This completes the proof.</p></li>
+</ul>
+
+<p>Proved theorem is <strong>the base of algorithm</strong> for finding strongly connected components. It follows that any edge $(C, C')$ in condensation graph comes from a component with a larger value of $tout$ to component with a smaller value.</p>
+
+<p>If we sort all vertices $v \in V$ by decreasing of their exit moment $tout[v]$ then the first vertex $u$ is going to be a vertex from "root" strongly connected component, i.e. a vertex that no edges in a condensation graph come into. Now we want to run such search from this vertex $u$ so that it will visit all vertices in this strongly connected component, but not others; doing so, we can gradually select all strongly connected components: let's remove all vertices corresponding to the first selected component, and then let's find a vertex with the largest value of $tout$, and run this search from it, and so on.</p>
+
+<p>Let's consider transposed graph $G^T$, i.e. graph received from $G$ by reversing the direction of each edge.
+Obviously, this graph will have the same strongly connected components as the initial graph.
+Moreover, the condensation graph $G^{SCC}$ will also get transposed.
+It means that there will be no edges from our "root" component to other components.</p>
+
+<p>Thus, for visiting the whole "root" strongly connected component, containing vertex $v$, is enough to run search from vertex $v$ in graph $G^T$. This search will visit all vertices of this strongly connected component and only them. As was mentioned before, we can remove these vertices from the graph then, and find the next vertex with a maximal value of $tout[v]$ and run search in transposed graph from it, and so on.</p>
+
+<p>Thus, we built next <strong>algorithm</strong> for selecting strongly connected components:</p>
+
+<p>1st step. Run sequence of depth first search of graph $G$ which will return vertices with increasing exit time $tout$, i.e. some list $order$.</p>
+
+<p>2nd step. Build transposed graph $G^T$. Run a series of depth (breadth) first searches in the order determined by list $order$ (to be exact in reverse order, i.e. in decreasing order of exit times). Every set of vertices, reached after the next search, will be the next strongly connected component.</p>
+
+<p>Algorithm asymptotic is $O(n + m)$, because it is just two depth (breadth) first searches.</p>
+
+<p>Finally, it is appropriate to mention <a href="./graph/topological-sort.html">topological sort</a> here. First of all, step 1 of the algorithm represents reversed topological sort of graph $G$ (actually this is exactly what vertices' sort by exit time means). Secondly, the algorithm's scheme generates strongly connected components by decreasing order of their exit times, thus it generates components - vertices of condensation graph - in topological sort order.</p>
+
+<h2>Implementation</h2>
+
+<pre><code class="cpp">    vector &lt; vector&lt;int&gt; &gt; g, gr;
+    vector&lt;bool&gt; used;
+    vector&lt;int&gt; order, component;
+
+    void dfs1 (int v) {
+        used[v] = true;
+        for (size_t i=0; i&lt;g[v].size(); ++i)
+            if (!used[ g[v][i] ])
+                dfs1 (g[v][i]);
+        order.push_back (v);
+    }
+
+    void dfs2 (int v) {
+        used[v] = true;
+        component.push_back (v);
+        for (size_t i=0; i&lt;gr[v].size(); ++i)
+            if (!used[ gr[v][i] ])
+                dfs2 (gr[v][i]);
+    }
+
+    int main() {
+        int n;
+        ... reading n ...
+        for (;;) {
+            int a, b;
+            ... reading next edge (a,b) ...
+            g[a].push_back (b);
+            gr[b].push_back (a);
+        }
+
+        used.assign (n, false);
+        for (int i=0; i&lt;n; ++i)
+            if (!used[i])
+                dfs1 (i);
+        used.assign (n, false);
+        for (int i=0; i&lt;n; ++i) {
+            int v = order[n-1-i];
+            if (!used[v]) {
+                dfs2 (v);
+                ... printing next component ...
+                component.clear();
+            }
+        }
+    }
+</code></pre>
+
+<p>Here, $g$ is graph, $gr$ is transposed graph. Function $dfs1$ implements depth first search on graph $G$, function $dfs2$ - on transposed graph $G^T$. Function $dfs1$ fills the list $order$ with vertices in increasing order of their exit times (actually, it is making a topological sort). Function $dfs2$ stores all reached vertices in list $component$, that is going to store next strongly connected component after each run.</p>
+
+<h2>Literature</h2>
+
+<ul>
+<li>Thomas Cormen, Charles Leiserson, Ronald Rivest, Clifford Stein. Introduction to Algorithms [2005].</li>
+<li>M. Sharir. A strong-connectivity algorithm and its applications in data-flow analysis [1979].</li>
+</ul>
+
+<h2>Practice Problems</h2>
+
+<ul>
+<li><a href="http://www.spoj.com/problems/SUBMERGE/">SPOJ - Submerging Islands</a></li>
+<li><a href="http://www.spoj.com/problems/GOODA/">SPOJ - Good Travels</a></li>
+<li><a href="http://www.spoj.com/problems/LEGO/">SPOJ - Lego</a></li>
+<li><a href="https://www.codechef.com/AUG16/problems/CHEFRRUN">Codechef - Chef and Round Run</a></li>
+<li><a href="https://devskill.com/CodingProblems/ViewProblem/79">Dev Skills - A Song of Fire and Ice</a></li>
+<li><a href="https://uva.onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;page=show_problem&amp;problem=2938">UVA - 11838 - Come and Go</a></li>
+<li><a href="https://uva.onlinejudge.org/index.php?option=onlinejudge&amp;page=show_problem&amp;problem=183">UVA 247 - Calling Circles</a></li>
+<li><a href="https://uva.onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;page=show_problem&amp;problem=4955">UVA 13057 - Prove Them All</a></li>
+<li><a href="https://uva.onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;page=show_problem&amp;problem=4393">UVA 12645 - Water Supply</a></li>
+<li><a href="https://uva.onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;page=show_problem&amp;problem=2870">UVA 11770 - Lighting Away</a></li>
+<li><a href="https://uva.onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;category=862&amp;page=show_problem&amp;problem=4805">UVA 12926 - Trouble in Terrorist Town</a></li>
+<li><a href="https://uva.onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;page=show_problem&amp;problem=2299">UVA 11324 - The Largest Clique</a></li>
+<li><a href="https://uva.onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;page=show_problem&amp;problem=2756">UVA 11709 - Trust groups</a></li>
+<li><a href="https://uva.onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;page=show_problem&amp;problem=4598">UVA 12745 - Wishmaster</a></li>
+<li><a href="http://www.spoj.com/problems/TFRIENDS/">SPOJ - True Friends</a></li>
+<li><a href="http://www.spoj.com/problems/CAPCITY/">SPOJ - Capital City</a></li>
+<li><a href="http://codeforces.com/contest/22/problem/E">Codeforces - Scheme</a></li>
+<li><a href="http://www.spoj.com/problems/ADAPANEL/">SPOJ - Ada and Panels</a></li>
+<li><a href="https://cses.fi/problemset/task/1682">CSES - Flight Routes Check</a></li>
+<li><a href="https://cses.fi/problemset/task/1683">CSES - Planets and Kingdoms</a></li>
+<li><a href="https://cses.fi/problemset/task/1686">CSES -Coin Collector</a></li>
+<li><a href="https://codeforces.com/problemset/problem/427/C">Codeforces - Checkposts</a></li>
+</ul>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

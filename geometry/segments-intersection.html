@@ -1,0 +1,168 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Finding Intersection of Two Segments - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/geometry/segments-intersection.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Finding Intersection of Two Segments</h1>
+
+<p>You are given two segments AB and CD, described as pairs of their endpoints. Each segment can be a single point if its endpoints are the same. 
+You have to find the intersection of these segments, which can be empty (if the segments don't intersect), a single point or a segment (if the given segments overlap).</p>
+
+<h2>Solution</h2>
+
+<p>We can find the intersection point of segments in the same way as <a href="geometry/lines-intersection.html">the intersection of lines</a>: 
+reconstruct line equations from the segments' endpoints and check whether they are parallel.</p>
+
+<p>If the lines are not parallel, we need to find their point of intersection and check whether it belongs to both segments
+(to do this it's sufficient to verify that the intersection point belongs to each segment projected on X and Y axes). 
+In this case the answer will be either "no intersection" or the single point of lines' intersection.</p>
+
+<p>The case of parallel lines is slightly more complicated (the case of one or more segments being a single point also belongs here).
+In this case we need to check that both segments belong to the same line.
+If they don't, the answer is "no intersection".
+If they do, the answer is the intersection of the segments belonging to the same line, which is obtained by 
+ordering the endpoints of both segments in the increasing order of certain coordinate and taking the rightmost of left endpoints and the leftmost of right endpoints.</p>
+
+<p>If both segments are single points, these points have to be identical, and it makes sense to perform this check separately.</p>
+
+<p>In the beginning of the algorithm let's add a bounding box check - it is necessary for the case when the segments belong to the same line, 
+and (being a lightweight check) it allows the algorithm to work faster on average on random tests.</p>
+
+<h2>Implementation</h2>
+
+<p>Here is the implementation, including all helper functions for lines and segments processing.</p>
+
+<p>The main function <code>intersect</code> returns true if the segments have a non-empty intersection, 
+and stores endpoints of the intersection segment in arguments <code>left</code> and <code>right</code>. 
+If the answer is a single point, the values written to <code>left</code> and <code>right</code> will be the same.</p>
+
+<pre><code class="cpp">const double EPS = 1E-9;
+
+struct pt {
+    double x, y;
+
+    bool operator&lt;(const pt&amp; p) const
+    {
+        return x &lt; p.x - EPS || (abs(x - p.x) &lt; EPS &amp;&amp; y &lt; p.y - EPS);
+    }
+};
+
+struct line {
+    double a, b, c;
+
+    line() {}
+    line(pt p, pt q)
+    {
+        a = p.y - q.y;
+        b = q.x - p.x;
+        c = -a * p.x - b * p.y;
+        norm();
+    }
+
+    void norm()
+    {
+        double z = sqrt(a * a + b * b);
+        if (abs(z) &gt; EPS)
+            a /= z, b /= z, c /= z;
+    }
+
+    double dist(pt p) const { return a * p.x + b * p.y + c; }
+};
+
+double det(double a, double b, double c, double d)
+{
+    return a * d - b * c;
+}
+
+inline bool betw(double l, double r, double x)
+{
+    return min(l, r) &lt;= x + EPS &amp;&amp; x &lt;= max(l, r) + EPS;
+}
+
+inline bool intersect_1d(double a, double b, double c, double d)
+{
+    if (a &gt; b)
+        swap(a, b);
+    if (c &gt; d)
+        swap(c, d);
+    return max(a, c) &lt;= min(b, d) + EPS;
+}
+
+bool intersect(pt a, pt b, pt c, pt d, pt&amp; left, pt&amp; right)
+{
+    if (!intersect_1d(a.x, b.x, c.x, d.x) || !intersect_1d(a.y, b.y, c.y, d.y))
+        return false;
+    line m(a, b);
+    line n(c, d);
+    double zn = det(m.a, m.b, n.a, n.b);
+    if (abs(zn) &lt; EPS) {
+        if (abs(m.dist(c)) &gt; EPS || abs(n.dist(a)) &gt; EPS)
+            return false;
+        if (b &lt; a)
+            swap(a, b);
+        if (d &lt; c)
+            swap(c, d);
+        left = max(a, c);
+        right = min(b, d);
+        return true;
+    } else {
+        left.x = right.x = -det(m.c, m.b, n.c, n.b) / zn;
+        left.y = right.y = -det(m.a, m.c, n.a, n.c) / zn;
+        return betw(a.x, b.x, left.x) &amp;&amp; betw(a.y, b.y, left.y) &amp;&amp;
+               betw(c.x, d.x, left.x) &amp;&amp; betw(c.y, d.y, left.y);
+    }
+}
+</code></pre>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

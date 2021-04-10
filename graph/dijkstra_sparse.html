@@ -1,0 +1,200 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Dijkstra on sparse graphs  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/graph/dijkstra_sparse.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Dijkstra on sparse graphs</h1>
+
+<p>For the statement of the problem, the algorithm with implementation and proof can be found on the article <a href="./graph/dijkstra.html">Dijkstra's algorithm</a>.</p>
+
+<h2>Algorithm</h2>
+
+<p>We recall in the derivation of the complexity of Dijkstra's algorithm we used two factors:
+the time of finding the unmarked vertex with the smallest distance $d[v]$, and the time of the relaxation, i.e. the time of changing the values $d[\text{to}]$.</p>
+
+<p>In the simplest implementation these operations require $O(n)$ and $O(1)$ time.
+Therefore, since we perform the first operation $O(n)$ times, and the second one $O(m)$ times, we obtained the complexity $O(n^2 + m)$.</p>
+
+<p>It is clear, that this complexity is optimal for a dense graph, i.e. when $m \approx n^2$.
+However in sparse graphs, when $m$ is much smaller than the maximal number of edges $n^2$, the complexity gets less optimal because of the first term.
+Thus it is necessary to improve the execution time of the first operation (and of course without greatly affecting the second operation by much).</p>
+
+<p>To accomplish that we can use a variation of multiple auxiliary data structures.
+The most efficient is the <strong>Fibonacci heap</strong>, which allows the first operation to run in $O(\log n)$, and the second operation in $O(1)$.
+Therefore we will get the complexity $O(n \log n + m)$ for Dijkstra's algorithm, which is also the theoretical minimum for the shortest path search problem.
+Therefore this algorithm works optimal, and Fibonacci heaps are the optimal data structure.
+There doesn't exist any data structure, that can perform both operations in $O(1)$, because this would also allow to sort a list of random numbers in linear time, which is impossible.
+Interestingly there exists an algorithm by Thorup that finds the shortest path in $O(m)$ time, however only works for integer weights, and uses a completely different idea.
+So this doesn't lead to any contradictions.
+Fibonacci heaps provide the optimal complexity for this task.
+However they are quite complex to implement, and also have a quite large hidden constant.</p>
+
+<p>As a compromise you can use data structures, that perform both types of operations (extracting a minimum and updating an item) in $O(\log n)$.
+Then the complexity of Dijkstra's algorithm is $O(n \log n + m \log n) = O(m \log n)$.</p>
+
+<p>C++ provides two such data structures: <code>set</code> and <code>priority_queue</code>.
+The first is based on red-black trees, and the second one on heaps.
+Therefore <code>priority_queue</code> has a smaller hidden constant, but also has a drawback:
+it doesn't support the operation of removing an element.
+Because of this we need to do a "workaround", that actually leads to a slightly worse factor $\log m$ instead of $\log n$ (although in terms of complexity they are identical).</p>
+
+<h2>Implementation</h2>
+
+<h3>set</h3>
+
+<p>Let us start with the container <code>set</code>.
+Since we need to store vertices ordered by their values $d[]$, it is convenient to store actual pairs: the distance and the index of the vertex.
+As a result in a <code>set</code> pairs are automatically sorted by their distances.</p>
+
+<pre><code class="cpp">const int INF = 1000000000;
+vector&lt;vector&lt;pair&lt;int, int&gt;&gt;&gt; adj;
+
+void dijkstra(int s, vector&lt;int&gt; &amp; d, vector&lt;int&gt; &amp; p) {
+    int n = adj.size();
+    d.assign(n, INF);
+    p.assign(n, -1);
+
+    d[s] = 0;
+    set&lt;pair&lt;int, int&gt;&gt; q;
+    q.insert({0, s});
+    while (!q.empty()) {
+        int v = q.begin()-&gt;second;
+        q.erase(q.begin());
+
+        for (auto edge : adj[v]) {
+            int to = edge.first;
+            int len = edge.second;
+
+            if (d[v] + len &lt; d[to]) {
+                q.erase({d[to], to});
+                d[to] = d[v] + len;
+                p[to] = v;
+                q.insert({d[to], to});
+            }
+        }
+    }
+}
+</code></pre>
+
+<p>We don't need the array $u[]$ from the normal Dijkstra's algorithm implementation any more.
+We will use the <code>set</code> to store that information, and also find the vertex with the shortest distance with it.
+It kinda acts like a queue.
+The main loops executes until there are no more vertices in the set/queue.
+A vertex with the smallest distance gets extracted, and for each successful relaxation we first remove the old pair, and then after the relaxation add the new pair into the queue.</p>
+
+<h3>priority_queue</h3>
+
+<p>The main difference to the implementation with <code>set</code> is that we cannot remove elements from the <code>priority_queue</code> (although heaps can support that operation in theory).
+Therefore we have to cheat a little bit.
+We simply don't delete the old pair from the queue.
+As a result a vertex can appear multiple times with different distance in the queue at the same time.
+Among these pairs we are only interested in the pairs where the first element is equal to the corresponding value in $d[]$, all the other pairs are old.
+Therefore we need to make a small modification:
+at the beginning of each iteration, after extracting the next pair, we check if it is an important pair or if it is already an old and handled pair.
+This check is important, otherwise the complexity can increase up to $O(n m)$.</p>
+
+<p>By default a <code>priority_queue</code> sorts elements in descending order.
+To make it sort the elements in ascending order, we can either store the negated distances in it, or pass it a different sorting function.
+We will do the second option.</p>
+
+<pre><code class="cpp">const int INF = 1000000000;
+vector&lt;vector&lt;pair&lt;int, int&gt;&gt;&gt; adj;
+
+void dijkstra(int s, vector&lt;int&gt; &amp; d, vector&lt;int&gt; &amp; p) {
+    int n = adj.size();
+    d.assign(n, INF);
+    p.assign(n, -1);
+
+    d[s] = 0;
+    using pii = pair&lt;int, int&gt;;
+    priority_queue&lt;pii, vector&lt;pii&gt;, greater&lt;pii&gt;&gt; q;
+    q.push({0, s});
+    while (!q.empty()) {
+        int v = q.top().second;
+        int d_v = q.top().first;
+        q.pop();
+        if (d_v != d[v])
+            continue;
+
+        for (auto edge : adj[v]) {
+            int to = edge.first;
+            int len = edge.second;
+
+            if (d[v] + len &lt; d[to]) {
+                d[to] = d[v] + len;
+                p[to] = v;
+                q.push({d[to], to});
+            }
+        }
+    }
+}
+</code></pre>
+
+<p>In practice the <code>priority_queue</code> version is a little bit faster than the version with <code>set</code>.</p>
+
+<h3>Getting rid of pairs</h3>
+
+<p>You can improve the performance a little bit more if you don't store pairs in the containers, but only the vertex indices.
+In this case we must overload the comparison operator:
+it must compare two vertices using the distances stored in $d[]$.</p>
+
+<p>As a result of the relaxation, the distance of some vertices will change.
+However the data structure will not resort itself automatically.
+In fact changing distances of vertices in the queue, might destroy the data structure.
+As before, we need to remove the vertex before we relax it, and then insert it again afterwards.</p>
+
+<p>Since we only can remove from <code>set</code>, this optimization is only applicable for the <code>set</code> method, and doesn't work with <code>priority_queue</code> implementation.
+In practice this significantly increases the performance, especially when larger data types are used to store distances, like <code>long long</code> or <code>double</code>.</p>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

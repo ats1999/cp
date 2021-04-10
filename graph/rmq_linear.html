@@ -1,0 +1,115 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Solve RMQ by finding LCA  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/graph/rmq_linear.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Solve RMQ (Range Minimum Query) by finding LCA (Lowest Common Ancestor)</h1>
+
+<p>Given an array <code>A[0..N-1]</code>.
+For each query of the form <code>[L, R]</code> we want to find the minimum in the array <code>A</code> starting from position <code>L</code> and ending with position <code>R</code>.
+We will assume that the array <code>A</code> doesn't change in the process, i.e. this article describes a solution to the static RMQ problem</p>
+
+<p>Here is a description of an asymptotically optimal solution.
+It stands apart from other solutions for the RMQ problem, since it is very different from them:
+it reduces the RMQ problem to the LCA problem, and then uses the <a href="./graph/lca_farachcoltonbender.html">Farach-Colton and Bender algorithm</a>, which reduces the LCA problem back to a specialized RMQ problem and solves that.</p>
+
+<h2>Algorithm</h2>
+
+<p>We construct a <strong>Cartesian tree</strong> from the array <code>A</code>.
+A Cartesian tree of an array <code>A</code> is a binary tree with the min-heap property (the value of parent node has to be smaller or equal than the value of its children) such that the in-order traversal of the tree visits the nodes in the same order as they are in the array <code>A</code>.</p>
+
+<p>In other words, a Cartesian tree is a recursive data structure.
+The array <code>A</code> will be partitioned into 3 parts: the prefix of the array up to the minimum, the minimum, and the remaining suffix.
+The root of the tree will be a node corresponding to the minimum element of the array <code>A</code>, the left subtree will be the Cartesian tree of the prefix, and the right subtree will be a Cartesian tree of the suffix.</p>
+
+<p>In the following image you can see one array of length 10 and the corresponding Cartesian tree.
+<center><img src="https://raw.githubusercontent.com/e-maxx-eng/e-maxx-eng/master/img/CartesianTree.png" alt="Image of Cartesian Tree" /></center></p>
+
+<p>The range minimum query <code>[l, r]</code> is equivalent to the lowest common ancestor query <code>[l', r']</code>, where <code>l'</code> is the node corresponding to the element <code>A[l]</code> and <code>r'</code> the node corresponding to the element <code>A[r]</code>.
+Indeed the node corresponding to the smallest element in the range has to be an ancestor of all nodes in the range, therefor also from <code>l'</code> and <code>r'</code>.
+This automatically follows from the min-heap property.
+And is also has to be the lowest ancestor, because otherwise <code>l'</code> and <code>r'</code> would be both in the left or in the right subtree, which generates a contradiction since in such a case the minimum wouldn't even be in the range.</p>
+
+<p>In the following image you can see the LCA queries for the RMQ queries <code>[1, 3]</code> and <code>[5, 9]</code>.
+In the first query the LCA of the nodes <code>A[1]</code> and <code>A[3]</code> is the node corresponding to <code>A[2]</code> which has the value 2, and in the second query the LCA of <code>A[5]</code> and <code>A[9]</code> is the node corresponding to <code>A[8]</code> which has the value 3.
+<center><img src="https://raw.githubusercontent.com/e-maxx-eng/e-maxx-eng/master/img/CartesianTreeLCA.png" alt="LCA queries in the Cartesian Tree" /></center></p>
+
+<p>Such a tree can be built in $O(N)$ time and the Farach-Colton and Benders algorithm can preprocess the tree in $O(N)$ and find the LCA in $O(1)$.</p>
+
+<h2>Construction of a Cartesian tree</h2>
+
+<p>We will build the Cartesian tree by adding the elements one after another.
+In each step we maintain a valid Cartesian tree of all the processed elements.
+It is easy to see, that adding an element <code>s[i]</code> can only change the nodes in the most right path - starting at the root and repeatedly taking the right child - of the tree.
+The subtree of the node with the smallest, but greater or equal than <code>s[i]</code>, value becomes the left subtree of <code>s[i]</code>, and the tree with root <code>s[i]</code> will become the new right subtree of the node with the biggest, but smaller than <code>s[i]</code> value.</p>
+
+<p>This can be implemented by using a stack to store the indices of the most right nodes.</p>
+
+<pre><code class="cpp">vector&lt;int&gt; parent(n, -1);
+stack&lt;int&gt; s;
+for (int i = 0; i &lt; n; i++) {
+    int last = -1;
+    while (!s.empty() &amp;&amp; A[s.top()] &gt;= A[i]) {
+        last = s.top();
+        s.pop();
+    }
+    if (!s.empty())
+        parent[i] = s.top();
+    if (last &gt;= 0)
+        parent[last] = i;
+    s.push(i);
+}
+</code></pre>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Maximum flow - Push-relabel method improved  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/graph/push-relabel-faster.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Maximum flow - Push-relabel method improved</h1>
+
+<p>We will modify the <a href="./graph/push-relabel.html">push-relabel method</a> to achieve a better runtime.</p>
+
+<h2>Description</h2>
+
+<p>The modification is extremely simple:
+In the previous article we chosen a vertex with excess without any particular rule.
+But it turns out, that if we always choose the vertices with the <strong>greatest height</strong>, and apply push and relabel operations on them, then the complexity will become better.
+Moreover, to select the vertices with the greatest height we actually don't need any data structures, we simply store the vertices with the greatest height in a list, and recalculate the list once all of them are processed (then vertices with already lower height will be added to the list), or whenever a new vertex with excess and a greater height appears (after relabeling a vertex).</p>
+
+<p>Despite the simplicity, this modification reduces the complexity by a lot.
+To be precise, the complexity of the resulting algorithm is $O(V E + V^2 \sqrt{E})$, which in the worst case is $O(V^3)$.</p>
+
+<p>This modification was proposed by Cheriyan and Maheshwari in 1989.</p>
+
+<h2>Implementation</h2>
+
+<pre><code class="cpp">const int inf = 1000000000;
+
+int n;
+vector&lt;vector&lt;int&gt;&gt; capacity, flow;
+vector&lt;int&gt; height, excess;
+
+void push(int u, int v)
+{
+    int d = min(excess[u], capacity[u][v] - flow[u][v]);
+    flow[u][v] += d;
+    flow[v][u] -= d;
+    excess[u] -= d;
+    excess[v] += d;
+}
+
+void relabel(int u)
+{
+    int d = inf;
+    for (int i = 0; i &lt; n; i++) {
+        if (capacity[u][i] - flow[u][i] &gt; 0)
+            d = min(d, height[i]);
+    }
+    if (d &lt; inf)
+        height[u] = d + 1;
+}
+
+vector&lt;int&gt; find_max_height_vertices(int s, int t) {
+    vector&lt;int&gt; max_height;
+    for (int i = 0; i &lt; n; i++) {
+        if (i != s &amp;&amp; i != t &amp;&amp; excess[i] &gt; 0) {
+            if (!max_height.empty() &amp;&amp; height[i] &gt; height[max_height[0]])
+                max_height.clear();
+            if (max_height.empty() || height[i] == height[max_height[0]])
+                max_height.push_back(i);
+        }
+    }
+    return max_height;
+}
+
+int max_flow(int s, int t)
+{
+    height.assign(n, 0);
+    height[s] = n;
+    flow.assign(n, vector&lt;int&gt;(n, 0));
+    excess.assign(n, 0);
+    excess[s] = inf;
+    for (int i = 0; i &lt; n; i++) {
+        if (i != s)
+            push(s, i);
+    }
+
+    vector&lt;int&gt; current;
+    while (!(current = find_max_height_vertices(s, t)).empty()) {
+        for (int i : current) {
+            bool pushed = false;
+            for (int j = 0; j &lt; n &amp;&amp; excess[i]; j++) {
+                if (capacity[i][j] - flow[i][j] &gt; 0 &amp;&amp; height[i] == height[j] + 1) {
+                    push(i, j);
+                    pushed = true;
+                }
+            }
+            if (!pushed) {
+                relabel(i);
+                break;
+            }
+        }
+    }
+
+    int max_flow = 0;
+    for (int i = 0; i &lt; n; i++)
+        max_flow += flow[i][t];
+    return max_flow;
+}
+</code></pre>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

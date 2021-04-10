@@ -1,0 +1,353 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Longest increasing subsequence  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/sequences/longest_increasing_subsequence.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Longest increasing subsequence</h1>
+
+<p>We are given an array with $n$ numbers: $a[0 \dots n-1]$.
+The task is to find the longest, strictly increasing, subsequence in $a$.</p>
+
+<p>Formally we look for the longest sequence of indices $i_1, \dots i_k$ such that
+$$i_1 &lt; i_2 &lt; \dots &lt; i_k,&#92;&#92;
+a[i_1] &lt; a[i_2] &lt; \dots &lt; a[i_k]$$</p>
+
+<p>In this article we discuss multiple algorithms for solving this task.
+Also we will discuss some other problems, that can be reduced to this problem.</p>
+
+<h2>Solution in $O(n^2)$ with dynamic programming</h2>
+
+<p>Dynamic programming is a very general technique that allows to solve a huge class of problems.
+Here we apply the technique for our specific task.</p>
+
+<p>First we will search only for the <strong>length</strong> of the longest increasing subsequence, and only later learn how to restore the subsequence itself.</p>
+
+<h3>Finding the length</h3>
+
+<p>To accomplish this task, we define an array $d[0 \dots n-1]$, where $d[i]$ is the length of the longest increasing subsequence that ends in the element at index $i$.
+We will compute this array gradually: first $d[0]$, then $d[1]$, and so on.
+After this array is computed, the answer to the problem will be the maximum value in the array $d[]$.</p>
+
+<p>So let the current index be $i$.
+I.e. we want to compute the value $d[i]$ and all previous values $d[0], \dots, d[i-1]$ are already known.
+Then there are two options:</p>
+
+<ul>
+<li>$d[i] = 1$: the required subsequence consists of only the element $a[i]$.</li>
+<li>$d[i] > 1$: then in the required subsequence is another number before the number $a[i]$.
+Let's focus on that number:
+it can be any element $a[j]$ with $j = 0 \dots i-1$ and $a[j] &lt; a[i]$.
+In this fashion we can compute $d[i]$ using the following formula:
+If we fixate the index $j$, than the longest increasing subsequence ending in the two elements $a[j]$ and $a[i]$ has the length $d[j] + 1$.
+All of these values $d[j]$ are already known, so we can directly compute $d[i]$ with:
+$$d[i] = \max_{\substack{j = 0 \dots i-1 &#92;&#92; a[j] &lt; a[i]}} \left(d[j] + 1\right)$$</li>
+</ul>
+
+<p>If we combine these two cases we get the final answer for $d[i]$:</p>
+
+<p>$$d[i] = \max\left(1, \max_{\substack{j = 0 \dots i-1 &#92;&#92; a[j] &lt; a[i]}} \left(d[j] + 1\right)\right)$$</p>
+
+<h3>Implementation</h3>
+
+<p>Here is an implementation of the algorithm described above, which computes the length of the longest increasing subsequence.</p>
+
+<pre><code class="cpp">int lis(vector&lt;int&gt; const&amp; a) {
+    int n = a.size();
+    vector&lt;int&gt; d(n, 1);
+    for (int i = 0; i &lt; n; i++) {
+        for (int j = 0; j &lt; i; j++) {
+            if (a[j] &lt; a[i])
+                d[i] = max(d[i], d[j] + 1);
+        }
+    }
+
+    int ans = d[0];
+    for (int i = 1; i &lt; n; i++) {
+        ans = max(ans, d[i]);
+    }
+    return ans;
+}
+</code></pre>
+
+<h3>Restoring the subsequence</h3>
+
+<p>So far we only learned how to find the length of the subsequence, but not how to find the subsequence itself.</p>
+
+<p>To be able to restore the subsequence we generate an additional auxiliary array $p[0 \dots n-1]$ that we will compute alongside the array $d[]$.
+$p[i]$ will be the index $j$ of the second last element in the longest increasing subsequence ending in $i$.
+In other words the index $p[i]$ is the same index $j$ at which the highest value $d[i]$ was obtained.
+This auxiliary array $p[]$ points in some sense to the ancestors.</p>
+
+<p>Then to derive the subsequence, we just start at the index $i$ with the maximal $d[i]$, and follow the ancestors until we deduced the entire subsequence, i.e. until we reach the element with $d[i] = 1$.</p>
+
+<h3>Implementation of restoring</h3>
+
+<p>We will change the code from the previous sections a little bit.
+We will compute the array $p[]$ alongside $d[]$, and afterwards compute the subsequence.</p>
+
+<p>For convenience we originally assign the ancestors with $p[i] = -1$.
+For elements with $d[i] = 1$, the ancestors value will remain $-1$, which will be slightly more convenient for restoring the subsequence.</p>
+
+<pre><code class="cpp">vector&lt;int&gt; lis(vector&lt;int&gt; const&amp; a) {
+    int n = a.size();
+    vector&lt;int&gt; d(n, 1), p(n, -1);
+    for (int i = 0; i &lt; n; i++) {
+        for (int j = 0; j &lt; i; j++) {
+            if (a[j] &lt; a[i] &amp;&amp; d[i] &lt; d[j] + 1) {
+                d[i] = d[j] + 1;
+                p[i] = j;
+            }
+        }
+    }
+
+    int ans = d[0], pos = 0;
+    for (int i = 1; i &lt; n; i++) {
+        if (d[i] &gt; ans) {
+            ans = d[i];
+            pos = i;
+        }
+    }
+
+    vector&lt;int&gt; subseq;
+    while (pos != -1) {
+        subseq.push_back(a[pos]);
+        pos = p[pos];
+    }
+    reverse(subseq.begin(), subseq.end());
+    return subseq;
+}
+</code></pre>
+
+<h3>Alternative way of restoring the subsequence</h3>
+
+<p>It is also possible to restore the subsequence without the auxiliary array $p[]$.
+We can simply recalculate the current value of $d[i]$ and also see how the maximum was reached.</p>
+
+<p>This method leads to a slightly longer code, but in return we save some memory.</p>
+
+<h2>Solution in $O(n \log n)$ with dynamic programming and binary search</h2>
+
+<p>In order to obtain a faster solution for the problem, we construct a different dynamic programming solution that runs in $O(n^2)$, and then later improve it to $O(n \log n)$.</p>
+
+<p>We will use the dynamic programming array $d[0 \dots n]$.
+This time $d[i]$ will be the element at which a subsequence of length $i$ terminates.
+If there are multiple such sequences, then we take the one that ends in the smallest element.</p>
+
+<p>Initially we assume $d[0] = -\infty$ and for all other elements $d[i] = \infty$.</p>
+
+<p>We will again gradually process the numbers, first $a[0]$, then $a[1]$, etc, and in each step maintain the array $d[]$ so that it is up to date.</p>
+
+<p>After processing all the elements of $a[]$ the length of the desired subsequence is the largest $l$ with $d[l] &lt; \infty$.</p>
+
+<pre><code class="cpp">int lis(vector&lt;int&gt; const&amp; a) {
+    int n = a.size();
+    const int INF = 1e9;
+    vector&lt;int&gt; d(n+1, INF);
+    d[0] = -INF;
+
+    for (int i = 0; i &lt; n; i++) {
+        for (int j = 1; j &lt;= n; j++) {
+            if (d[j-1] &lt; a[i] &amp;&amp; a[i] &lt; d[j])
+                d[j] = a[i];
+        }
+    }
+
+    int ans = 0;
+    for (int i = 0; i &lt;= n; i++) {
+        if (d[i] &lt; INF)
+            ans = i;
+    }
+    return ans;
+}
+</code></pre>
+
+<p>We now make two important observations.</p>
+
+<p>The array $d$ will always be sorted: 
+$d[i-1] \le d[i]$ for all $i = 1 \dots n$.
+And also the element $a[i]$ will only update at most one value $d[j]$.</p>
+
+<p>Thus we can find this element in the array $d[]$ using binary search in $O(\log n)$.
+In fact we are simply looking in the array $d[]$ for the first number that is strictly greater than $a[i]$, and we try to update this element in the same way as the above implementation.</p>
+
+<h3>Implementation</h3>
+
+<pre><code class="cpp">int lis(vector&lt;int&gt; const&amp; a) {
+    int n = a.size();
+    const int INF = 1e9;
+    vector&lt;int&gt; d(n+1, INF);
+    d[0] = -INF;
+
+    for (int i = 0; i &lt; n; i++) {
+        int j = upper_bound(d.begin(), d.end(), a[i]) - d.begin();
+        if (d[j-1] &lt; a[i] &amp;&amp; a[i] &lt; d[j])
+            d[j] = a[i];
+    }
+
+    int ans = 0;
+    for (int i = 0; i &lt;= n; i++) {
+        if (d[i] &lt; INF)
+            ans = i;
+    }
+    return ans;
+}
+</code></pre>
+
+<h3>Restoring the subsequence</h3>
+
+<p>It is also possible to restore the subsequence using this approach.
+This time we have to maintain two auxiliary arrays.
+One that tells us the index of the elements in $d[]$.
+And again we have to create an array of "ancestors" $p[i]$.
+$p[i]$ will be the index of the previous element for the optimal subsequence ending in element $i$.</p>
+
+<p>It's easy to maintain these two arrays in the course of iteration over the array $a[]$ alongside the computations of $d[]$.
+And at the end it in not difficult to restore the desired subsequence using these arrays.</p>
+
+<h2>Solution in $O(n \log n)$ with data structures</h2>
+
+<p>Instead of the above method for computing the longest increasing subsequence in $O(n \log n)$ we can also solve the problem in a different way: using some simple data structures.</p>
+
+<p>Let's go back to the first method.
+Remember that $d[i]$ is the value $d[j] + 1$ with $j &lt; i$ and $a[j] &lt; a[i]$.</p>
+
+<p>Thus if we define an additional array $t[]$ such that
+$$t[a[i]] = d[i],$$
+then the problem of computing the value $d[i]$ is equivalent to finding the <strong>maximum value in a prefix</strong> of the array $t[]$:
+$$d[i] = \max\left(t[0 \dots a[i] - 1] + 1\right)$$</p>
+
+<p>The problem of finding the maximum of a prefix of an array (which changes) is a standard problem that can be solved by many different data structures. 
+For instance we can use a <a href="./data_structures/segment_tree.html">Segment tree</a> or a <a href="./data_structures/fenwick.html">Fenwick tree</a>.</p>
+
+<p>This method has obviously some <strong>shortcomings</strong>:
+in terms of length and complexity of the implementation this approach will be worse than the method using binary search.
+In addition if the input numbers $a[i]$ are especially large, then we would have to use some tricks, like compressing the numbers (i.e. renumber them from $0$ to $n-1$), or use an implicit Segment tree (only generate the branches of the tree that are important).
+Otherwise the memory consumption will be too high.</p>
+
+<p>On the other hand this method has also some <strong>advantages</strong>:
+with this method you don't have to think about any tricky properties in the dynamic programming solution.
+And this approach allows us to generalize the problem very easily (see below).</p>
+
+<h2>Related tasks</h2>
+
+<p>Here are several problems that are closely related to the problem of finding the longest increasing subsequence.</p>
+
+<h3>Longest non-decreasing subsequence</h3>
+
+<p>This is in fact nearly the same problem.
+Only now it is allowed to use identical numbers in the subsequence.</p>
+
+<p>The solution is essentially also nearly the same.
+We just have to change the inequality signs, and make a slightly modification to the binary search.</p>
+
+<h3>Number of longest increasing subsequences</h3>
+
+<p>We can use the first discussed method, either the $O(n^2)$ version or the version using data structures.
+We only have to additionally store in how many ways we can obtain longest increasing subsequences ending in the values $d[i]$.</p>
+
+<p>The number of ways to form a longest increasing subsequences ending in $a[i]$ is the sum of all ways for all longest increasing subsequences ending in $j$ where $d[j]$ is maximal.
+There can be multiple such $j$, so we need to sum all of them.</p>
+
+<p>Using a Segment tree this approach can also be implemented in $O(n \log n)$.</p>
+
+<p>It is not possible to use the binary search approach for this task.</p>
+
+<h3>Smallest number of non-increasing subsequences covering a sequence</h3>
+
+<p>For a given array with $n$ numbers $a[0 \dots n - 1]$ we have to colorize the numbers in the smallest number of colors, so that each color forms a non-increasing subsequence.</p>
+
+<p>To solve this, we notice that the minimum number of required colors is equal to the length of the longest increasing subsequence.</p>
+
+<p><strong>Proof</strong>:
+We need to prove the <strong>duality</strong> of these two problems.</p>
+
+<p>Let's denote by $x$ the length of the longest increasing subsequence and by $y$ the least number of non-increasing subsequences that form a cover.
+We need to prove that $x = y$.</p>
+
+<p>It is clear that $y &lt; x$ is not possible, because if we have $x$ strictly increasing elements, than no two can be part of the same non-increasing subsequence.
+Therefore we have $y \ge x$.</p>
+
+<p>We now show that $y > x$ is not possible by contradiction.
+Suppose that $y > x$.
+Then we consider any optimal set of $y$ non-increasing subsequences.
+We transform this in set in the following way:
+as long as there are two such subsequences such that the first begins before the second subsequence, and the first sequence start with a number greater than or equal to the second, then we unhook this starting number and attach it to the beginning of second.
+After a finite number of steps we have $y$ subsequences, and their starting numbers will form an increasing subsequence of length $y$.
+Since we assumed that $y > x$ we reached a contradiction.</p>
+
+<p>Thus it follows that $y = x$.</p>
+
+<p><strong>Restoring the sequences</strong>:
+The desired partition of the sequence into subsequences can be done greedily.
+I.e. go from left to right and assign the current number or that subsequence ending with the minimal number which is greater than or equal to the current one.</p>
+
+<h2>Practice Problems</h2>
+
+<ul>
+<li><a href="http://codeforces.com/problemsets/acmsguru/problem/99999/521">ACMSGURU - "North-East"</a></li>
+<li><a href="http://codeforces.com/problemset/problem/10/D">Codeforces - LCIS</a></li>
+<li><a href="http://codeforces.com/contest/76/problem/F">Codeforces - Tourist</a></li>
+<li><a href="https://www.spoj.com/problems/DOSA/">SPOJ - DOSA</a></li>
+<li><a href="https://www.spoj.com/problems/HMLIS/">SPOJ - HMLIS</a></li>
+<li><a href="https://www.spoj.com/problems/ONEXLIS/">SPOJ - ONEXLIS</a></li>
+<li><a href="http://www.spoj.com/problems/SUPPER/">SPOJ - SUPPER</a></li>
+<li><a href="https://community.topcoder.com/stat?c=problem_statement&amp;pm=3937&amp;rd=6532">Topcoder - AutoMarket</a></li>
+<li><a href="https://community.topcoder.com/stat?c=problem_statement&amp;pm=2967&amp;rd=5881">Topcoder - BridgeArrangement</a></li>
+<li><a href="https://community.topcoder.com/stat?c=problem_statement&amp;pm=5922&amp;rd=8075">Topcoder - IntegerSequence</a></li>
+<li><a href="https://onlinejudge.org/external/127/12747.pdf">UVA - Back To Edit Distance</a></li>
+<li><a href="https://onlinejudge.org/external/120/12002.pdf">UVA - Happy Birthday</a></li>
+<li><a href="https://onlinejudge.org/external/11/1196.pdf">UVA - Tiling Up Blocks</a></li>
+</ul>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

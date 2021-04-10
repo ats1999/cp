@@ -1,0 +1,198 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Fibonacci Numbers  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/algebra/fibonacci-numbers.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Fibonacci Numbers</h1>
+
+<p>The Fibonacci sequence is defined as follows:</p>
+
+<p>$$F_0 = 0, F_1 = 1, F_n = F_{n-1} + F_{n-2}$$</p>
+
+<p>The first elements of the sequence (<a href="http://oeis.org/A000045">OEIS A000045</a>) are:</p>
+
+<p>$$0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, ...$$</p>
+
+<h2>Properties</h2>
+
+<p>Fibonacci numbers possess a lot of interesting properties. Here are a few of them:</p>
+
+<ul>
+<li><p>Cassini's identity:
+$$F_{n-1} F_{n+1} - F_n^2 = (-1)^n$$</p></li>
+<li><p>The "addition" rule:
+$$F_{n+k} = F_k F_{n+1} + F_{k-1} F_n$$</p></li>
+<li><p>Applying the previous identity to the case $k = n$, we get:
+$$F_{2n} = F_n (F_{n+1} + F_{n-1})$$</p></li>
+<li><p>From this we can prove by induction that for any positive integer $k$,  $F_{nk}$ is multiple of $F_n$.</p></li>
+<li><p>The inverse is also true: if $F_m$ is multiple of $F_n$, then $m$ is multiple of $n$.</p></li>
+<li><p>GCD identity:
+$$GCD(F_m, F_n) = F_{GCD(m, n)}$$</p></li>
+<li><p>Fibonacci numbers are the worst possible inputs for Euclidean algorithm (see Lame's theorem in <a href="./algebra/euclid-algorithm.html">Euclidean algorithm</a>)</p></li>
+</ul>
+
+<h2>Fibonacci Coding</h2>
+
+<p>We can use the sequence to encode positive integers into binary code words. According to Zeckendorf's theorem, any natural number $n$ can be uniquely represented as a sum of Fibonacci numbers:</p>
+
+<p>$$N = F_{k_1} + F_{k_2} + \ldots + F_{k_r}$$</p>
+
+<p>such that $k_1 \ge k_2 + 2,\ k_2 \ge k_3 + 2,\  \ldots,\  k_r \ge 2$ (i.e.: the representation cannot use two consecutive Fibonacci numbers).</p>
+
+<p>It follows that any number can be uniquely encoded in the Fibonacci coding.
+And we can describe this representation with binary codes $d_0 d_1 d_2 \dots d_s 1$, where $d_i$ is $1$ if $F_{i+2}$ is used in the representation.
+The code will be appended by a $1$ do indicate the end of the code word.
+Notice that this is the only occurrence where two consecutive 1-bits appear.</p>
+
+<p>$$\begin{eqnarray}
+1 &amp;=&amp; 1 &amp;=&amp; F_2 &amp;=&amp; (11)_F &#92;\
+2 &amp;=&amp; 2 &amp;=&amp; F_3 &amp;=&amp; (011)_F &#92;\
+6 &amp;=&amp; 5 + 1 &amp;=&amp; F_5 + F_2 &amp;=&amp; (10011)_F &#92;\
+8 &amp;=&amp; 8 &amp;=&amp; F_6 &amp;=&amp; (000011)_F &#92;\
+9 &amp;=&amp; 8 + 1 &amp;=&amp; F_6 + F_2 &amp;=&amp; (100011)_F &#92;\
+19 &amp;=&amp; 13 + 5 + 1 &amp;=&amp; F_7 + F_5 + F_2 &amp;=&amp; (1001011)_F
+\end{eqnarray}$$</p>
+
+<p>The encoding of an integer $n$ can be done with a simple greedy algorithm:</p>
+
+<ol>
+<li><p>Iterate through the Fibonacci numbers from the largest to the smallest until you find one less than or equal to $n$.</p></li>
+<li><p>Suppose this number was $F_i$. Subtract $F_i$ from $n$ and put a $1$ in the $i-2$ position of the code word (indexing from 0 from the leftmost to the rightmost bit).</p></li>
+<li><p>Repeat until there is no remainder.</p></li>
+<li><p>Add a final $1$ to the codeword to indicate its end.</p></li>
+</ol>
+
+<p>To decode a code word, first remove the final $1$. Then, if the $i$-th bit is set (indexing from 0 from the leftmost to the rightmost bit), sum $F_{i+2}$ to the number.</p>
+
+<h2>Formulas for the n-th Fibonacci number</h2>
+
+<p>The $n$-th Fibonacci number can be easily found in $O(n)$ by computing the numbers one by one up to $n$. However, there are also faster ways, as we will see.</p>
+
+<h3>Closed-form expression</h3>
+
+<p>There is a formula known as "Binet's formula", even though it was already known by Moivre:</p>
+
+<p>$$F_n = \frac{\left(\frac{1 + \sqrt{5}}{2}\right)^n - \left(\frac{1 - \sqrt{5}}{2}\right)^n}{\sqrt{5}}$$</p>
+
+<p>This formula is easy to prove by induction, but it can be deduced with the help of the concept of generating functions or by solving a functional equation.</p>
+
+<p>You can immediately notice that the second term's absolute value is always less than $1$, and it also decreases very rapidly (exponentially). Hence the value of the first term alone is "almost" $F_n$. This can be written strictly as:</p>
+
+<p>$$F_n = \left[\frac{\left(\frac{1 + \sqrt{5}}{2}\right)^n}{\sqrt{5}}\right]$$</p>
+
+<p>where the square brackets denote rounding to the nearest integer.</p>
+
+<p>As these two formulas would require very high accuracy when working with fractional numbers, they are of little use in practical calculations.</p>
+
+<h3>Matrix form</h3>
+
+<p>It is easy to prove the following relation:</p>
+
+<p>$$\begin{pmatrix}F_{n-1} &amp; F_{n} \cr\end{pmatrix} = \begin{pmatrix}F_{n-2} &amp; F_{n-1} \cr\end{pmatrix} \cdot \begin{pmatrix}0 &amp; 1 \cr 1 &amp; 1 \cr\end{pmatrix}$$</p>
+
+<p>Denoting $P \equiv \begin{pmatrix}0 &amp; 1 \cr 1 &amp; 1 \cr\end{pmatrix}$, we have:</p>
+
+<p>$$\begin{pmatrix}F_n &amp; F_{n+1} \cr\end{pmatrix} = \begin{pmatrix}F_0 &amp; F_1 \cr\end{pmatrix} \cdot P^n$$</p>
+
+<p>Thus, in order to find $F_n$, we must raise the matrix $P$ to $n$. This can be done in $O(\log n)$ (see <a href="./algebra/binary-exp.html">Binary exponentiation</a>).</p>
+
+<h3>Fast Doubling Method</h3>
+
+<p>Using above method we can find these equations:
+$$ \begin{array}{rll}
+                        F_{2k} &amp;= F_k \left( 2F_{k+1} - F_{k} \right). &#92;\
+                        F_{2k+1} &amp;= F_{k+1}^2 + F_{k}^2.
+\end{array}$$
+Thus using above two equations Fibonacci numbers can be calculated easily by the following code:</p>
+
+<pre><code class="cpp">pair&lt;int, int&gt; fib (int n) {
+    if (n == 0)
+        return {0, 1};
+
+    auto p = fib(n &gt;&gt; 1);
+    int c = p.first * (2 * p.second - p.first);
+    int d = p.first * p.first + p.second * p.second;
+    if (n &amp; 1)
+        return {d, c + d};
+    else
+        return {c, d};
+}
+</code></pre>
+
+<p>The above code returns $F_n$ and $F_{n+1}$ as a pair.</p>
+
+<h2>Periodicity modulo p</h2>
+
+<p>Consider the Fibonacci sequence modulo $p$. We will prove the sequence is periodic and the period begins with $F_1 = 1$ (that is, the pre-period contains only $F_0$).</p>
+
+<p>Let us prove this by contradiction. Consider the first $p^2 + 1$ pairs of Fibonacci numbers taken modulo $p$:</p>
+
+<p>$$(F_1,\ F_2),\ (F_2,\ F_3),\ \ldots,\ (F_{p^2 + 1},\ F_{p^2 + 2})$$</p>
+
+<p>There can only be $p$ different remainders modulo $p$, and at most $p^2$ different remainders, so there are at least two identical pairs among them. Thus the sequence is periodic.</p>
+
+<p>We now choose two pairs of identical remainders with the smallest indices in the sequence. Let the pairs be $(F_a,\ F_{a + 1})$ and $(F_b,\ F_{b + 1})$. We will prove that $a = 1$. If this was false, there would be two previous pairs $(F_{a-1},\ F_a)$ and $(F_{b-1},\ F_b)$, which, by the property of Fibonacci numbers, would also be equal. However, this contradicts the fact that we had chosen pairs with the smallest indices, completing our proof.</p>
+
+<h2>Practice Problems</h2>
+
+<ul>
+<li><a href="http://www.spoj.com/problems/MAIN74/">SPOJ - Euclid Algorithm Revisited</a></li>
+<li><a href="http://www.spoj.com/problems/FIBOSUM/">SPOJ - Fibonacci Sum</a></li>
+<li><a href="https://www.hackerrank.com/contests/codesprint5/challenges/is-fibo/problem">HackerRank - Is Fibo</a></li>
+<li><a href="https://www.hackerrank.com/contests/projecteuler/challenges/euler002/problem">Project Euler - Even Fibonacci numbers</a></li>
+<li><a href="https://dmoj.ca/problem/fibonacci">DMOJ - Fibonacci Sequence</a></li>
+<li><a href="https://dmoj.ca/problem/fibonacci2">DMOJ - Fibonacci Sequence (Harder)</a></li>
+</ul>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

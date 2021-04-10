@@ -1,0 +1,406 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Sqrt Tree - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/data_structures/sqrt-tree.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Sqrt Tree</h1>
+
+<p>Given an array $a$ that contains $n$ elements and the operation $\circ$ that satisfies associative property: $(x \circ y) \circ z = x \circ (y \circ z)$ is true for any $x$, $y$, $z$.</p>
+
+<p>So, such operations as $\gcd$, $\min$, $\max$, $+$, $\text{and}$, $\text{or}$, $\text{xor}$, etc. satisfy these conditions.</p>
+
+<p>Also we have some queries $q(l, r)$. For each query, we need to compute $a_l \circ a_{l+1} \circ \dots \circ a_r$.</p>
+
+<p>Sqrt Tree can process such queries in $O(1)$ time with $O(n \cdot \log \log n)$ preprocessing time and $O(n \cdot \log \log n)$ memory.</p>
+
+<h2>Description</h2>
+
+<h3>Building sqrt decomposition</h3>
+
+<p>Let's make a <a href="/data_structures/sqrt_decomposition.html">sqrt decomposition</a>. We divide our array in $\sqrt{n}$ blocks, each block has size $\sqrt{n}$. For each block, we compute:</p>
+
+<ol>
+<li>Answers to the queries that lie in the block and begin at the beginning of the block ($\text{prefixOp}$)</li>
+<li>Answers to the queries that lie in the block and end at the end of the block ($\text{suffixOp}$)</li>
+</ol>
+
+<p>And we'll compute an additional array:</p>
+
+<ol>
+<li>$\text{between}_{i, j}$ (for $i \le j$) - answer to the query that begins at the start of block $i$ and ends at the end of block $j$. Note that we have $\sqrt{n}$ blocks, so the size of this array will be $O(\sqrt{n}^2) = O(n)$.</li>
+</ol>
+
+<p>Let's see the example.</p>
+
+<p>Let $\circ$ be $+$ (we calculate sum on a segment) and we have the following array $a$:</p>
+
+<p><code>{1, 2, 3, 4, 5, 6, 7, 8, 9}</code></p>
+
+<p>It will be divided onto three blocks: <code>{1, 2, 3}</code>, <code>{4, 5, 6}</code> and <code>{7, 8, 9}</code>.</p>
+
+<p>For first block $\text{prefixOp}$ is <code>{1, 3, 6}</code> and $\text{suffixOp}$ is <code>{6, 5, 3}</code>.</p>
+
+<p>For second block $\text{prefixOp}$ is <code>{4, 9, 15}</code> and $\text{suffixOp}$ is <code>{15, 11, 6}</code>.</p>
+
+<p>For third block $\text{prefixOp}$ is <code>{7, 15, 24}</code> and $\text{suffixOp}$ is <code>{24, 17, 9}</code>.</p>
+
+<p>$\text{between}$ array is:</p>
+
+<pre><code>{
+    {6, 21, 45},
+    {0, 15, 39},
+    {0, 0,  24}
+}
+</code></pre>
+
+<p>(we assume that invalid elements where $i > j$ are filled with zeroes)</p>
+
+<p>It's obvious to see that these arrays can be easily calculated in $O(n)$ time and memory.</p>
+
+<p>We already can answer some queries using these arrays. If the query doesn't fit into one block, we can divide it onto three parts: suffix of a block, then some segment of contiguous blocks and then prefix of some block. We can answer a query by dividing it into three parts and taking our operation of some value from $\text{suffixOp}$, then some value from $\text{between}$, then some value from $\text{prefixOp}$.</p>
+
+<p>But if we have queries that entirely fit into one block, we cannot process them using these three arrays. So, we need to do something.</p>
+
+<h3>Making a tree</h3>
+
+<p>We cannot answer only the queries that entirely fit in one block. But what <strong>if we build the same structure as described above for each block?</strong> Yes, we can do it. And we do it recursively, until we reach the block size of $1$ or $2$. Answers for such blocks can be calculated easily in $O(1)$.</p>
+
+<p>So, we get a tree. Each node of the tree represents some segment of the array. Node that represents array segment with size $k$ has $\sqrt{k}$ children -- for each block. Also each node contains the three arrays described above for the segment it contains. The root of the tree represents the entire array. Nodes with segment lengths $1$ or $2$ are leaves.</p>
+
+<p>Also it's obvious that the height of this tree is $O(\log \log n)$, because if some vertex of the tree represents an array with length $k$, then its children have length $\sqrt{k}$. $\log(\sqrt{k}) = \frac{\log{k}}{2}$, so $\log k$ decreases two times every layer of the tree and so its height is $O(\log \log n)$. The time for building and memory usage will be $O(n \cdot \log \log n)$, because every element of the array appears exactly once on each layer of the tree.</p>
+
+<p>Now we can answer the queries in $O(\log \log n)$. We can go down on the tree until we meet a segment with length $1$ or $2$ (answer for it can be calculated in $O(1)$ time) or meet the first segment in which our query doesn't fit entirely into one block. See the first section on how to answer the query in this case.</p>
+
+<p>OK, now we can do $O(\log \log n)$ per query. Can it be done faster?</p>
+
+<h3>Optimizing the query complexity</h3>
+
+<p>One of the most obvious optimization is to binary search the tree node we need. Using binary search, we can reach the $O(\log \log \log n)$ complexity per query. Can we do it even faster?</p>
+
+<p>The answer is yes. Let's assume the following two things:</p>
+
+<ol>
+<li>Each block size is a power of two.</li>
+<li>All the blocks are equal on each layer.</li>
+</ol>
+
+<p>To reach this, we can add some zero elements to our array so that its size becomes a power of two.</p>
+
+<p>When we use this, some block sizes may become twice larger to be a power of two, but it still be $O(\sqrt{k})$ in size and we keep linear complexity for building the arrays in a segment.</p>
+
+<p>Now, we can easily check if the query fits entirely into a block with size $2^k$. Let's write the ranges of the query, $l$ and $r$ (we use 0-indexation) in binary form. For instance, let's assume $k=4, l=39, r=46$. The binary representation of $l$ and $r$ is:</p>
+
+<p>$l = 39_{10} = 100111_2$</p>
+
+<p>$r = 46_{10} = 101110_2$</p>
+
+<p>Remember that one layer contains segments of the equal size, and the block on one layer have also equal size (in our case, their size is $2^k = 2^4 = 16$. The blocks cover the array entirely, so the first block covers elements $(0 - 15)$ ($(000000_2 - 001111_2)$ in binary), the second one covers elements $(16 - 31)$ ($(010000_2 - 011111_2)$ in binary) and so on. We see that the indices of the positions covered by one block may differ only in $k$ (in our case, $4$) last bits. In our case $l$ and $r$ have equal bits except four lowest, so they lie in one block.</p>
+
+<p>So, we need to check if nothing more that $k$ smallest bits differ (or $l\ \text{xor}\ r$ doesn't exceed $2^k-1$).</p>
+
+<p>Using this observation, we can find a layer that is suitable to answer the query quickly. How to do this:</p>
+
+<ol>
+<li><p>For each $i$ that doesn't exceed the array size, we find the highest bit that is equal to $1$. To do this quickly, we use DP and a precalculated array.</p></li>
+<li><p>Now, for each $q(l, r)$ we find the highest bit of $l\ \text{xor}\ r$ and, using this information, it's easy to choose the layer on which we can process the query easily. We can also use a precalculated array here.</p></li>
+</ol>
+
+<p>For more details, see the code below.</p>
+
+<p>So, using this, we can answer the queries in $O(1)$ each. Hooray! :)</p>
+
+<h2>Updating elements</h2>
+
+<p>We can also update elements in Sqrt Tree. Both single element updates and updates on a segment are supported.</p>
+
+<h3>Updating a single element</h3>
+
+<p>Consider a query $\text{update}(x, val)$ that does the assignment $a_x = val$. We need to perform this query fast enough.</p>
+
+<h4>Naive approach</h4>
+
+<p>First, let's take a look of what is changed in the tree when a single element changes. Consider a tree node with length $l$ and its arrays: $\text{prefixOp}$, $\text{suffixOp}$ and $\text{between}$. It is easy to see that only $O(\sqrt{l})$ elements from $\text{prefixOp}$ and $\text{suffixOp}$ change (only inside the block with the changed element). $O(l)$ elements are changed in $\text{between}$. Therefore, $O(l)$ elements in the tree node are updated.</p>
+
+<p>We remember that any element $x$ is present in exactly one tree node at each layer. Root node (layer $0$) has length $O(n)$, nodes on layer $1$ have length $O(\sqrt{n})$, nodes on layer $2$ have length $O(\sqrt{\sqrt{n}})$, etc. So the time complexity per update is $O(n + \sqrt{n} + \sqrt{\sqrt{n}} + \dots) = O(n)$.</p>
+
+<p>But it's too slow. Can it be done faster?</p>
+
+<h4>An sqrt-tree inside the sqrt-tree</h4>
+
+<p>Note that the bottleneck of updating is rebuilding $\text{between}$ of the root node. To optimize the tree, let's get rid of this array! Instead of $\text{between}$ array, we store another sqrt-tree for the root node. Let's call it $\text{index}$. It plays the same role as $\text{between}$&mdash; answers the queries on segments of blocks. Note that the rest of the tree nodes don't have $\text{index}$, they keep their $\text{between}$ arrays.</p>
+
+<p>A sqrt-tree is <em>indexed</em>, if its root node has $\text{index}$. A sqrt-tree with $\text{between}$ array in its root node is <em>unindexed</em>. Note that $\text{index}$ <strong>is <em>unindexed</em> itself</strong>.</p>
+
+<p>So, we have the following algorithm for updating an <em>indexed</em> tree:</p>
+
+<ul>
+<li><p>Update $\text{prefixOp}$ and $\text{suffixOp}$ in $O(\sqrt{n})$.</p></li>
+<li><p>Update $\text{index}$. It has length $O(\sqrt{n})$ and we need to update only one item in it (that represents the changed block). So, the time complexity for this step is $O(\sqrt{n})$. We can use the algorithm described in the beginning of this section (the "slow" one) to do it.</p></li>
+<li><p>Go into the child node that represents the changed block and update it in $O(\sqrt{n})$ with the "slow" algorithm.</p></li>
+</ul>
+
+<p>Note that the query complexity is still $O(1)$: we need to use $\text{index}$ in query no more than once, and this will take $O(1)$ time.</p>
+
+<p>So, total time complexity for updating a single element is $O(\sqrt{n})$. Hooray! :)</p>
+
+<h3>Updating a segment</h3>
+
+<p>Sqrt-tree also can do things like assigning an element on a segment. $\text{massUpdate}(x, l, r)$ means $a_i = x$ for all $l \le i \le r$.</p>
+
+<p>There are two approaches to do this: one of them does $\text{massUpdate}$ in $O(\sqrt{n}\cdot \log \log n)$, keeping $O(1)$ per query. The second one does $\text{massUpdate}$ in $O(\sqrt{n})$, but the query complexity becomes $O(\log \log n)$.</p>
+
+<p>We will do lazy propagation in the same way as it is done in segment trees: we mark some nodes as <em>lazy</em>, meaning that we'll push them when it's necessary. But one thing is different from segment trees: pushing a node is expensive, so it cannot be done in queries. On the layer $0$, pushing a node takes $O(\sqrt{n})$ time. So, we don't push nodes inside queries, we only look if the current node or its parent are <em>lazy</em>, and just take it into account while performing queries.</p>
+
+<h4>First approach</h4>
+
+<p>In the first approach, we say that only nodes on layer $1$ (with length $O(\sqrt{n}$) can be <em>lazy</em>. When pushing such node, it updates all its subtree including itself in $O(\sqrt{n}\cdot \log \log n)$. The $\text{massUpdate}$ process is done as follows:</p>
+
+<ul>
+<li><p>Consider the nodes on layer $1$ and blocks corresponding to them.</p></li>
+<li><p>Some blocks are entirely covered by $\text{massUpdate}$. Mark them as <em>lazy</em> in $O(\sqrt{n})$.</p></li>
+<li><p>Some blocks are partially covered. Note there are no more than two blocks of this kind. Rebuild them in $O(\sqrt{n}\cdot \log \log n)$. If they were <em>lazy</em>, take it into account.</p></li>
+<li><p>Update $\text{prefixOp}$ and $\text{suffixOp}$ for partially covered blocks in $O(\sqrt{n})$ (because there are only two such blocks).</p></li>
+<li><p>Rebuild the $\text{index}$ in $O(\sqrt{n}\cdot \log \log n)$.</p></li>
+</ul>
+
+<p>So we can do $\text{massUpdate}$ fast. But how lazy propagation affects queries? They will have the following modifications:</p>
+
+<ul>
+<li><p>If our query entirely lies in a <em>lazy</em> block, calculate it and take <em>lazy</em> into account. $O(1)$.</p></li>
+<li><p>If our query consists of many blocks, some of which are <em>lazy</em>, we need to take care of <em>lazy</em> only on the leftmost and the rightmost block. The rest of the blocks are calculated using $\text{index}$, which already knows the answer on <em>lazy</em> block (because it's rebuilt after each modification). $O(1)$.</p></li>
+</ul>
+
+<p>The query complexity still remains $O(1)$.</p>
+
+<h4>Second approach</h4>
+
+<p>In this approach, each node can be <em>lazy</em> (except root). Even nodes in $\text{index}$ can be <em>lazy</em>. So, while processing a query, we have to look for <em>lazy</em> tags in all the parent nodes, i. e. query complexity will be $O(\log \log n)$.</p>
+
+<p>But $\text{massUpdate}$ becomes faster. It looks in the following way:</p>
+
+<ul>
+<li><p>Some blocks are fully covered with $\text{massUpdate}$. So, <em>lazy</em> tags are added to them. It is $O(\sqrt{n})$.</p></li>
+<li><p>Update $\text{prefixOp}$ and $\text{suffixOp}$ for partially covered blocks in $O(\sqrt{n})$ (because there are only two such blocks).</p></li>
+<li><p>Do not forget to update the index. It is $O(\sqrt{n})$ (we use the same $\text{massUpdate}$ algorithm).</p></li>
+<li><p>Update $\text{between}$ array for <em>unindexed</em> subtrees.</p></li>
+<li><p>Go into the nodes representing partially covered blocks and call $\text{massUpdate}$ recursively.</p></li>
+</ul>
+
+<p>Note that when we do the recursive call, we do prefix or suffix $\text{massUpdate}$. But for prefix and suffix updates we can have no more than one partially covered child. So, we visit one node on layer $1$, two nodes on layer $2$ and two nodes on any deeper level. So, the time complexity is $O(\sqrt{n} + \sqrt{\sqrt{n}} + \dots) = O(\sqrt{n})$. The approach here is similar to the segment tree mass update.</p>
+
+<h2>Implementation</h2>
+
+<p>The following implementation of Sqrt Tree can perform the following operations: build in $O(n \cdot \log \log n)$, answer queries in $O(1)$ and update an element in $O(\sqrt{n})$.</p>
+
+<pre><code class="cpp">SqrtTreeItem op(const SqrtTreeItem &amp;a, const SqrtTreeItem &amp;b);
+
+inline int log2Up(int n) {
+    int res = 0;
+    while ((1 &lt;&lt; res) &lt; n) {
+        res++;
+    }
+    return res;
+}
+
+class SqrtTree {
+private:
+    int n, lg, indexSz;
+    vector&lt;SqrtTreeItem&gt; v;
+    vector&lt;int&gt; clz, layers, onLayer;
+    vector&lt; vector&lt;SqrtTreeItem&gt; &gt; pref, suf, between;
+
+    inline void buildBlock(int layer, int l, int r) {
+        pref[layer][l] = v[l];
+        for (int i = l+1; i &lt; r; i++) {
+            pref[layer][i] = op(pref[layer][i-1], v[i]);
+        }
+        suf[layer][r-1] = v[r-1];
+        for (int i = r-2; i &gt;= l; i--) {
+            suf[layer][i] = op(v[i], suf[layer][i+1]);
+        }
+    }
+
+    inline void buildBetween(int layer, int lBound, int rBound, int betweenOffs) {
+        int bSzLog = (layers[layer]+1) &gt;&gt; 1;
+        int bCntLog = layers[layer] &gt;&gt; 1;
+        int bSz = 1 &lt;&lt; bSzLog;
+        int bCnt = (rBound - lBound + bSz - 1) &gt;&gt; bSzLog;
+        for (int i = 0; i &lt; bCnt; i++) {
+            SqrtTreeItem ans;
+            for (int j = i; j &lt; bCnt; j++) {
+                SqrtTreeItem add = suf[layer][lBound + (j &lt;&lt; bSzLog)];
+                ans = (i == j) ? add : op(ans, add);
+                between[layer-1][betweenOffs + lBound + (i &lt;&lt; bCntLog) + j] = ans;
+            }
+        }
+    }
+
+    inline void buildBetweenZero() {
+        int bSzLog = (lg+1) &gt;&gt; 1;
+        for (int i = 0; i &lt; indexSz; i++) {
+            v[n+i] = suf[0][i &lt;&lt; bSzLog];
+        }
+        build(1, n, n + indexSz, (1 &lt;&lt; lg) - n);
+    }
+
+    inline void updateBetweenZero(int bid) {
+        int bSzLog = (lg+1) &gt;&gt; 1;
+        v[n+bid] = suf[0][bid &lt;&lt; bSzLog];
+        update(1, n, n + indexSz, (1 &lt;&lt; lg) - n, n+bid);
+    }
+
+    void build(int layer, int lBound, int rBound, int betweenOffs) {
+        if (layer &gt;= (int)layers.size()) {
+            return;
+        }
+        int bSz = 1 &lt;&lt; ((layers[layer]+1) &gt;&gt; 1);
+        for (int l = lBound; l &lt; rBound; l += bSz) {
+            int r = min(l + bSz, rBound);
+            buildBlock(layer, l, r);
+            build(layer+1, l, r, betweenOffs);
+        }
+        if (layer == 0) {
+            buildBetweenZero();
+        } else {
+            buildBetween(layer, lBound, rBound, betweenOffs);
+        }
+    }
+
+    void update(int layer, int lBound, int rBound, int betweenOffs, int x) {
+        if (layer &gt;= (int)layers.size()) {
+            return;
+        }
+        int bSzLog = (layers[layer]+1) &gt;&gt; 1;
+        int bSz = 1 &lt;&lt; bSzLog;
+        int blockIdx = (x - lBound) &gt;&gt; bSzLog;
+        int l = lBound + (blockIdx &lt;&lt; bSzLog);
+        int r = min(l + bSz, rBound);
+        buildBlock(layer, l, r);
+        if (layer == 0) {
+            updateBetweenZero(blockIdx);
+        } else {
+            buildBetween(layer, lBound, rBound, betweenOffs);
+        }
+        update(layer+1, l, r, betweenOffs, x);
+    }
+
+    inline SqrtTreeItem query(int l, int r, int betweenOffs, int base) {
+        if (l == r) {
+            return v[l];
+        }
+        if (l + 1 == r) {
+            return op(v[l], v[r]);
+        }
+        int layer = onLayer[clz[(l - base) ^ (r - base)]];
+        int bSzLog = (layers[layer]+1) &gt;&gt; 1;
+        int bCntLog = layers[layer] &gt;&gt; 1;
+        int lBound = (((l - base) &gt;&gt; layers[layer]) &lt;&lt; layers[layer]) + base;
+        int lBlock = ((l - lBound) &gt;&gt; bSzLog) + 1;
+        int rBlock = ((r - lBound) &gt;&gt; bSzLog) - 1;
+        SqrtTreeItem ans = suf[layer][l];
+        if (lBlock &lt;= rBlock) {
+            SqrtTreeItem add = (layer == 0) ? (
+                query(n + lBlock, n + rBlock, (1 &lt;&lt; lg) - n, n)
+            ) : (
+                between[layer-1][betweenOffs + lBound + (lBlock &lt;&lt; bCntLog) + rBlock]
+            );
+            ans = op(ans, add);
+        }
+        ans = op(ans, pref[layer][r]);
+        return ans;
+    }
+public:
+    inline SqrtTreeItem query(int l, int r) {
+        return query(l, r, 0, 0);
+    }
+
+    inline void update(int x, const SqrtTreeItem &amp;item) {
+        v[x] = item;
+        update(0, 0, n, 0, x);
+    }
+
+    SqrtTree(const vector&lt;SqrtTreeItem&gt;&amp; a)
+        : n((int)a.size()), lg(log2Up(n)), v(a), clz(1 &lt;&lt; lg), onLayer(lg+1) {
+        clz[0] = 0;
+        for (int i = 1; i &lt; (int)clz.size(); i++) {
+            clz[i] = clz[i &gt;&gt; 1] + 1;
+        }
+        int tlg = lg;
+        while (tlg &gt; 1) {
+            onLayer[tlg] = (int)layers.size();
+            layers.push_back(tlg);
+            tlg = (tlg+1) &gt;&gt; 1;
+        }
+        for (int i = lg-1; i &gt;= 0; i--) {
+            onLayer[i] = max(onLayer[i], onLayer[i+1]);
+        }
+        int betweenLayers = max(0, (int)layers.size() - 1);
+        int bSzLog = (lg+1) &gt;&gt; 1;
+        int bSz = 1 &lt;&lt; bSzLog;
+        indexSz = (n + bSz - 1) &gt;&gt; bSzLog;
+        v.resize(n + indexSz);
+        pref.assign(layers.size(), vector&lt;SqrtTreeItem&gt;(n + indexSz));
+        suf.assign(layers.size(), vector&lt;SqrtTreeItem&gt;(n + indexSz));
+        between.assign(betweenLayers, vector&lt;SqrtTreeItem&gt;((1 &lt;&lt; lg) + bSz));
+        build(0, 0, n, 0);
+    }
+};
+
+</code></pre>
+
+<h2>Problems</h2>
+
+<p><a href="https://www.codechef.com/NOV17/problems/SEGPROD">CodeChef - SEGPROD</a></p>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,311 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Balanced bracket sequences  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/combinatorics/bracket_sequences.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Balanced bracket sequences</h1>
+
+<p>A <strong>balanced bracket sequence</strong> is a string consisting of only brackets, such that this sequence, when inserted certain numbers and mathematical operations, gives a valid mathematical expression.
+Formally you can define balanced bracket sequence with:</p>
+
+<ul>
+<li>$e$ (the empty string) is a balanced bracket sequence.</li>
+<li>if $s$ is a balanced bracket sequence, then so is $(s)$.</li>
+<li>if $s$ and $t$ are balanced bracket sequences, then so is $s t$.</li>
+</ul>
+
+<p>For instance $(())()$ is a balanced bracket sequence, but $())($ is not.</p>
+
+<p>Of course you can define other bracket sequences also with multiple bracket types in a similar fashion.</p>
+
+<p>In this article we discuss some classic problems involving balanced bracket sequences (for simplicity we will only call them sequences): validation, number of sequences, finding the lexicographical next sequence, generating all sequences of a certain size, finding the index of sequence, and generating the $k$-th sequences.
+We will also discuss two variations for the problems, the simpler version when only one type of brackets is allowed, and the harder case when there are multiple types.</p>
+
+<h2>Balance validation</h2>
+
+<p>We want to check if a given string is balanced or not.</p>
+
+<p>At first suppose there is only one type of bracket.
+For this case there exists a very simple algorithm.
+Let $\text{depth}$ be the current number of open brackets.
+Initially $\text{depth} = 0$.
+We iterate over all character of the string, if the current bracket character is an opening bracket, then we increment $\text{depth}$, otherwise we decrement it.
+If at any time the variable $\text{depth}$ gets negative, or at the end it is different from $0$, than the string is not a balances sequence.
+Otherwise it is.</p>
+
+<p>If there are several bracket types involved, then the algorithm needs to be changes.
+Instead of a counter $\text{depth}$ we create a stack, in which we will store all opening brackets that we meet.
+If the current bracket character is an opening one, we put it onto the stack.
+If it is a closing one, then we check if the stack is non-empty, and if the top element of the stack is of the same type as the current closing bracket.
+If both conditions are fulfilled, then we remove the opening bracket from the stack.
+If at any time one of the conditions is not fulfilled, or at the end the stack is not empty, then the string is not balanced.
+Otherwise it is.</p>
+
+<h2>Number of balanced sequences</h2>
+
+<h3>Formula</h3>
+
+<p>The number of balanced bracket sequences with only one bracket type can be calculated using the <a href="./combinatorics/catalan-numbers.html">Catalan numbers</a>.
+The number of balanced bracket sequences of length $2n$ ($n$ pairs of brackets) is:
+$$\frac{1}{n+1} \binom{2n}{n}$$</p>
+
+<p>If we allow $k$ types of brackets, then each pair be of any of the $k$ types (independently of the others), thus the number of balanced bracket sequences is:
+$$\frac{1}{n+1} \binom{2n}{n} k^n$$</p>
+
+<h3>Dynamic programming</h3>
+
+<p>On the other hand these numbers can be computed using <strong>dynamic programming</strong>.
+Let $d[n]$ be the number of regular bracket sequences with $n$ pairs of bracket.
+Note that in the first position there is always an opening bracket.
+And somewhere later is the corresponding closing bracket of the pair.
+It is clear that inside this pair there is a balanced bracket sequence, and similarly after this pair there is a balanced bracket sequence.
+So to compute $d[n]$, we will look at how many balanced sequences of $i$ pairs of brackets are inside this first bracket pair, and how many balanced sequences with $n-1-i$ pairs are after this pair.
+Consequently the formula has the form:
+$$d[n] = \sum_{i=0}^{n-1} d[i] \cdot d[n-1-i]$$
+The initial value for this recurrence is $d[0] = 1$.</p>
+
+<h2>Finding the lexicographical next balanced sequence</h2>
+
+<p>Here we only consider the case with one valid bracket type.</p>
+
+<p>Given a balanced sequence, we have to find the next (in lexicographical order) balanced sequence.</p>
+
+<p>It should be obvious, that we have to find the rightmost opening bracket, which we can replace by a closing bracket without violation the condition, that there are more closing brackets than opening brackets up to this position.
+After replacing this position, we can fill the remaining part of the string with the lexicographically minimal one: i.e. first with as much opening brackets as possible, and then fill up the remaining positions with closing brackets.
+In other words we try to leave a long as possible prefix unchanged, and the suffix gets replaced by the lexicographically minimal one.</p>
+
+<p>To find this position, we can iterate over the character from right to left, and maintain the balance $\text{depth}$ of open and closing brackets.
+When we meet an opening brackets, we will decrement $\text{depth}$, and when we meet a closing bracket, we increase it.
+If we are at some point meet an opening bracket, and the balance after processing this symbol is positive, then we have found the rightmost position that we can change.
+We change the symbol, compute the number of opening and closing brackets that we have to add to the right side, and arrange them in the lexicographically minimal way.</p>
+
+<p>If we find do suitable position, then this sequence is already the maximal possible one, and there is no answer.</p>
+
+<pre><code class="cpp">bool next_balanced_sequence(string &amp; s) {
+    int n = s.size();
+    int depth = 0;
+    for (int i = n - 1; i &gt;= 0; i--) {
+        if (s[i] == '(')
+            depth--;
+        else
+            depth++;
+
+        if (s[i] == '(' &amp;&amp; depth &gt; 0) {
+            depth--;
+            int open = (n - i - 1 - depth) / 2;
+            int close = n - i - 1 - open;
+            string next = s.substr(0, i) + ')' + string(open, '(') + string(close, ')');
+            s.swap(next);
+            return true;
+        }
+    }
+    return false;
+}
+</code></pre>
+
+<p>This function computes in $O(n)$ time the next balanced bracket sequence, and returns false if there is no next one.</p>
+
+<h2>Finding all balanced sequences</h2>
+
+<p>Sometimes it is required to find and output all balanced bracket sequences of a specific length $n$.</p>
+
+<p>To generate then, we can start with the lexicographically smallest sequence $((\dots(())\dots))$, and then continue to find the next lexicographically sequences with the algorithm described in the previous section.</p>
+
+<p>However, if the length of the sequence is not very long (e.g. $n$ smaller than $12$), then we can also generate all permutations conveniently with the C++ STL function <code>next_permutation</code>, and check each one for balanceness.</p>
+
+<p>Also they can be generate using the ideas we used for counting all sequences with dynamic programming.
+We will discuss the ideas in the next two sections.</p>
+
+<h2>Sequence index</h2>
+
+<p>Given a balanced bracket sequence with $n$ pairs of brackets.
+We have to find its index in the lexicographically ordered list of all balanced sequences with $n$ bracket pairs.</p>
+
+<p>Let's define an auxiliary array $d[i][j]$, where $i$ is the length of the bracket sequence (semi-balanced, each closing bracket has a corresponding opening bracket, but not every opening bracket has necessarily a corresponding closing one), and $j$ is the current balance (difference between opening and closing brackets).
+$d[i][j]$ is the number of such sequences that fit the parameters.
+We will calculate these numbers with only one bracket type.</p>
+
+<p>For the start value $i = 0$ the answer is obvious: $d[0][0] = 1$, and $d[0][j] = 0$ for $j > 0$.
+Now let $i > 0$, and we look at the last character in the sequence.
+If the last character was an opening bracket $($, then the state before was $(i-1, j-1)$, if it was a closing bracket $)$, then the previous state was $(i-1, j+1)$.
+Thus we obtain the recursion formula:
+$$d[i][j] = d[i-1][j-1] + d[i-1][j+1]$$
+$d[i][j] = 0$ holds obviously for negative $j$.
+Thus we can compute this array in $O(n^2)$.</p>
+
+<p>Now let us generate the index for a given sequence.</p>
+
+<p>First let there be only one type of brackets.
+We will us the counter $\text{depth}$ which tells us how nested we currently are, and iterate over the characters of the sequence.
+If the current character $s[i]$ is equal to $($, then we increment $\text{depth}$.
+If the current character $s[i]$ is equal to $)$, then we must add $d[2n-i-1][\text{depth}+1]$ to the answer, taking all possible endings starting with a $($ into account (which are lexicographically smaller sequences), and then decrement $\text{depth}$.</p>
+
+<p>New let there be $k$ different bracket types.</p>
+
+<p>Thus, when we look at the current character $s[i]$ before recomputing $\text{depth}$, we have to go through all bracket types that are smaller than the current character, and try to put this bracket into the current position (obtaining a new balance $\text{ndepth} = \text{depth} \pm 1$), and add the number of ways to finish the sequence (length $2n-i-1$, balance $ndepth$) to the answer:
+$$d[2n - i - 1][\text{ndepth}] \cdot k^{\frac{2n - i - 1 - ndepth}{2}}$$
+This formula can be derived as follows:
+First we "forget" that there are multiple bracket types, and just take the answer $d[2n - i - 1][\text{ndepth}]$.
+Now we consider how the answer will change is we have $k$ types of brackets.
+We have $2n - i - 1$ undefined positions, of which $\text{ndepth}$ are already predetermined because of the opening brackets.
+But all the other brackets ($(2n - i - i - \text{ndepth})/2$ pairs) can be of any type, therefore we multiply the number by such a power of $k$.</p>
+
+<h2>Finding the $k$-th sequence</h2>
+
+<p>Let $n$ be the number of bracket pairs in the sequence.
+We have to find the $k$-th balanced sequence in lexicographically sorted list of all balanced sequences for a given $k$.</p>
+
+<p>As in the previous section we compute the auxiliary array $d[i][j]$, the number of semi-balanced bracket sequences of length $i$ with balance $j$.</p>
+
+<p>First, we start with only one bracket type.</p>
+
+<p>We will iterate over the characters in the string we want to generate.
+As in the previous problem we store a counter $\text{depth}$, the current nesting depth.
+In each position we have to decide if we use an opening of a closing bracket.
+To have to put an opening bracket character, it $d[2n - i - 1][\text{depth}+1] \ge k$.
+We increment the counter $\text{depth}$, and move on to the next character.
+Otherwise we decrement $k$ by $d[2n - i - 1][\text{depth}+1]$, put a closing bracket and move on.</p>
+
+<pre><code class="cpp">string kth_balanced(int n, int k) {
+    vector&lt;vector&lt;int&gt;&gt; d(2*n+1, vector&lt;int&gt;(n+1, 0));
+    d[0][0] = 1;
+    for (int i = 1; i &lt;= 2*n; i++) {
+        d[i][0] = d[i-1][1];
+        for (int j = 1; j &lt; n; j++)
+            d[i][j] = d[i-1][j-1] + d[i-1][j+1];
+        d[i][n] = d[i-1][n-1];
+    }
+
+    string ans;
+    int depth = 0;
+    for (int i = 0; i &lt; 2*n; i++) {
+        if (depth + 1 &lt;= n &amp;&amp; d[2*n-i-1][depth+1] &gt;= k) {
+            ans += '(';
+            depth++;
+        } else {
+            ans += ')';
+            if (depth + 1 &lt;= n)
+                k -= d[2*n-i-1][depth+1];
+            depth--;
+        }
+    }
+    return ans;
+}
+</code></pre>
+
+<p>Now let there be $k$ types of brackets.
+The solution will only differ slightly in that we have to multiply the value $d[2n-i-1][\text{ndepth}]$ by $k^{(2n-i-1-\text{ndepth})/2}$ and take into account that there can be different bracket types for the next character.</p>
+
+<p>Here is an implementation using two types of brackets: round and square:</p>
+
+<pre><code class="cpp">string kth_balanced2(int n, int k) {
+    vector&lt;vector&lt;int&gt;&gt; d(2*n+1, vector&lt;int&gt;(n+1, 0));
+    d[0][0] = 1;
+    for (int i = 1; i &lt;= 2*n; i++) {
+        d[i][0] = d[i-1][1];
+        for (int j = 1; j &lt; n; j++)
+            d[i][j] = d[i-1][j-1] + d[i-1][j+1];
+        d[i][n] = d[i-1][n-1];
+    }
+
+    string ans;
+    int depth = 0;
+    stack&lt;char&gt; st;
+    for (int i = 0; i &lt; 2*n; i++) {
+        // '('
+        if (depth + 1 &lt;= n) {
+            int cnt = d[2*n-i-1][depth+1] &lt;&lt; ((2*n-i-1-depth-1) / 2);
+            if (cnt &gt;= k) {
+                ans += '(';
+                st.push('(');
+                depth++;
+                continue;
+            }
+            k -= cnt;
+        }
+
+        // ')'
+        if (depth &amp;&amp; st.top() == '(') {
+            int cnt = d[2*n-i-1][depth-1] &lt;&lt; ((2*n-i-1-depth+1) / 2);
+            if (cnt &gt;= k) {
+                ans += ')';
+                st.pop();
+                depth--;
+                continue;
+            }
+            k -= cnt;
+        }
+
+        // '['
+        if (depth + 1 &lt;= n) {
+            int cnt = d[2*n-i-1][depth+1] &lt;&lt; ((2*n-i-1-depth-1) / 2);
+            if (cnt &gt;= k) {
+                ans += '[';
+                st.push('[');
+                depth++;
+                continue;
+            }
+            k -= cnt;
+        }
+
+        // ']'
+        ans += ']';
+        st.pop();
+        depth--;
+    }
+    return ans;
+}
+</code></pre>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

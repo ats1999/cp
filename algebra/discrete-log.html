@@ -1,0 +1,283 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Discrete Logarithm  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/algebra/discrete-log.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Discrete Logarithm</h1>
+
+<p>The discrete logarithm is an integer $x$ satisfying the equation</p>
+
+<p>$$a^x \equiv b \pmod m$$</p>
+
+<p>for given integers $a$, $b$ and $m$.</p>
+
+<p>The discrete logarithm does not always exist, for instance there is no solution to $2^x \equiv 3 \pmod 7$. There is no simple condition to determine if the discrete logarithm exists.</p>
+
+<p>In this article, we describe the <strong>Baby-step giant-step</strong> algorithm, an algorithm to compute the discrete logarithm proposed by Shanks in 1971, which has the time complexity $O(\sqrt{m})$. This is a <strong>meet-in-the-middle</strong> algorithm because it uses the technique of separating tasks in half.</p>
+
+<h2>Algorithm</h2>
+
+<p>Consider the equation:</p>
+
+<p>$$a^x \equiv b \pmod m,$$</p>
+
+<p>where $a$ and $m$ are relatively prime.</p>
+
+<p>Let $x = np - q$, where $n$ is some pre-selected constant (we will describe how to select $n$ later). $p$ is known as <strong>giant step</strong>, since increasing it by one increases $x$ by $n$. Similarly, $q$ is known as <strong>baby step</strong>.</p>
+
+<p>Obviously, any number $x$ in the interval $[0; m)$ can be represented in this form, where $p \in [1; \lceil \frac{m}{n} \rceil ]$ and $q \in [0; n]$.</p>
+
+<p>Then, the equation becomes:</p>
+
+<p>$$a^{np - q} \equiv b \pmod m.$$</p>
+
+<p>Using the fact that $a$ and $m$ are relatively prime, we obtain:</p>
+
+<p>$$a^{np} \equiv ba^q \pmod m$$</p>
+
+<p>This new equation can be rewritten in a simplified form:</p>
+
+<p>$$f_1(p) = f_2(q).$$</p>
+
+<p>This problem can be solved using the meet-in-the-middle method as follows:</p>
+
+<ul>
+<li>Calculate $f_1$ for all possible arguments $p$. Sort the array of value-argument pairs.</li>
+<li>For all possible arguments $q$, calculate $f_2$ and look for the corresponding $p$ in the sorted array using binary search.</li>
+</ul>
+
+<h2>Complexity</h2>
+
+<p>We can calculate $f_1(p)$ in $O(\log m)$ using the <a href="./algebra/binary-exp.html">binary exponentation algorithm</a>. Similarly for $f_2(q)$.</p>
+
+<p>In the first step of the algorithm, we need to calculate $f_1$ for every possible argument $p$ and then sort the values. Thus, this step has complexity:</p>
+
+<p>$$O\left(\left\lceil \frac{m}{n} \right\rceil \left(\log m + \log \left\lceil \frac{m}{n} \right\rceil \right)\right) = O\left( \left\lceil \frac {m}{n} \right\rceil \log m\right)$$</p>
+
+<p>In the second step of the algorithm, we need to calculate $f_2(q)$ for every possible argument $q$ and then do a binary search on the array of values of $f_1$, thus this step has complexity:</p>
+
+<p>$$O\left(n \left(\log m + \log \frac{m}{n} \right) \right) = O\left(n \log m\right).$$</p>
+
+<p>Now, when we add these two complexities, we get $\log m$ multiplied by the sum of $n$ and $m/n$, which is minimal when $n = m/n$, which means, to achieve optimal performance, $n$ should be chosen such that:</p>
+
+<p>$$n = \sqrt{m}.$$</p>
+
+<p>Then, the complexity of the algorithm becomes:</p>
+
+<p>$$O(\sqrt {m} \log m).$$</p>
+
+<h2>Implementation</h2>
+
+<h3>The simplest implementation</h3>
+
+<p>In the following code, the function <code>powmod</code> calculates $a^b \pmod m$ and the function <code>solve</code> produces a proper solution to the problem.
+It returns $-1$ if there is no solution and returns one of the possible solutions otherwise.</p>
+
+<pre><code class="cpp">int powmod(int a, int b, int m) {
+    int res = 1;
+    while (b &gt; 0) {
+        if (b &amp; 1) {
+            res = (res * 1ll * a) % m;
+        }
+        a = (a * 1ll * a) % m;
+        b &gt;&gt;= 1;
+    }
+    return res;
+}
+
+int solve(int a, int b, int m) {
+    a %= m, b %= m;
+    int n = sqrt(m) + 1;
+    map&lt;int, int&gt; vals;
+    for (int p = 1; p &lt;= n; ++p)
+        vals[powmod(a, p * n, m)] = p;
+    for (int q = 0; q &lt;= n; ++q) {
+        int cur = (powmod(a, q, m) * 1ll * b) % m;
+        if (vals.count(cur)) {
+            int ans = vals[cur] * n - q;
+            return ans;
+        }
+    }
+    return -1;
+}
+</code></pre>
+
+<p>In this code, we used <code>map</code> from the C++ standard library to store the values of $f_1$.
+Internally, <code>map</code> uses a red-black tree to store values.
+Thus this code is a little bit slower than if we had used an array and binary searched, but is much easier to write.</p>
+
+<p>Notice that our code assumes $0^0 = 1$, i.e. the code will compute $0$ as solution for the equation $0^x \equiv 1 \pmod m$ and also as solution for $0^x \equiv 0 \pmod 1$.
+This is an often used convention in algebra, but it's also not univerally accepted in all areas.
+Sometimes $0^0$ is simply undefined.
+If you don't like our convention, then you need to handle the case $a=0$ separately:</p>
+
+<pre><code class="cpp">    if (a == 0)
+        return b == 0 ? 1 : -1;
+</code></pre>
+
+<p>Another thing to note is that, if there are multiple arguments $p$ that map to the same value of $f_1$, we only store one such argument.
+This works in this case because we only want to return one possible solution.
+If we need to return all possible solutions, we need to change <code>map&lt;int, int&gt;</code> to, say, <code>map&lt;int, vector&lt;int&gt;&gt;</code>.
+We also need to change the second step accordingly.</p>
+
+<h2>Improved implementation</h2>
+
+<p>A possible improvement is to get rid of binary exponentiation.
+This can be done by keeping a variable that is multiplied by $a$ each time we increase $q$ and a variable that is multiplied by $a^n$ each time we increase $p$.
+With this change, the complexity of the algorithm is still the same, but now the $\log$ factor is only for the <code>map</code>.
+Instead of a <code>map</code>, we can also use a hash table (<code>unordered_map</code> in C++) which has the average time complexity $O(1)$ for inserting and searching.</p>
+
+<p>Problems often ask for the minimum $x$ which satisfies the solution.<br />
+It is possible to get all answers and take the minimum, or reduce the first found answer using <a href="./algebra/phi-function.html#toc-tgt-2">Euler's theorem</a>, but we can be smart about the order in which we calculate values and ensure the first answer we find is the minimum.</p>
+
+<pre><code class="cpp">// Returns minimum x for which a ^ x % m = b % m, a and m are coprime.
+int solve(int a, int b, int m) {
+    a %= m, b %= m;
+    int n = sqrt(m) + 1;
+
+    int an = 1;
+    for (int i = 0; i &lt; n; ++i)
+        an = (an * 1ll * a) % m;
+
+    unordered_map&lt;int, int&gt; vals;
+    for (int q = 0, cur = b; q &lt;= n; ++q) {
+        vals[cur] = q;
+        cur = (cur * 1ll * a) % m;
+    }
+
+    for (int p = 1, cur = 1; p &lt;= n; ++p) {
+        cur = (cur * 1ll * an) % m;
+        if (vals.count(cur)) {
+            int ans = n * p - vals[cur];
+            return ans;
+        }
+    }
+    return -1;
+}
+</code></pre>
+
+<p>The complexity is $O(\sqrt{m})$ using <code>unordered_map</code>.</p>
+
+<h2>When $a$ and $m$ are not coprime</h2>
+
+<p>Let $g = \gcd(a, m)$, and $g > 1$. Clearly $a^x \bmod m$ for every $x \ge 1$ will be divisible by $g$.</p>
+
+<p>If $g \nmid b$, there is no solution for $x$.</p>
+
+<p>If $g \mid b$, let $a = g \alpha, b = g \beta, m = g \nu$.
+$$
+\begin{aligned}
+a^x &amp; \equiv b \mod m &#92;\
+(g \alpha) a^{x - 1} &amp; \equiv g \beta \mod g \nu &#92;\
+\alpha a^{x-1} &amp; \equiv \beta \mod \nu
+\end{aligned}
+$$</p>
+
+<p>The baby-step giant-step algorithm can be easily extended to solve $ka^{x} \equiv b \pmod m$ for $x$.</p>
+
+<pre><code class="cpp">// Returns minimum x for which a ^ x % m = b % m.
+int solve(int a, int b, int m) {
+    a %= m, b %= m;
+    int k = 1, add = 0, g;
+    while ((g = gcd(a, m)) &gt; 1) {
+        if (b == k)
+            return add;
+        if (b % g)
+            return -1;
+        b /= g, m /= g, ++add;
+        k = (k * 1ll * a / g) % m;
+    }
+
+    int n = sqrt(m) + 1;
+    int an = 1;
+    for (int i = 0; i &lt; n; ++i)
+        an = (an * 1ll * a) % m;
+
+    unordered_map&lt;int, int&gt; vals;
+    for (int q = 0, cur = b; q &lt;= n; ++q) {
+        vals[cur] = q;
+        cur = (cur * 1ll * a) % m;
+    }
+
+    for (int p = 1, cur = k; p &lt;= n; ++p) {
+        cur = (cur * 1ll * an) % m;
+        if (vals.count(cur)) {
+            int ans = n * p - vals[cur] + add;
+            return ans;
+        }
+    }
+    return -1;
+}
+</code></pre>
+
+<p>The time complexity remains $O(\sqrt{m})$ as before since the initial reduction to coprime $a$ and $m$ is done in $O(\log^2 m)$.</p>
+
+<h2>Practice Problems</h2>
+
+<ul>
+<li><a href="http://www.spoj.com/problems/MOD/">Spoj - Power Modulo Inverted</a></li>
+<li><a href="https://community.topcoder.com/stat?c=problem_statement&amp;pm=14386&amp;rd=16801">Topcoder - SplittingFoxes3</a></li>
+<li><a href="https://www.codechef.com/problems/INVXOR/">CodeChef - Inverse of a Function</a></li>
+<li><a href="https://codeforces.com/gym/101853/problem/G">Hard Equation</a> (assume that $0^0$ is undefined)</li>
+<li><a href="https://www.codechef.com/problems/CHEFMOD">CodeChef - Chef and Modular Sequence</a></li>
+</ul>
+
+<h2>References</h2>
+
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Baby-step_giant-step">Wikipedia - Baby-step giant-step</a></li>
+<li><a href="https://math.stackexchange.com/a/133054">Answer by Zander on Mathematics StackExchange</a></li>
+</ul>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

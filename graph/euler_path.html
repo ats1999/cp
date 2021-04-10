@@ -1,0 +1,217 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Finding the Eulerian path in O(M)      - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/graph/euler_path.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Finding the Eulerian path in $O(M)$</h1>
+
+<p>A Eulerian path is a path in a graph that passes through all of its edges exactly once.
+A Eulerian cycle is a Eulerian path that is a cycle.</p>
+
+<p>The problem is to find the Eulerian path in an <strong>undirected multigraph with loops</strong>.</p>
+
+<h2>Algorithm</h2>
+
+<p>First we can check if there is an Eulerian path.
+We can use the following theorem. An Eulerian cycle exists if and only if the degrees of all vertices are even.
+And an Eulerian path exists if and only if the number of vertices with odd degrees is two (or zero, in the case of the existence of a Eulerian cycle).
+In addition, of course, the graph must be sufficiently connected (i.e., if you remove all isolated vertices from it, you should get a connected graph).</p>
+
+<p>The find the Eulerian path / Eulerian cycle we can use the following strategy:
+We find all simple cycles and combine them into one - this will be the Eulerian cycle.
+If the graph is such that the Eulerian path is not a cycle, then add the missing edge, find the Eulerian cycle, then remove the extra edge.</p>
+
+<p>Looking for all cycles and combining them can be done with a simple recursive procedure:</p>
+
+<pre><code class="nohighlight">procedure FindEulerPath(V)
+  1. iterate through all the edges outgoing from vertex V;
+       remove this edge from the graph,
+       and call FindEulerPath from the second end of this edge;
+  2. add vertex V to the answer.
+</code></pre>
+
+<p>The complexity of this algorithm is obviously linear with respect to the number of edges.</p>
+
+<p>But we can write the same algorithm in the non-recursive version:</p>
+
+<pre><code class="nohighlight">stack St;
+put start vertex in St;
+until St is empty
+  let V be the value at the top of St;
+  if degree(V) = 0, then
+    add V to the answer;
+    remove V from the top of St;
+  otherwise
+    find any edge coming out of V;
+    remove it from the graph;
+    put the second end of this edge in St;
+</code></pre>
+
+<p>It is easy to check the equivalence of these two forms of the algorithm. However, the second form is obviously faster, and the code will be much more.</p>
+
+<h2>The Domino problem</h2>
+
+<p>We give here a classical Eulerian cycle problem - the Domino problem.</p>
+
+<p>There are $N$ dominoes, as it is known, on both ends of the Domino one number is written(usually from 1 to 6, but in our case it is not important). You want to put all the dominoes in a row so that the numbers on any two adjacent dominoes, written on their common side, coincide. Dominoes are allowed to turn.</p>
+
+<p>Reformulate the problem. Let the numbers written on the bottoms be the vertices of the graph, and the dominoes be the edges of this graph (each Domino with numbers $(a,b)$ are the edges $(a,b)$ and $(b, a)$). Then our problem is reduced to the problem of finding the Eulerian path in this graph.</p>
+
+<h2>Implementation</h2>
+
+<p>The program below searches for and outputs a Eulerian loop or path in a graph, or outputs $-1$ if it does not exist.</p>
+
+<p>First, the program checks the degree of vertices: if there are no vertices with an odd degree, then the graph has an Euler cycle, if there are $2$ vertices with an odd degree, then in the graph there is only an Euler path (but no Euler cycle), if there are more than $2$ such vertices, then in the graph there is no Euler cycle or Euler path.
+To find the Euler path (not a cycle), let's do this: if $V1$ and $V2$ are two vertices of odd degree,then just add an edge $(V1, V2)$, in the resulting graph we find the Euler cycle (it will obviously exist), and then remove the "fictitious" edge $(V1, V2)$ from the answer.
+We will look for the Euler cycle exactly as described above (non-recursive version), and at the same time at the end of this algorithm we will check whether the graph was connected or not (if the graph was not connected, then at the end of the algorithm some edges will remain in the graph, and in this case we need to print $-1$).
+Finally, the program takes into account that there can be isolated vertices in the graph.</p>
+
+<p>Notice that we use an adjacency matrix in this problem.
+Also this implementation handles finding the next with brute-force, which requires to iterate over the complete row in the matrix over and over.
+A better way would be to store the graph as an adjacency list, and remove edges in $O(1)$ and mark the reversed edges in separate list.
+This way we can archive a $O(N)$ algorithm.</p>
+
+<pre><code class="cpp">int main() {
+    int n;
+    vector&lt;vector&lt;int&gt;&gt; g(n, vector&lt;int&gt;(n));
+    // reading the graph in the adjacency matrix
+
+    vector&lt;int&gt; deg(n);
+    for (int i = 0; i &lt; n; ++i) {
+        for (int j = 0; j &lt; n; ++j)
+            deg[i] += g[i][j];
+    }
+
+    int first = 0;
+    while (first &lt; n &amp;&amp; !deg[first])
+        ++first;
+    if (first == n) {
+        cout &lt;&lt; -1;
+        return 0;
+    }
+
+    int v1 = -1, v2 = -1;
+    bool bad = false;
+    for (int i = 0; i &lt; n; ++i) {
+        if (deg[i] &amp; 1) {
+            if (v1 == -1)
+                v1 = i;
+            else if (v2 == -1)
+                v2 = i;
+            else
+                bad = true;
+        }
+    }
+
+    if (v1 != -1)
+        ++g[v1][v2], ++g[v2][v1];
+
+    stack&lt;int&gt; st;
+    st.push(first);
+    vector&lt;int&gt; res;
+    while (!st.empty()) {
+        int v = st.top();
+        int i;
+        for (i = 0; i &lt; n; ++i)
+            if (g[v][i])
+                break;
+        if (i == n) {
+            res.push_back(v);
+            st.pop();
+        } else {
+            --g[v][i];
+            --g[i][v];
+            st.push(i);
+        }
+    }
+
+    if (v1 != -1) {
+        for (size_t i = 0; i + 1 &lt; res.size(); ++i) {
+            if ((res[i] == v1 &amp;&amp; res[i + 1] == v2) ||
+                (res[i] == v2 &amp;&amp; res[i + 1] == v1)) {
+                vector&lt;int&gt; res2;
+                for (size_t j = i + 1; j &lt; res.size(); ++j)
+                    res2.push_back(res[j]);
+                for (size_t j = 1; j &lt;= i; ++j)
+                    res2.push_back(res[j]);
+                res = res2;
+                break;
+            }
+        }
+    }
+
+    for (int i = 0; i &lt; n; ++i) {
+        for (int j = 0; j &lt; n; ++j) {
+            if (g[i][j])
+                bad = true;
+        }
+    }
+
+    if (bad) {
+        cout &lt;&lt; -1;
+    } else {
+        for (int x : res)
+            cout &lt;&lt; x &lt;&lt; " ";
+    }
+}
+</code></pre>
+
+<h3>Practice problems:</h3>
+
+<ul>
+<li><a href="https://cses.fi/problemset/task/1691">CSES : Mail Delivery</a></li>
+<li><a href="https://cses.fi/problemset/task/1693">CSES : Teleporters Path</a></li>
+</ul>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

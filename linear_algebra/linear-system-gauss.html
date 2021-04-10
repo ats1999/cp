@@ -1,0 +1,268 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Gauss method for solving system of linear equations  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/linear_algebra/linear-system-gauss.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Gauss method for solving system of linear equations</h1>
+
+<p>Given a system of $n$ linear algebraic equations (SLAE) with $m$ unknowns. You are asked to solve the system: to determine if it has no solution, exactly one solution or infinite number of solutions. And in case it has at least one solution, find any of them.</p>
+
+<p>Formally, the problem is formulated as follows: solve the system:</p>
+
+<p>$$a_{11} x_1 + a_{12} x_2 + \dots + a_{1m} x_m = b_1$$
+$$a_{21} x_1 + a_{22} x_2 + \dots + a_{2m} x_m = b_2$$
+$$\dots$$
+$$a_{n1} x_1 + a_{n2} x_2 + \dots + a_{nm} x_m = b_n$$</p>
+
+<p>where the coefficients $a_{ij}$ (for $i$ from 1 to $n$, $j$ from 1 to $m$) and $b_i$ ($i$ from 1 to $n$ are known and variables $x_i$ ($i$ from 1 to $m$) are unknowns.</p>
+
+<p>This problem also has a simple matrix representation:
+$$Ax = b$$,
+where $A$ is a matrix of size $n \times m$ of coefficients $a_{ij}$ and $b$ is the column vector of size $n$.</p>
+
+<p>It is worth noting that the method presented in this article can also be used to solve the equation modulo any number p, i.e.:</p>
+
+<p>$$a_{11} x_1 + a_{12} x_2 + \dots + a_{1m} x_m \equiv b_1 \pmod p$$
+$$a_{21} x_1 + a_{22} x_2 + \dots + a_{2m} x_m \equiv b_2 \pmod p$$
+$$\dots$$
+$$a_{n1} x_1 + a_{n2} x_2 + \dots + a_{nm} x_m \equiv b_n \pmod p$$</p>
+
+<h2>Gauss</h2>
+
+<p>Strictly speaking, the method described below should be called "Gauss-Jordan", or Gauss-Jordan elimination, because it is a variation of the Gauss method, described by Jordan in 1887.</p>
+
+<h2>Overview</h2>
+
+<p>The algorithm is a <code>sequential elimination</code> of the variables in each equation, until each equation will have only one remaining variable. If $n = m$, you can think of it as transforming the matrix $A$ to identity matrix, and solve the equation in this obvious case, where solution is unique and is equal to coefficient $b_i$.</p>
+
+<p>Gaussian elimination is based on two simple transformation:</p>
+
+<ul>
+<li>It is possible to exchange two equations</li>
+<li>Any equation can be replaced by a linear combination of that row (with non-zero coefficient), and some other rows (with arbitrary coefficients).</li>
+</ul>
+
+<p>In the first step, Gauss-Jordan algorithm divides the first row by $a_{11}$. Then, the algorithm adds the first row to the remaining rows such that the coefficients in the first column becomes all zeros. To achieve this, on the i-th row, we must add the first row multiplied by $- a_{i1}$. Note that, this operation must also be performed on vector $b$. In a sense, it behaves as if vector $b$ was the $m+1$-th column of matrix $A$.</p>
+
+<p>As a result, after the first step, the first column of matrix $A$ will consists of $1$ on the first row, and $0$ in other rows.</p>
+
+<p>Similarly, we perform the second step of the algorithm, where we consider the second column of second row. First, the row is divided by $a_{22}$, then it is subtracted from other rows so that all the second column becomes $0$ (except for the second row).</p>
+
+<p>We continue this process for all columns of matrix $A$. If $n = m$, then $A$ will become identity matrix.</p>
+
+<h2>Search for the pivoting element</h2>
+
+<p>The described scheme left out many details. At the $i$th step, if $a_{ii}$ is zero, we cannot apply directly the described method. Instead, we must first <code>select a pivoting row</code>: find one row of the matrix where the $i$th column is non-zero, and then swap the two rows.</p>
+
+<p>Note that, here we swap rows but not columns. This is because if you swap columns, then when you find a solution, you must remember to swap back to correct places. Thus, swapping rows is much easier to do.</p>
+
+<p>In many implementations, when $a_{ii} \neq 0$, you can see people still swap the $i$th row with some pivoting row, using some heuristics such as choosing the pivoting row with maximum absolute value of $a_{ji}$. This heuristic is used to reduce the value range of the matrix in later steps. Without this heuristic, even for matrices of size about $20$, the error will be too big and can cause overflow for floating points data types of C++.</p>
+
+<h2>Degenerate cases</h2>
+
+<p>In the case where $m = n$ and the system is non-degenerate (i.e. it has non-zero determinant, and has unique solution), the algorithm described above will transform $A$ into identity matrix.</p>
+
+<p>Now we consider the <code>general case</code>, where $n$ and $m$ are not necessarily equal, and the system can be degenerate. In these cases, the pivoting element in $i$th step may not be found. This means that on the $i$th column, starting from the current line, all contains zeros. In this case, either there is no possible value of variable $x_i$ (meaning the SLAE has no solution), or $x_i$ is an independent variable and can take arbitrary value. When implementing Gauss-Jordan, you should continue the work for subsequent variables and just skip the $i$th column (this is equivalent to removing the $i$th column of the matrix).</p>
+
+<p>So, some of the variables in the process can be found to be independent. When the number of variables, $m$ is greater than the number of equations, $n$, then at least $m - n$ independent variables will be found.</p>
+
+<p>In general, if you find at least one independent variable, it can take any arbitrary value, while the other (dependent) variables are expressed through it.  This means that when we work in the field of real numbers, the system potentially has infinitely many solutions. But you should remember that when there are independent variables, SLAE can have no solution at all. This happens when the remaining untreated equations have at least one non-zero constant term. You can check this by assigning zeros to all independent variables, calculate other variables, and then plug in to the original SLAE to check if they satisfy it.</p>
+
+<h2>Implementation</h2>
+
+<p>Following is an implementation of Gauss-Jordan. Choosing the pivot row is done with heuristic: choosing maximum value in the current column.</p>
+
+<p>The input to the function <code>gauss</code> is the system matrix $a$. The last column of this matrix is vector $b$.</p>
+
+<p>The function returns the number of solutions of the system $(0, 1,\textrm{or } \infty)$. If at least one solution exists, then it is returned in the vector $ans$.</p>
+
+<pre><code class="cpp">const double EPS = 1e-9;
+const int INF = 2; // it doesn't actually have to be infinity or a big number
+
+int gauss (vector &lt; vector&lt;double&gt; &gt; a, vector&lt;double&gt; &amp; ans) {
+    int n = (int) a.size();
+    int m = (int) a[0].size() - 1;
+
+    vector&lt;int&gt; where (m, -1);
+    for (int col=0, row=0; col&lt;m &amp;&amp; row&lt;n; ++col) {
+        int sel = row;
+        for (int i=row; i&lt;n; ++i)
+            if (abs (a[i][col]) &gt; abs (a[sel][col]))
+                sel = i;
+        if (abs (a[sel][col]) &lt; EPS)
+            continue;
+        for (int i=col; i&lt;=m; ++i)
+            swap (a[sel][i], a[row][i]);
+        where[col] = row;
+
+        for (int i=0; i&lt;n; ++i)
+            if (i != row) {
+                double c = a[i][col] / a[row][col];
+                for (int j=col; j&lt;=m; ++j)
+                    a[i][j] -= a[row][j] * c;
+            }
+        ++row;
+    }
+
+    ans.assign (m, 0);
+    for (int i=0; i&lt;m; ++i)
+        if (where[i] != -1)
+            ans[i] = a[where[i]][m] / a[where[i]][i];
+    for (int i=0; i&lt;n; ++i) {
+        double sum = 0;
+        for (int j=0; j&lt;m; ++j)
+            sum += ans[j] * a[i][j];
+        if (abs (sum - a[i][m]) &gt; EPS)
+            return 0;
+    }
+
+    for (int i=0; i&lt;m; ++i)
+        if (where[i] == -1)
+            return INF;
+    return 1;
+}
+</code></pre>
+
+<p>Implementation notes:</p>
+
+<ul>
+<li>The function uses two pointers - the current column $col$ and the current row $row$.</li>
+<li>For each variable $x_i$, the value $where(i)$ is the line where this column is not zero. This vector is needed because some variables can be independent.</li>
+<li>In this implementation, the current $i$th line is not divided by $a_{ii}$ as described above, so in the end the matrix is not identity matrix (though apparently dividing the $i$th line can help reducing errors).</li>
+<li>After finding a solution, it is inserted back into the matrix - to check whether the system has at least one solution or not. If the test solution is successful, then the function returns 1 or $\inf$, depending on whether there is at least one independent variable.</li>
+</ul>
+
+<h2>Complexity</h2>
+
+<p>Now we should estimate the complexity of this algorithm. The algorithm consists of $m$ phases, in each phase:</p>
+
+<ul>
+<li>Search and reshuffle the pivoting row. This takes $O(n + m)$ when using heuristic mentioned above.</li>
+<li>If the pivot element in the current column is found - then we must add this equation to all other equations, which takes time $O(nm)$.</li>
+</ul>
+
+<p>So, the final complexity of the algorithm is $O(\min (n, m) . nm)$.
+In case $n = m$, the complexity is simply $O(n^3)$.</p>
+
+<p>Note that when the SLAE is not on real numbers, but is in the modulo two, then the system can be solved much faster, which is described below.</p>
+
+<h2>Acceleration of the algorithm</h2>
+
+<p>The previous implementation can be sped up by two times, by dividing the algorithm into two phases: forward and reverse:</p>
+
+<ul>
+<li>Forward phase: Similar to the previous implementation, but the current row is only added to the rows after it. As a result, we obtain a triangular matrix instead of diagonal.</li>
+<li>Reverse phase: When the matrix is triangular, we first calculate the value of the last variable. Then plug this value to find the value of next variable. Then plug these two values to find the next variables...</li>
+</ul>
+
+<p>Reverse phase only takes $O(nm)$, which is much faster than forward phase. In forward phase, we reduce the number of operations by half, thus reducing the running time of the implementation.</p>
+
+<h2>Solving modular SLAE</h2>
+
+<p>For solving SLAE in some module, we can still use the described algorithm. However, in case the module is equal to two, we can perform Gauss-Jordan elimination much more effectively using bitwise operations and C++ bitset data types:</p>
+
+<pre><code class="cpp">int gauss (vector &lt; bitset&lt;N&gt; &gt; a, int n, int m, bitset&lt;N&gt; &amp; ans) {
+    vector&lt;int&gt; where (m, -1);
+    for (int col=0, row=0; col&lt;m &amp;&amp; row&lt;n; ++col) {
+        for (int i=row; i&lt;n; ++i)
+            if (a[i][col]) {
+                swap (a[i], a[row]);
+                break;
+            }
+        if (! a[row][col])
+            continue;
+        where[col] = row;
+
+        for (int i=0; i&lt;n; ++i)
+            if (i != row &amp;&amp; a[i][col])
+                a[i] ^= a[row];
+        ++row;
+    }
+        // The rest of implementation is the same as above
+}
+</code></pre>
+
+<p>Since we use bit compress, the implementation is not only shorter, but also 32 times faster.</p>
+
+<h2>A little note about different heuristics of choosing pivoting row</h2>
+
+<p>There is no general rule for what heuristics to use.</p>
+
+<p>The heuristics used in previous implementation works quite well in practice. It also turns out to give almost the same answers as "full pivoting" - where the pivoting row is search amongst all elements of the whose submatrix (from the current row and current column).</p>
+
+<p>Though, you should note that both heuristics is dependent on how much the original equations was scaled. For example, if one of the equation was multiplied by $10^6$, then this equation is almost certain to be chosen as pivot in first step. This seems rather strange, so it seems logical to change to a more complicated heuristics, called <code>implicit pivoting</code>.</p>
+
+<p>Implicit pivoting compares elements as if both lines were normalized, so that the maximum element would be unity. To implement this technique, one need to maintain maximum in each row (or maintain each line so that maximum is unity, but this can lead to increase in the accumulated error).</p>
+
+<h2>Improve the solution</h2>
+
+<p>Despite various heuristics, Gauss-Jordan algorithm can still lead to large errors in special matrices even of size $50 - 100$.</p>
+
+<p>Therefore, the resulting Gauss-Jordan solution must sometimes be improved by applying a simple numerical method - for example, the method of simple iteration.</p>
+
+<p>Thus, the solution turns into two-step: First, Gauss-Jordan algorithm is applied, and then a numerical method taking initial solution as solution in the first step.</p>
+
+<h2>Practice Problems</h2>
+
+<ul>
+<li><a href="http://www.spoj.com/problems/XMAX/">Spoj - Xor Maximization</a></li>
+<li><a href="https://www.codechef.com/SEP12/problems/KNGHTMOV">Codechef - Knight Moving</a></li>
+<li><a href="http://lightoj.com/volume_showproblem.php?problem=1279">Lightoj - Graph Coloring</a></li>
+<li><a href="https://uva.onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;page=show_problem&amp;problem=4775">UVA 12910 - Snakes and Ladders</a></li>
+<li><a href="http://acm.timus.ru/problem.aspx?space=1&amp;num=1042">TIMUS1042 Central Heating</a></li>
+<li><a href="http://acm.timus.ru/problem.aspx?space=1&amp;num=1766">TIMUS1766 Humpty Dumpty</a></li>
+<li><a href="http://acm.timus.ru/problem.aspx?space=1&amp;num=1266">TIMUS1266 Kirchhoff's Law</a></li>
+</ul>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

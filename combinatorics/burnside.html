@@ -1,0 +1,304 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Burnside's lemma / Pólya enumeration theorem  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/combinatorics/burnside.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Burnside's lemma / Pólya enumeration theorem</h1>
+
+<h2>Burnside's lemma</h2>
+
+<p><strong>Burnside's lemma</strong> was formulated and proven by <strong>Burnside</strong> in 1897, but historically it was already discovered in 1887 by <strong>Frobenius</strong>, and even earlier in 1845 by <strong>Cauchy</strong>.
+Therefore it is also sometimes named the <strong>Cauchy-Frobenius lemma</strong>.</p>
+
+<p>Burnside's lemma allows us to count the number of equivalence classes in sets, based on internal symmetry.</p>
+
+<h3>Objects and representations</h3>
+
+<p>We have to clearly distinguish between the number of objects and the number of representations.</p>
+
+<p>Different representations can correspond to the same objects, but of course any representation corresponds to exactly one object.
+Consequently the set of all representations is divided into equivalence classes.
+Our task is to compute the number of objects, or equivalently, the number of equivalence classes.
+The following example will make the difference between object and representation clearer.</p>
+
+<h3>Example: coloring of binary trees</h3>
+
+<p>Suppose we have the following problem.
+We have to count the number of ways to color a rooted binary tree with $n$ vertices with two colors, where at each vertex we do not distinguish between the left and the right children.</p>
+
+<p>Here the set of objects is the set of different colorings of the tree.</p>
+
+<p>We now define the set of representations.
+A representation of a coloring is a function $f(v)$, which assigns each vertex a color (here we use the colors $0$ and $1$).
+The set of representations is the set containing all possible functions of this kind, and its size is obviously equal to $2^n$.</p>
+
+<p>At the same time we introduce a partition of this set into equivalence classes.</p>
+
+<p>For example, suppose $n = 3$, and the tree consists of the root $1$ and its two children $2$ and $3$.
+Then the following functions $f_1$ and $f_2$ are considered equivalent.
+$$\begin{array}{ll}f_1(1) = 0 &amp; f_2(1) = 0&#92;&#92;
+f_1(2) = 1 &amp; f_2(2) = 0&#92;&#92;
+f_1(3) = 0 &amp; f_2(3) = 1
+\end{array}$$</p>
+
+<h3>Invariant permutations</h3>
+
+<p>Why do these two function $f_1$ and $f_2$ belong to the same equivalence class?
+Intuitively this is understandable - we can rearrange the children of vertex $1$, the vertices $2$ and $3$, and after such a transformation of the function $f_1$ it will coincide with $f_2$.</p>
+
+<p>But formally this means that there exists an <strong>invariant permutation</strong> $\pi$ (i.e. a permutation which does not change the object itself, but only its representation), such that:
+$$f_2 \pi \equiv f_1$$</p>
+
+<p>So starting from the definition of objects, we can find all the invariant permutations, i.e. all permutations which do not change the object when applying the permutation to the representation.
+Then we can check whether two functions $f_1$ and $f_2$ are equivalent (i.e. if they correspond to the same object) by checking the condition $f_2 \pi \equiv f_1$ for each invariant permutation (or equivalently $f_1 \pi \equiv f_2$).
+If at least one permutation is found for which the condition is satisfied, then $f_1$ and $f_2$ are equivalent, otherwise they are not equivalent.</p>
+
+<p>Finding all such invariant permutations with respect to the object definition is a key step for the application of both Burnside's lemma and the Pólya enumeration theorem.
+It is clear that these invariant permutations depend on the specific problem, and their finding is a purely heuristic process based on intuitive considerations.
+However in most cases it is sufficient to manually find several "basic" permutations, with which all other permutations can be generated (and this part of the work can be shifted to a computer).</p>
+
+<p>It is not difficult to understand that invariant permutations form a <strong>group</strong>, since the product (composition) of invariant permutations is again an invariant permutation.
+We denote the <strong>group of invariant permutations</strong> by $G$.</p>
+
+<h3>The statement of the lemma</h3>
+
+<p>For the formulation of the lemma we need one more definition from algebra.
+A <strong>fixed point</strong> $f$ for a permutation $\pi$ is an element that is invariant under this permutation: $f \equiv f \pi$.
+For example in out example the fixed points are those functions $f$, which correspond to colorings that do not change when the permutation $\pi$ is applied to them (i.e. they do not change in the formal sense of the equality of functions).
+We denote by $I(\pi)$ the <strong>number of fixed points</strong> for the permutation $\pi$.</p>
+
+<p>Then <strong>Burnside's lemma</strong> goes as follows:
+the number of equivalence classes is equal to the sum of the numbers of fixed points with respect to all permutations from the group $G$, divided by the size of this group:
+$$|\text{Classes}| = \frac{1}{|G|} \sum_{\pi \in G} I(\pi)$$</p>
+
+<p>Although Burnside's lemma itself is not so convenient to use in practice (it is unclear how to quickly look for the value $I(\pi)$, it most clearly reveals the mathematical essence on which the idea of calculating equivalence classes is based.</p>
+
+<h3>Proof of Burnside's lemma</h3>
+
+<p>The proof of Burnside's lemma described here is not important for the practical applications, so it can be skipped on the first reading.</p>
+
+<p>The proof here is the simplest known, and does not use group theory.
+The proof was published by Kenneth P. Bogart in 1991.</p>
+
+<p>We need to prove the following statement:
+$$|\text{Classes}| \cdot |G| = \sum_{\pi \in G} I(\pi)$$</p>
+
+<p>The value on the right side is nothing more than the number of "invariant pairs" $(f, \pi)$, i.e. pairs such that $f \pi \equiv f$.
+It is obvious that we can change the order of summation.
+We let the sum iterate over all elements $f$ and sum over the values $J(f)$ - the number of permutations for which $f$ is a fixed point.
+$$|\text{Classes}| \cdot |G| = \sum_{f} J(f)$$</p>
+
+<p>To prove this formula we will compose a table with columns labeled with all functions $f_i$ and rows labeled with all permutations $\pi_j$.
+And we fill the cells with $f_i \pi_j$.
+If we look at the columns in this table as sets, then some of them will coincide, and this means that the corresponding functions $f$ for these columns are also equivalent.
+Thus the numbers of different (as sets) columns is equal to the number of classes.
+Incidentally, from the standpoint of group theory, the column labeled with $f_i$ is the orbit of this element.
+For equivalent elements the orbits coincides, and the number of orbits gives exactly the number of classes.</p>
+
+<p>Thus the columns of the table decompose into equivalence classes.
+Let us fix a class, and look at the columns in it.
+First, note that these columns can only contain elements $f_i$ of the equivalence class (otherwise some permutation $\pi_j$ moved one of the functions into a different equivalence class, which is impossible since we only look at invariant permutations).
+Secondly each element $f_i$ will occur the same number of times in each columns (this also follows from the fact that the columns correspond to equivalent elements).
+From this we can conclude, that all the columns within the same equivalence class coincide with each other as multisets.</p>
+
+<p>Now fix an arbitrary element $f$.
+On the one hand, it occurs in its column exactly $J(f)$ times (by definition).
+On the other hand, all columns within the same equivalence class are the same as multisets.
+Therefore within each column of a given equivalence class any element $g$ occurs exactly $J(g)$ times.</p>
+
+<p>Thus if we arbitrarily take one column from each equivalence class, and sum the number of elements in them, we obtain on one hand $|\text{Classes}| \cdot |G|$ (simply by multiplying the number of columns by the number of rows), and on the other hand the sum of the quantities $J(f)$ for all $f$ (this follows from all the previous arguments):
+$$|\text{Classes}| \cdot |G| = \sum_{f} J(f)$$</p>
+
+<h2>Pólya enumeration theorem</h2>
+
+<p>The Pólya enumeration theorem is a generalization of Burnside's lemma, and it also provides a more convenient tool for finding the number of equivalence classes.
+It should noted that this theorem was already discovered before Pólya by Redfield in 1927, but his publication went unnoticed by mathematicians.
+Pólya independently came to the same results in 1937, and his publication was more successful.</p>
+
+<p>Here we discuss only a special case of the Pólya enumeration theorem, which will turn out very useful in practice.
+The general formula of the theorem will not be discussed.</p>
+
+<p>We denote by $C(\pi)$ the number of cycles in the permutation $\pi$.
+Then the following formula (a <strong>special case of the Pólya enumeration theorem</strong>) holds:
+$$|\text{Classes}| = \frac{1}{|G|} \sum_{\pi \in G} k^{C(\pi)}$$
+$k$ is the number of values that each representation element can take, in the case of the coloring of a binary tree this would be $k = 2$.</p>
+
+<h3>Evidence</h3>
+
+<p>This formula is a direct consequence of Burnside's lemma.
+To get it, we just need to find an explicit expression for $I(\pi)$, which appears in the lemma.
+Recall, that $I(\pi)$ is the number of fixed points in the permutation $\pi$.</p>
+
+<p>Thus we consider a permutation $\pi$ and some element $f$.
+During the application of $\pi$, the elements in $f$ move via the cycles in the permutation.
+Since the result should obtain $f \equiv f \pi$, the elements touched by one cycle must all be equal.
+At the same time different cycles are independent.
+Thus for each permutation cycle $\pi$ we can choose one value (among $k$ possible) and thus we get the number of fixed points:
+$$I(\pi) = k^{C(\pi)}$$</p>
+
+<h2>Application: Coloring necklaces</h2>
+
+<p>The problem "Necklace" is one of the classical combinatorial problems.
+The task is to count the number of different necklaces from $n$ beads, each of which can be painted in one of the $k$ colors.
+When comparing two necklaces, they can be rotated, but not reversed (i.e. a cyclic shift is permitted).</p>
+
+<p>In this problem we can immediately find the group of invariant permutations:
+$$\begin{align}
+\pi_0 &amp;= 1 2 3 \dots n&#92;&#92;
+\pi_1 &amp;= 2 3 \dots n 1&#92;&#92;
+\pi_2 &amp;= 3 \dots n 12&#92;&#92;
+&amp;\dots&#92;&#92;
+\pi_{n-1} &amp;= n 1 2 3\dots\end{align}$$</p>
+
+<p>Let us find an explicit formula for calculating $C(\pi_i)$.
+First we note, that the permutation $\pi_i$ has at the $j$-th position the value $i + j$ (taken modulo $n$).
+If we check the cycle structure for $\pi_i$.
+We see that $1$ goes to $1 + i$, $1 + i$ goes to $1 + 2i$, which goes to $1 + 3i$, etc., until we come to a number of the form $1 + k n$.
+Similar statements can be mode for the remaining elements.
+Hence we see that all cycles have the same length, namely $\frac{&#92;text{lcm}(i, n)}{i} = \frac{n}{\gcd(i, n)}$.
+Thus the number of cycles in $\pi_i$ will be equal to $\gcd(i, n)$.</p>
+
+<p>Substituting these values into the Pólya enumeration theorem, we obtain the solution:
+$$\frac{1}{n} \sum_{i=1}^n k^{\gcd(i, n)}$$</p>
+
+<p>You can leave this formula in this form, or you can simplify it even more.
+Let transfer the sum so that it iterates over all divisors of $n$.
+In the original sum there will be many equivalent terms: if $i$ is not a divisor of $n$, then such a divisor can be found after computing $\gcd(i, n)$.
+Therefore for each divisor $d ~|~ n$ its term $k^{\gcd(d, n)} = k^d$ will appear in the sum multiple times, i.e. the answer to the problem can be rewritten as
+$$\frac{1}{n} \sum_{d ~|~ n} C_d k^d,$$
+where $C_d$ is the number of such numbers $i$ with $\gcd(i, n) = d$.
+We can find an explicit expression for this value.
+Any such number $i$ has the form $i = d j$ with $\gcd(j, n / d) = 1$ (otherwise $\gcd(i, n) > d$).
+So we can count the number of $j$ with this behavior.
+<a href="./algebra/phi-function.html">Euler's phi function</a> gives us the result $C_d = \phi(n / d)$, and therefore we get the answer:
+$$\frac{1}{n} \sum_{d ~|~ n} \phi\left(\frac{n}{d}\right) k^d$$</p>
+
+<h2>Application: Coloring a torus</h2>
+
+<p>Quite often we cannot obtain an explicit formula for the number of equivalence classes.
+In many problems the number of permutations in a group can be too large for manual calculations and it is not possible to compute analytically the number of cycles in them.</p>
+
+<p>In that case we should manually find several "basic" permutations, so that they can generate the entire group $G$.
+Next we can write a program that will generate all permutations of the group $G$, count the number of cycles in them, and compute the answer with the formula.</p>
+
+<p>Consider the example of the problem for coloring a torus.
+There is a checkered sheet of paper $n \times m$ ($n &lt; m$), some of the cells are black.
+Then a cylinder is obtained from this sheet by gluing together the two sides with lengths $m$.
+Then a torus is obtained from the cylinder by gluing together the two circles (top and bottom) without twisting.
+The task is to compute the number of different colored tori, assuming that we cannot see the glued lines, and the torus can be turned and turned.</p>
+
+<p>We again start with a piece of $n \times m$ paper.
+It is easy to see that the following types of transformations preserve the equivalence class:
+a cyclic shift of the rows, a cyclic shift of the columns, and a rotation of the sheet by 180 degrees.
+It is also easy to see, that these transformations can generate the entire group of invariant transformations.
+If we somehow number the cells of the paper, then we can write three permutations $p_1$, $p_2$, $p_3$ corresponding to these types of transformation.</p>
+
+<p>Next it only remains to generate all permutations obtained as a product.
+It is obvious that all such permutations have the form $p_1^{i_1} p_2^{i_2} p_3^{i_3}$ where $i_1 = 0 \dots m-1$, $i_2 = 0 \dots n-1$, $i_3 = 0 \dots 1$.</p>
+
+<p>Thus we can write the implementations to this problem.</p>
+
+<pre><code class="cpp">using Permutation = vector&lt;int&gt;;
+
+void operator*=(Permutation&amp; p, Permutation const&amp; q) {
+    Permutation copy = p;
+    for (int i = 0; i &lt; p.size(); i++)
+        p[i] = copy[q[i]];
+}
+
+int count_cycles(Permutation p) {
+    int cnt = 0;
+    for (int i = 0; i &lt; p.size(); i++) {
+        if (p[i] != -1) {
+            cnt++;
+            for (int j = i; p[j] != -1;) {
+                int next = p[j];
+                p[j] = -1;
+                j = next;
+            }
+        }
+    }
+    return cnt;
+}
+
+int solve(int n, int m) {
+    Permutation p(n*m), p1(n*m), p2(n*m), p3(n*m);
+    for (int i = 0; i &lt; n*m; i++) {
+        p[i] = i;
+        p1[i] = (i % n + 1) % n + i / n * n;
+        p2[i] = (i / n + 1) % m * n + i % n;
+        p3[i] = (m - 1 - i / n) * n + (n - 1 - i % n);
+    }
+
+    set&lt;Permutation&gt; s;
+    for (int i1 = 0; i1 &lt; n; i1++) {
+        for (int i2 = 0; i2 &lt; m; i2++) {
+            for (int i3 = 0; i3 &lt; 2; i3++) {
+                s.insert(p);
+                p *= p3;
+            }
+            p *= p2;
+        }
+        p *= p1;
+    }
+
+    int sum = 0;
+    for (Permutation const&amp; p : s) {
+        sum += 1 &lt;&lt; count_cycles(p);
+    }
+    return sum / s.size();
+}
+</code></pre>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,256 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Sprague-Grundy theorem. Nim  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/game_theory/sprague-grundy-nim.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Sprague-Grundy theorem. Nim</h1>
+
+<h2>Introduction</h2>
+
+<p>This theorem describes the so-called <strong>impartial</strong> two-player game,
+i.e. those in which the available moves and winning/losing depends only on the state of the game.
+In other words, the only difference between the two players is that one of them moves first.</p>
+
+<p>Additionally, we assume that the game has <strong>perfect information</strong>, i.e. no information is hidden from the players (they know the rules and the possible moves).</p>
+
+<p>It is assumed that the game is <strong>finite</strong>, i.e. after a certain number of moves, one of the players will end up in a losing position — from which they can't move to another position.
+On the other side, the player who set up this position for the opponent wins.
+Understandably, there are no draws in this game.</p>
+
+<p>Such games can be completely described by a <em>directed acyclic graph</em>: the vertices are game states and the edges are transitions (moves).
+A vertex without outgoing edges is a losing vertex (a player who must make a move from this vertex loses).</p>
+
+<p>Since there are no draws, we can classify all game states as either <strong>winning</strong> or <strong>losing</strong>.
+Winning states are those from which there is a move that causes inevitable defeat of the other player, even with their best response.
+Losing states are those from which all moves lead to winning states for the other player.
+Summarizing, a state is winning if there is at least one transition to a losing state and is losing if there isn't at least one transition to a losing state.</p>
+
+<p>Our task is to classify the states of a given game.</p>
+
+<p>The theory of such games was independently developed by Roland Sprague in 1935 and Patrick Michael Grundy in 1939.</p>
+
+<h2>Nim</h2>
+
+<p>This game obeys the restrictions described above.
+Moreover, <em>any</em> perfect-information impartial two-player game can be reduced to the game of Nim.
+Studying this game will allow us to solve all other similar games, but more on that later.</p>
+
+<p>Historically this game was popular in ancient times.
+Its origin is probably in China — or at least the game <em>Jianshizi</em> is very similar to it.
+In Europe the earliest references to it are from the 16th century.
+The name was given by Charles Bouton, who in 1901 published a full analysis of this game.</p>
+
+<h3>Game description</h3>
+
+<p>There are several piles, each with several stones.
+In a move a player can take any positive number of stones from any one pile and throw them away.
+A player loses if they can't make a move, which happens when all the piles are empty.</p>
+
+<p>The game state is unambiguously described by a multiset of positive integers.
+A move consists of strictly decreasing a chosen integer (if it becomes zero, it is removed from the set).</p>
+
+<h3>The solution</h3>
+
+<p>The solution by Charles L. Bouton looks like this:</p>
+
+<p><strong>Theorem.</strong>
+The current player has a winning strategy if and only if the xor-sum of the pile sizes is non-zero.
+The xor-sum of a sequence $a$ is $a_1 \oplus a_2 \oplus \ldots \oplus  a_n$, where $\oplus$ is the <em>bitwise exclusive or</em>.</p>
+
+<p><strong>Proof.</strong>
+The key to the proof is the presence of a <strong>symmetric strategy for the opponent</strong>.
+We show that a once in a position with the xor-sum equal to zero, the player won't be able to make it non-zero in the long term —
+if they transition to a position with a non-zero xor-sum, the opponent will always have a move returning the xor-sum back to zero.</p>
+
+<p>We will prove the theorem by mathematical induction.</p>
+
+<p>For an empty Nim (where all the piles are empty i.e. the multiset is empty) the xor-sum is zero and the theorem is true.</p>
+
+<p>Now suppose we are in a non-empty state.
+Using the assumption of induction (and the acyclicity of the game) we assume that the theorem is proven for all states reachable from the current one.</p>
+
+<p>Then the proof splits into two parts:
+if for the current position the xor-sum $s = 0$, we have to prove that this state is losing, i.e. all reachable states have xor-sum $t \neq 0$.
+If $s \neq 0$, we have to prove that there is a move leading to a state with $t = 0$.</p>
+
+<ul>
+<li>Let $s = 0$ and let's consider any move.
+This move reduces the size of a pile $x$ to a size $y$.
+Using elementary properties of $\oplus$, we have</li>
+</ul>
+
+<p>$$t = s \oplus x \oplus y = 0 \oplus x \oplus y = x \oplus y$$</p>
+
+<p>Since $y &lt; x$, $y \oplus x$ can't be zero, so $t \neq 0$.
+That means any reachable state is a winning one (by the assumption of induction), so we are in a losing position.</p>
+
+<ul>
+<li>Let $s \neq 0$.
+Consider the binary representation of the number $s$.
+Let $d$ be the number of its leading (biggest value) non-zero bit.
+Our move will be on a pile whose size's bit number $d$ is set (it must exist, otherwise the bit wouldn't be set in $s$).
+We will reduce its size $x$ to $y = x \oplus s$.
+All bits at positions greater than $d$ in $x$ and $y$ match and bit $d$ is set in $x$ but not set in $y$.
+Therefore, $y &lt; x$, which is all we need for a move to be legal.
+Now we have:</li>
+</ul>
+
+<p>$$ t = s \oplus x \oplus y = s \oplus x \oplus (s \oplus x) = 0$$</p>
+
+<p>This means we found a reachable losing state (by the assumption of induction) and the current state is winning.</p>
+
+<p><strong>Corollary.</strong>
+Any state of Nim can be replaced by an equivalent state as long as the xor-sum doesn't change.
+Moreover, when analyzing a Nim with several piles, we can replace it with a single pile of size $s$.</p>
+
+<h2>The equivalence of impartial games and Nim (Sprague-Grundy theorem)</h2>
+
+<p>Now we will learn how to find, for any game state of any impartial game, a corresponding state of Nim.</p>
+
+<h3>Lemma about Nim with increases</h3>
+
+<p>We consider the following modification to Nim: we also allow <strong>adding stones to a chosen pile</strong>.
+The exact rules about how and when increasing is allowed <strong>do not interest us</strong>, however the rules should keep our game <strong>acyclic</strong>. In later sections, example games are considered.</p>
+
+<p><strong>Lemma.</strong>
+The addition of increasing to Nim doesn't change how winning and losing states are determined.
+In other words, increases are useless, and we don't have to use them in a winning strategy.</p>
+
+<p><strong>Proof.</strong>
+Suppose a player added stones to a pile. Then his opponent can simply undo his move — decrease the number back to the previous value.
+Since the game is acyclic, sooner or later the current player won't be able to use an increase move and will have to do the usual Nim move.</p>
+
+<h3>Sprague-Grundy theorem</h3>
+
+<p>Let's consider a state $v$ of a two-player impartial game and let $v_i$ be the states reachable from it (where $i \in &#92;{ 1, 2, \dots, k &#92;} , k \ge 0$).
+To this state, we can assign a fully equivalent game of Nim with one pile of size $x$.
+The number $x$ is called the Grundy value or nim-value of state $v$.</p>
+
+<p>Moreover, this number can be found in the following recursive way:</p>
+
+<p>$$ x = \text{mex}\ &#92;{ x_1, \ldots, x_k &#92;}, $$</p>
+
+<p>where $x_i$ is the Grundy value for state $v_i$ and the function $\text{mex}$ (<em>minimum excludant</em>) is the smallest non-negative integer not found in the given set.</p>
+
+<p>Viewing the game as a graph, we can gradually calculate the Grundy values starting from vertices without outgoing edges.
+Grundy value being equal to zero means a state is losing.</p>
+
+<p><strong>Proof.</strong>
+We will use a proof by induction.</p>
+
+<p>For vertices without a move, the value $x$ is the $\text{mex}$ of an empty set, which is zero.
+That is correct, since an empty Nim is losing.</p>
+
+<p>Now consider any other vertex $v$.
+By induction, we assume the values $x_i$ corresponding to its reachable vertices are already calculated.</p>
+
+<p>Let $p = \text{mex}\ &#92;{ x_1, \ldots, x_k &#92;}$.
+Then we know that for any integer $i \in [0, p)$ there exists a reachable vertex with Grundy value $i$.
+This means $v$ is <strong>equivalent to a state of the game of Nim with increases with one pile of size $p$</strong>.
+In such a game we have transitions to piles of every size smaller than $p$ and possibly transitions to piles with sizes greater than $p$.
+Therefore, $p$ is indeed the desired Grundy value for the currently considered state.</p>
+
+<h2>Application of the theorem</h2>
+
+<p>Finally, we describe an algorithm to determine the win/loss outcome of a game, which is applicable to any impartial two-player game.</p>
+
+<p>To calculate the Grundy value of a given state you need to:</p>
+
+<ul>
+<li><p>Get all possible transitions from this state</p></li>
+<li><p>Each transition can lead to a <strong>sum of independent games</strong> (one game in the degenerate case).
+Calculate the Grundy value for each independent game and xor-sum them.
+Of course xor does nothing if there is just one game.</p></li>
+<li><p>After we calculated Grundy values for each transition we find the state's value as the $\text{mex}$ of these numbers.</p></li>
+<li><p>If the value is zero, then the current state is losing, otherwise it is winning.</p></li>
+</ul>
+
+<p>In comparison to the previous section, we take into account the fact that there can be transitions to combined games.
+We consider them a Nim with pile sizes equal to the independent games' Grundy values.
+We can xor-sum them just like usual Nim according to Bouton's theorem.</p>
+
+<h2>Patterns in Grundy values</h2>
+
+<p>Very often when solving specific tasks using Grundy values, it may be beneficial to <strong>study the table of the values</strong> in search of patterns.</p>
+
+<p>In many games, which may seem rather difficult for theoretical analysis,
+the Grundy values turn out to be periodic or of an easily understandable form.
+In the overwhelming majority of cases the observed pattern turns out to be true and can be proved by induction if desired.</p>
+
+<p>However, Grundy values are far from <em>always</em> containing such regularities and even for some very simple games, the problem asking if those regularities exist is still open (e.g. "Grundy's game").</p>
+
+<h2>Example games</h2>
+
+<h3>Crosses-crosses</h3>
+
+<p><strong>The rules.</strong>
+Consider a checkered strip of size $1 \times n$. In one move, the player must put one cross, but it is forbidden to put two crosses next to each other (in adjacent cells). As usual, the player without a valid move loses.</p>
+
+<p><strong>The solution.</strong>
+When a player puts a cross in any cell, we can think of the strip being split into two independent parts:
+to the left of the cross and to the right of it.
+In this case, the cell with a cross, as well as its left and right neighbours are destroyed — nothing more can be put in them.
+Therefore, if we number the cells from $1$ to $n$ then putting the cross in position $1 &lt; i &lt; n$ breaks the strip
+into two strips of length $i-2$ and $n-i-1$ i.e. we go to the sum of games $i-2$ and $n-i-1$.
+For the edge case of the cross being marked on position $1$ or $n$, we go to the game $n-2$.</p>
+
+<p>Thus, the Grundy value $g(n)$ has the form:</p>
+
+<p>$$g(n) = \text{mex} \Bigl( &#92;{ g(n-2) &#92;} \cup &#92;{g(i-2) \oplus g(n-i-1) \mid 2 \leq i \leq n-1&#92;} \Bigr) .$$</p>
+
+<p>So we've got a $O(n^2)$ solution.</p>
+
+<p>In fact, $g(n)$ has a period of length 34 starting with $n=52$.</p>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

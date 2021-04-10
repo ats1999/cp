@@ -1,0 +1,366 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Delaunay triangulation and Voronoi diagram  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/geometry/delaunay.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Delaunay triangulation and Voronoi diagram</h1>
+
+<p>Consider a set $&#92;{p_i&#92;}$ of points on the plane.
+A <strong>Voronoi diagram</strong> $V(&#92;{p_i&#92;})$ of $&#92;{p_i&#92;}$ is a partition of the plane into $n$ regions $V_i$, where $V_i = &#92;{p\in\mathbb{R}^2;\ \rho(p, p_i) = \min\ \rho(p, p_k)&#92;}$.
+The cells of the Voronoi diagram are polygons (possibly infinite).
+A <strong>Delaunay triangulation</strong> $D(&#92;{p_i&#92;})$ of $&#92;{p_i&#92;}$ is a triangulation where every point $p_i$ is outside or on the boundary of the circumcircle of each triangle $T \in D(&#92;{p_i&#92;})$.</p>
+
+<p>There is a nasty degenerated case when the Voronoi diagram isn't connected and Delaunay triangulation doesn't exist. This case is when all points are collinear.</p>
+
+<h2>Properties</h2>
+
+<p>The Delaunay triangulation maximizes the minimum angle among all possible triangulations.</p>
+
+<p>The Minimum Euclidean spanning tree of a point set is a subset of edges of its' Delaunay triangulation.</p>
+
+<h2>Duality</h2>
+
+<p>Suppose that $&#92;{p_i&#92;}$ is not collinear and among $&#92;{p_i&#92;}$ no four points lie on one circle. Then $V(&#92;{p_i&#92;})$ and $D(&#92;{p_i&#92;})$ are dual, so if we obtain one of them, we may obtain the other in $O(n)$. What to do if it's not the case? The collinear case may be processed easily. Otherwise, $V$ and $D'$ are dual, where $D'$ is obtained from $D$ by removing all the edges such that two triangles on this edge share the circumcircle.</p>
+
+<h2>Building Delaunay and Voronoi</h2>
+
+<p>Because of the duality, we only need a fast algorithm to compute only one of $V$ and $D$. We will describe how to build $D(&#92;{p_i&#92;})$ in $O(n\log n)$. The triangulation will be built via divide-and-conquer algorithm due to Guibas and Stolfi.</p>
+
+<h2>Quad-edge data structure</h2>
+
+<p>During the algorithm $D$ will be stored inside the quad-edge data structure. This structure is described in the picture:
+<center><img src="https://raw.githubusercontent.com/e-maxx-eng/e-maxx-eng/master/img/quad-edge.png" alt="Quad-Edge" /></center></p>
+
+<p>In the algorithm we will use the following functions on edges:</p>
+
+<ol>
+<li><code>make_edge(a, b)</code><br>
+This function creates an isolated edge from point <code>a</code> to point <code>b</code> together with its' reverse edge and both dual edges.</li>
+<li><code>splice(a, b)</code><br>
+This is a key function of the algorithm. It swaps <code>a-&gt;Onext</code> with <code>b-&gt;Onext</code> and <code>a-&gt;Onext-&gt;Rot-&gt;Onext</code> with <code>b-&gt;Onext-&gt;Rot-&gt;Onext</code>.</li>
+<li><code>delete_edge(e)</code><br>
+This function deletes e from the triangulation. To delete <code>e</code>, we may simply call <code>splice(e, e-&gt;Oprev)</code> and <code>splice(e-&gt;Rev, e-&gt;Rev-&gt;Oprev)</code>.</li>
+<li><code>connect(a, b)</code><br>
+This function creates a new edge <code>e</code> from <code>a-&gt;Dest</code> to <code>b-&gt;Org</code> in such a way that <code>a</code>, <code>b</code>, <code>e</code> all have the same left face. To do this, we call <code>e = make_edge(a-&gt;Dest, b-&gt;Org)</code>, <code>splice(e, a-&gt;Lnext)</code> and <code>splice(e-&gt;Rev, b)</code>.</li>
+</ol>
+
+<h2>Algorithm</h2>
+
+<p>The algorithm will compute the triangulation and return two quad-edges: the counterclockwise convex hull edge out of the leftmost vertex and the clockwise convex hull edge out of the rightmost vertex.</p>
+
+<p>Let's sort all points by x, and if $x_1 = x_2$ then by y. Let's solve the problem for some segment $(l, r)$ (initially $(l, r) = (0, n - 1)$). If $r - l + 1 = 2$, we will add an edge $(p[l], p[r])$ and return. If $r - l + 1 = 3$, we will firstly add the edges $(p[l], p[l + 1])$ and $(p[l + 1], p[r])$. We must also connect them using <code>splice(a-&gt;Rev, b)</code>. Now we must close the triangle. Our next action will depend on the orientation of $p[l], p[l + 1], p[r]$. If they are collinear, we can't make a triangle, so we simply return <code>(a, b-&gt;Rev)</code>. Otherwise, we create a new edge <code>c</code> by calling <code>connect(b, a)</code>. If the points are oriented counter-clockwise, we return <code>(a, b-&gt;Rev)</code>. Otherwise we return <code>(c-&gt;Rev, c)</code>.</p>
+
+<p>Now suppose that $r - l + 1 \ge 4$. Firstly, let's solve $L = (l, \frac{l + r}{2})$ and $R = (\frac{l + r}{2} + 1, r)$ recursively. Now we have to merge these triangulations into one triangulation. Note that our points are sorted, so while merging we will add edges from L to R (so-called <em>cross</em> edges) and remove some edges from L to L and from R to R.
+What is the structure of the cross edges? All these edges must cross a line parallel to the y-axis and placed at the splitting x value. This establishes a linear ordering of the cross edges, so we can talk about successive cross edges, the bottom-most cross edge, etc. The algorithm will add the cross edges in ascending order. Note that any two adjacent cross edges will have a common endpoint, and the third side of the triangle they define goes from L to L or from R to R. Let's call the current cross edge the base. The successor of the base will either go from the left endpoint of the base to one of the R-neighbors of the right endpoint or vice versa.
+Consider the circumcircle of base and the previous cross edge.
+Suppose this circle is transformed into other circles having base as a chord but lying further into the Oy direction.
+Our circle will go up for a while, but unless base is an upper tangent of L and R we will encounter a point belonging either to L or to R giving rise to a new triangle without any points in the circumcircle.
+The new L-R edge of this triangle is the next cross edge added.
+To do this efficiently, we compute two edges <code>lcand</code> and <code>rcand</code> so that <code>lcand</code> points to the first L point encountered in this process, and <code>rcand</code> points to the first R point.
+Then we choose the one that would be encountered first. Initially base points to the lower tangent of L and R.</p>
+
+<h2>Implementation</h2>
+
+<p>Note that the implementation of the in_circle function is GCC-specific.</p>
+
+<pre><code class="cpp">typedef long long ll;
+
+bool ge(const ll&amp; a, const ll&amp; b) { return a &gt;= b; }
+bool le(const ll&amp; a, const ll&amp; b) { return a &lt;= b; }
+bool eq(const ll&amp; a, const ll&amp; b) { return a == b; }
+bool gt(const ll&amp; a, const ll&amp; b) { return a &gt; b; }
+bool lt(const ll&amp; a, const ll&amp; b) { return a &lt; b; }
+int sgn(const ll&amp; a) { return a &gt;= 0 ? a ? 1 : 0 : -1; }
+
+struct pt {
+    ll x, y;
+    pt() { }
+    pt(ll _x, ll _y) : x(_x), y(_y) { }
+    pt operator-(const pt&amp; p) const {
+        return pt(x - p.x, y - p.y);
+    }
+    ll cross(const pt&amp; p) const {
+        return x * p.y - y * p.x;
+    }
+    ll cross(const pt&amp; a, const pt&amp; b) const {
+        return (a - *this).cross(b - *this);
+    }
+    ll dot(const pt&amp; p) const {
+        return x * p.x + y * p.y;
+    }
+    ll dot(const pt&amp; a, const pt&amp; b) const {
+        return (a - *this).dot(b - *this);
+    }
+    ll sqrLength() const {
+        return this-&gt;dot(*this);
+    }
+    bool operator==(const pt&amp; p) const {
+        return eq(x, p.x) &amp;&amp; eq(y, p.y);
+    }
+};
+
+const pt inf_pt = pt(1e18, 1e18);
+
+struct QuadEdge {
+    pt origin;
+    QuadEdge* rot = nullptr;
+    QuadEdge* onext = nullptr;
+    bool used = false;
+    QuadEdge* rev() const {
+        return rot-&gt;rot;
+    }
+    QuadEdge* lnext() const {
+        return rot-&gt;rev()-&gt;onext-&gt;rot;
+    }
+    QuadEdge* oprev() const {
+        return rot-&gt;onext-&gt;rot;
+    }
+    pt dest() const {
+        return rev()-&gt;origin;
+    }
+};
+
+QuadEdge* make_edge(pt from, pt to) {
+    QuadEdge* e1 = new QuadEdge;
+    QuadEdge* e2 = new QuadEdge;
+    QuadEdge* e3 = new QuadEdge;
+    QuadEdge* e4 = new QuadEdge;
+    e1-&gt;origin = from;
+    e2-&gt;origin = to;
+    e3-&gt;origin = e4-&gt;origin = inf_pt;
+    e1-&gt;rot = e3;
+    e2-&gt;rot = e4;
+    e3-&gt;rot = e2;
+    e4-&gt;rot = e1;
+    e1-&gt;onext = e1;
+    e2-&gt;onext = e2;
+    e3-&gt;onext = e4;
+    e4-&gt;onext = e3;
+    return e1;
+}
+
+void splice(QuadEdge* a, QuadEdge* b) {
+    swap(a-&gt;onext-&gt;rot-&gt;onext, b-&gt;onext-&gt;rot-&gt;onext);
+    swap(a-&gt;onext, b-&gt;onext);
+}
+
+void delete_edge(QuadEdge* e) {
+    splice(e, e-&gt;oprev());
+    splice(e-&gt;rev(), e-&gt;rev()-&gt;oprev());
+    delete e-&gt;rev()-&gt;rot;
+    delete e-&gt;rev();
+    delete e-&gt;rot;
+    delete e;
+}
+
+QuadEdge* connect(QuadEdge* a, QuadEdge* b) {
+    QuadEdge* e = make_edge(a-&gt;dest(), b-&gt;origin);
+    splice(e, a-&gt;lnext());
+    splice(e-&gt;rev(), b);
+    return e;
+}
+
+bool left_of(pt p, QuadEdge* e) {
+    return gt(p.cross(e-&gt;origin, e-&gt;dest()), 0);
+}
+
+bool right_of(pt p, QuadEdge* e) {
+    return lt(p.cross(e-&gt;origin, e-&gt;dest()), 0);
+}
+
+template &lt;class T&gt;
+T det3(T a1, T a2, T a3, T b1, T b2, T b3, T c1, T c2, T c3) {
+    return a1 * (b2 * c3 - c2 * b3) - a2 * (b1 * c3 - c1 * b3) +
+           a3 * (b1 * c2 - c1 * b2);
+}
+
+bool in_circle(pt a, pt b, pt c, pt d) {
+// If there is __int128, calculate directly.
+// Otherwise, calculate angles.
+#if defined(__LP64__) || defined(_WIN64)
+    __int128 det = -det3&lt;__int128&gt;(b.x, b.y, b.sqrLength(), c.x, c.y,
+                                   c.sqrLength(), d.x, d.y, d.sqrLength());
+    det += det3&lt;__int128&gt;(a.x, a.y, a.sqrLength(), c.x, c.y, c.sqrLength(), d.x,
+                          d.y, d.sqrLength());
+    det -= det3&lt;__int128&gt;(a.x, a.y, a.sqrLength(), b.x, b.y, b.sqrLength(), d.x,
+                          d.y, d.sqrLength());
+    det += det3&lt;__int128&gt;(a.x, a.y, a.sqrLength(), b.x, b.y, b.sqrLength(), c.x,
+                          c.y, c.sqrLength());
+    return det &gt; 0;
+#else
+    auto ang = [](pt l, pt mid, pt r) {
+        ll x = mid.dot(l, r);
+        ll y = mid.cross(l, r);
+        long double res = atan2((long double)x, (long double)y);
+        return res;
+    };
+    long double kek = ang(a, b, c) + ang(c, d, a) - ang(b, c, d) - ang(d, a, b);
+    if (kek &gt; 1e-8)
+        return true;
+    else
+        return false;
+#endif
+}
+
+pair&lt;QuadEdge*, QuadEdge*&gt; build_tr(int l, int r, vector&lt;pt&gt;&amp; p) {
+    if (r - l + 1 == 2) {
+        QuadEdge* res = make_edge(p[l], p[r]);
+        return make_pair(res, res-&gt;rev());
+    }
+    if (r - l + 1 == 3) {
+        QuadEdge *a = make_edge(p[l], p[l + 1]), *b = make_edge(p[l + 1], p[r]);
+        splice(a-&gt;rev(), b);
+        int sg = sgn(p[l].cross(p[l + 1], p[r]));
+        if (sg == 0)
+            return make_pair(a, b-&gt;rev());
+        QuadEdge* c = connect(b, a);
+        if (sg == 1)
+            return make_pair(a, b-&gt;rev());
+        else
+            return make_pair(c-&gt;rev(), c);
+    }
+    int mid = (l + r) / 2;
+    QuadEdge *ldo, *ldi, *rdo, *rdi;
+    tie(ldo, ldi) = build_tr(l, mid, p);
+    tie(rdi, rdo) = build_tr(mid + 1, r, p);
+    while (true) {
+        if (left_of(rdi-&gt;origin, ldi)) {
+            ldi = ldi-&gt;lnext();
+            continue;
+        }
+        if (right_of(ldi-&gt;origin, rdi)) {
+            rdi = rdi-&gt;rev()-&gt;onext;
+            continue;
+        }
+        break;
+    }
+    QuadEdge* basel = connect(rdi-&gt;rev(), ldi);
+    auto valid = [&amp;basel](QuadEdge* e) { return right_of(e-&gt;dest(), basel); };
+    if (ldi-&gt;origin == ldo-&gt;origin)
+        ldo = basel-&gt;rev();
+    if (rdi-&gt;origin == rdo-&gt;origin)
+        rdo = basel;
+    while (true) {
+        QuadEdge* lcand = basel-&gt;rev()-&gt;onext;
+        if (valid(lcand)) {
+            while (in_circle(basel-&gt;dest(), basel-&gt;origin, lcand-&gt;dest(),
+                             lcand-&gt;onext-&gt;dest())) {
+                QuadEdge* t = lcand-&gt;onext;
+                delete_edge(lcand);
+                lcand = t;
+            }
+        }
+        QuadEdge* rcand = basel-&gt;oprev();
+        if (valid(rcand)) {
+            while (in_circle(basel-&gt;dest(), basel-&gt;origin, rcand-&gt;dest(),
+                             rcand-&gt;oprev()-&gt;dest())) {
+                QuadEdge* t = rcand-&gt;oprev();
+                delete_edge(rcand);
+                rcand = t;
+            }
+        }
+        if (!valid(lcand) &amp;&amp; !valid(rcand))
+            break;
+        if (!valid(lcand) ||
+            (valid(rcand) &amp;&amp; in_circle(lcand-&gt;dest(), lcand-&gt;origin,
+                                       rcand-&gt;origin, rcand-&gt;dest())))
+            basel = connect(rcand, basel-&gt;rev());
+        else
+            basel = connect(basel-&gt;rev(), lcand-&gt;rev());
+    }
+    return make_pair(ldo, rdo);
+}
+
+vector&lt;tuple&lt;pt, pt, pt&gt;&gt; delaunay(vector&lt;pt&gt; p) {
+    sort(p.begin(), p.end(), [](const pt&amp; a, const pt&amp; b) {
+        return lt(a.x, b.x) || (eq(a.x, b.x) &amp;&amp; lt(a.y, b.y));
+    });
+    auto res = build_tr(0, (int)p.size() - 1, p);
+    QuadEdge* e = res.first;
+    vector&lt;QuadEdge*&gt; edges = {e};
+    while (lt(e-&gt;onext-&gt;dest().cross(e-&gt;dest(), e-&gt;origin), 0))
+        e = e-&gt;onext;
+    auto add = [&amp;p, &amp;e, &amp;edges]() {
+        QuadEdge* curr = e;
+        do {
+            curr-&gt;used = true;
+            p.push_back(curr-&gt;origin);
+            edges.push_back(curr-&gt;rev());
+            curr = curr-&gt;lnext();
+        } while (curr != e);
+    };
+    add();
+    p.clear();
+    int kek = 0;
+    while (kek &lt; (int)edges.size()) {
+        if (!(e = edges[kek++])-&gt;used)
+            add();
+    }
+    vector&lt;tuple&lt;pt, pt, pt&gt;&gt; ans;
+    for (int i = 0; i &lt; (int)p.size(); i += 3) {
+        ans.push_back(make_tuple(p[i], p[i + 1], p[i + 2]));
+    }
+    return ans;
+}
+</code></pre>
+
+<h2>Problems</h2>
+
+<ul>
+<li><a href="http://acm.timus.ru/problem.aspx?space=1&amp;num=1504">TIMUS 1504 Good Manners</a></li>
+<li><a href="http://acm.timus.ru/problem.aspx?space=1&amp;num=1520">TIMUS 1520 Empire Strikes Back</a></li>
+<li><a href="https://codeforces.com/problemsets/acmsguru/problem/99999/383">SGU 383 Caravans</a></li>
+</ul>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

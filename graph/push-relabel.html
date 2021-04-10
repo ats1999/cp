@@ -1,0 +1,222 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Maximum flow - Push-relabel algorithm  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/graph/push-relabel.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Maximum flow - Push-relabel algorithm</h1>
+
+<p>The push-relabel algorithm (or also known as preflow-push algorithm) is an algorithm for computing the maximum flow of a flow network.
+The exact definition of the problem that we want to solve can be found in the article <a href="./graph/edmonds_karp.html">Maximum flow - Ford-Fulkerson and Edmonds-Karp</a>.</p>
+
+<p>In this article we will consider solving the problem by pushing a preflow through the network, which will run in $O(V^4)$, or more precisely in $O(V^2 E)$, time.
+The algorithm was designed by Andrew Goldberg and Robert Tarjan in 1985.</p>
+
+<h2>Definitions</h2>
+
+<p>During the algorithm we will have to handle a <strong>preflow</strong> - i.e. a function $f$ that is similar to the flow function, but does not necessarily satisfies the flow conservation constraint.
+For it only the constraints
+$$0 \le f(e) \le c(e)$$
+and
+$$\sum_{(v, u) \in E} f((v, u)) \ge \sum_{(u, v) \in E} f((u, v))$$
+have to hold.</p>
+
+<p>So it is possible for some vertex to receive more flow than it distributes.
+We say that this vertex has some excess flow, and define the amount of it with the <strong>excess</strong> function $x(u) =\sum_{(v, u) \in E} f((v, u)) - \sum_{(u, v) \in E} f((u, v))$.</p>
+
+<p>In the same way as with the flow function, we can define the residual capacities and the residual graph with the preflow function.</p>
+
+<p>The algorithm will start off with an initial preflow (some vertices having excess), and during the execution the preflow will be handled and modified.
+Giving away some details already, the algorithm will pick a vertex with excess, and push the excess to neighboring vertices.
+It will repeat this until all vertices, except the source and the sink, are free from excess.
+It is easy to see, that a preflow without excess is a valid flow.
+This makes the algorithm terminate with an actual flow.</p>
+
+<p>There are still two problem, we have to deal with.
+First, how do we guarantee that this actually terminates?
+And secondly, how do we guarantee that this will actually give us a maximum flow, and not just any random flow?</p>
+
+<p>To solve these problems we need the help of another function, namely the <strong>labeling</strong> functions $h$, often also called <strong>height</strong> function, which assigns each vertex an integer.
+We call a labeling is valid, if $h(s) = |V|$, $h(t) = 0$, and $h(u) \le h(v) + 1$ if there is an edge $(u, v)$ in the residual graph - i.e. the edge $(u, v)$ has a positive capacity in the residual graph.
+In other words, if it is possible to increase the flow from $u$ to $v$, then the height of $v$ can be at most one smaller than the height of $u$, but it can be equal or even higher.</p>
+
+<p>It is important to note, that if there exists a valid labeling function, then there doesn't exist an augmenting path from $s$ to $t$ in the residual graph.
+Because such a path will have a length of at most $|V| - 1$ edges, and each edge can decrease the height only by at most by one, which is impossible if the first height is $h(s) = |V|$ and the last height is $h(t) = 0$.</p>
+
+<p>Using this labeling function we can state the strategy of the push-relabel algorithm:
+We start with a valid preflow and a valid labeling function.
+In each step we push some excess between vertices, and update the labels of vertices.
+We have to make sure, that after each step the preflow and the labeling are still valid.
+If then the algorithm determines, the preflow is a valid flow.
+And because we also have a valid labeling, there doesn't exists a path between $s$ and $t$ in the residual graph, which means that the flow is actually a maximum flow.</p>
+
+<p>If we compare the Ford-Fulkerson algorithm with the push-relabel algorithm it seems like the algorithms are the duals of each other.
+The Ford-Fulkerson algorithm keeps a valid flow at all time and improves it until there doesn't exists an augmenting path any more, while in the push-relabel algorithm there doesn't exists an augmenting path at any time, and we will improve the preflow until it is a valid flow.</p>
+
+<h2>Algorithm</h2>
+
+<p>First we have to initialize the graph with a valid preflow and labeling function.</p>
+
+<p>Using the empty preflow - like it is done in the Ford-Fulkerson algorithm - is not possible, because then there will be an augmenting path and this implies that there doesn't exists a valid labeling.
+Therefore we will initialize each edges outgoing from $s$ with its maximal capacity: $f((s, u)) = c((s, u))$.
+And all other edges with zero.
+In this case there exists a valid labeling, namely $h(s) = |V|$ for the source vertex and $h(u) = 0$ for all other.</p>
+
+<p>Now let's describe the two operations in more detail.</p>
+
+<p>With the <code>push</code> operation we try to push as much excess flow from one vertex $u$ to a neighboring vertex $v$.
+We have one rule: we are only allowed to push flow from $u$ to $v$ if $h(u) = h(v) + 1$.
+In layman's terms, the excess flow has to flow downwards, but not too steeply.
+Of course we only can push $\min(x(u), c((u, v)) - f((u, v)))$ flow.</p>
+
+<p>If a vertex has excess, but it is not possible to push the excess to any adjacent vertex, then we need to increase the height of this vertex.
+We call this operation <code>relabel</code>.
+We will increase it by as much as it is possible, while still maintaining validity of the labeling.</p>
+
+<p>To recap, the algorithm in a nutshell is:
+We initialize a valid preflow and a valid labeling.
+While we can perform push or relabel operations, we perform them.
+Afterwards the preflow is actually a flow and we return it.</p>
+
+<h2>Complexity</h2>
+
+<p>It is easy to show, that the maximal label of a vertex is $2|V| - 1$.
+At this point all remaining excess can and will be pushed back to the source.
+This gives at most $O(V^2)$ relabel operations.</p>
+
+<p>It can also be showed, that there will be at most $O(V E)$ saturating pushes (a push where the total capacity of the edge is used) and at most $O(V^2 E)$ non-saturating pushes (a push where the capacity of an edge is not fully used) performed.
+If we pick a data structure that allows us to find the next vertex with excess in $O(1)$ time, then the total complexity of the algorithm is $O(V^2 E)$.</p>
+
+<h2>Implementation</h2>
+
+<pre><code class="cpp">const int inf = 1000000000;
+
+int n;
+vector&lt;vector&lt;int&gt;&gt; capacity, flow;
+vector&lt;int&gt; height, excess, seen;
+queue&lt;int&gt; excess_vertices;
+
+void push(int u, int v)
+{
+    int d = min(excess[u], capacity[u][v] - flow[u][v]);
+    flow[u][v] += d;
+    flow[v][u] -= d;
+    excess[u] -= d;
+    excess[v] += d;
+    if (d &amp;&amp; excess[v] == d)
+        excess_vertices.push(v);
+}
+
+void relabel(int u)
+{
+    int d = inf;
+    for (int i = 0; i &lt; n; i++) {
+        if (capacity[u][i] - flow[u][i] &gt; 0)
+            d = min(d, height[i]);
+    }
+    if (d &lt; inf)
+        height[u] = d + 1;
+}
+
+void discharge(int u)
+{
+    while (excess[u] &gt; 0) {
+        if (seen[u] &lt; n) {
+            int v = seen[u];
+            if (capacity[u][v] - flow[u][v] &gt; 0 &amp;&amp; height[u] &gt; height[v])
+                push(u, v);
+            else 
+                seen[u]++;
+        } else {
+            relabel(u);
+            seen[u] = 0;
+        }
+    }
+}
+
+int max_flow(int s, int t)
+{
+    height.assign(n, 0);
+    height[s] = n;
+    flow.assign(n, vector&lt;int&gt;(n, 0));
+    excess.assign(n, 0);
+    excess[s] = inf;
+    for (int i = 0; i &lt; n; i++) {
+        if (i != s)
+            push(s, i);
+    }
+    seen.assign(n, 0);
+
+    while (!excess_vertices.empty()) {
+        int u = excess_vertices.front();
+        excess_vertices.pop();
+        if (u != s &amp;&amp; u != t)
+            discharge(u);
+    }
+
+    int max_flow = 0;
+    for (int i = 0; i &lt; n; i++)
+        max_flow += flow[i][t];
+    return max_flow;
+}
+</code></pre>
+
+<p>Here we use the queue <code>excess_vertices</code> to store all vertices that currently have excess.
+In that way we can pick the next vertex for a push or a relabel operation in constant time.</p>
+
+<p>And to make sure that we don't spend too much time finding the adjacent vertex to whom we can push, we use a data structure called <strong>current-arc</strong>.
+Basically we will iterate over the edges in a circular order and always store the last edge that we used.
+This way, for a certain labeling value, we will switch the current edge only $O(n)$ time.
+And since the relabeling already takes $O(n)$ time, we don't make the complexity worse.</p>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

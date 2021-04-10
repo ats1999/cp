@@ -1,0 +1,171 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Finding common tangents to two circles - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/geometry/tangents-to-two-circles.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Finding common tangents to two circles</h1>
+
+<p>Given two circles. It is required to find all their common tangents, i.e. all such lines that touch both circles simultaneously.</p>
+
+<p>The described algorithm will also work in the case when one (or both) circles degenerate into points. Thus, this algorithm can also be used to find tangents to a circle passing through a given point.</p>
+
+<h2>The number of common tangents</h2>
+
+<p>The number of common tangents to two circles can be <strong>0,1,2,3,4</strong> and <strong>infinite</strong>.
+Look at the images for different cases.
+<center><img src="https://raw.githubusercontent.com/e-maxx-eng/e-maxx-eng/master/img/tangents-to-two-circles.png" alt="&quot;Different cases of tangents common to two circles&quot;" /></center></p>
+
+<p>Here, we won't be considering <strong>degenerate</strong> cases, i.e <em>when the circles coincide (in this case they have infinitely many common tangents), or one circle lies inside the other (in this case they have no common tangents, or if the circles are tangent, there is one common tangent).</em></p>
+
+<p>In most cases, two circles have <strong>four</strong> common tangents.</p>
+
+<p>If the circles <strong>are tangent</strong> , then they will have three common tangents, but this can be understood as a degenerate case: as if the two tangents coincided.</p>
+
+<p>Moreover, the algorithm described below will work in the case when one or both circles have zero radius: in this case there will be, respectively, two or one common tangent.</p>
+
+<p>Summing up, we will always look for <strong>four tangents</strong> for all cases except infinite tangents case (The infinite tangents case needs to be handled separately and it is not discussed here). In degenerate cases, some of tangents will coincide, but nevertheless, these cases will also fit into the big picture.</p>
+
+<h2>Algorithm</h2>
+
+<p>For the sake of simplicity of the algorithm, we will assume, without losing generality, that the center of the first circle has coordinates $(0, 0)$. (If this is not the case, then this can be achieved by simply shifting the whole picture, and after finding a solution, by shifting the obtained straight lines back.)</p>
+
+<p>Denote $r_1$ and $r_2$ the radii of the first and second circles, and by $(v_x,v_y)$ the coordinates of the center of the second circle and point $v$ different from origin. (Note: we are not considering the case in which both the circles are same).</p>
+
+<p>To solve the problem, we approach it purely <strong>algebraically</strong> . We need to find all the lines of the form $ax + by + c = 0$ that lie at a distance $r_1$ from the origin of coordinates, and at a distance $r_2$ from a point $v$. In addition, we impose the condition of normalization of the straight line: the sum of the squares of the coefficients and must be equal to one (this is necessary, otherwise the same straight line will correspond to infinitely many representations of the form $ax + by + c = 0$). Total we get such a system of equations for the desired $a, b, c$:</p>
+
+<p>$$a^2 + b^2 = 1$$
+$$\mid a \cdot 0 + b \cdot 0 + c \mid = r_1$$
+$$\mid a \cdot v_x + b \cdot v_y + c \mid = r_2$$</p>
+
+<p>To get rid of the modulus, note that there are only four ways to open the modulus in this system. All these methods can be considered by the general case, if we understand the opening of the modulus as the fact that the coefficient on the right-hand side may be multiplied by -1. In other words, we turn to this system:</p>
+
+<p>$$a^2 + b^2 = 1$$
+$$c = \pm r_1$$
+$$a \cdot v_x + b \cdot v_y + c = \pm r_2$$</p>
+
+<p>Entering the notation $d_1 = \pm r_1$ and $d_2 = \pm r_2$ , we come to the conclusion that the system must have four solutions:</p>
+
+<p>$$a^2 + b^2 = 1$$
+$$c = d_1$$
+$$a \cdot v_x + b \cdot v_y + c = d_2$$</p>
+
+<p>The solution of this system is reduced to solving a quadratic equation. We will omit all the cumbersome calculations, and immediately give a ready answer:</p>
+
+<p>$$a = {( d_2 - d_1 ) v_x \pm v_y \sqrt{v_x^2 + v_y^2-(d_2-d_1)^2} \over {v_x^2 + v_y^2} }$$
+$$b = {( d_2 - d_1 ) v_y \pm v_x \sqrt{v_x^2 + v_y^2-(d_2-d_1)^2} \over {v_x^2 + v_y^2} }$$
+$$c = d_1$$</p>
+
+<p>Total we got eight solutions instead four. However, it is easy to understand where superfluous decisions arise: in fact, in the latter system, it is enough to take only one solution (for example, the first). In fact, the geometric meaning of what we take $\pm r_1$ and $\pm r_2$ is clear: we are actually sorting out which side of each circle there is a straight line. Therefore, the two methods that arise when solving the latter system are redundant: it is enough to choose one of the two solutions (only, of course, in all four cases, you must choose the same family of solutions).</p>
+
+<p>The last thing that we have not yet considered is <strong>how to shift the straight lines</strong> in the case when the first circle was not originally located at the origin. However, everything is simple here: it follows from the linearity of the equation of a straight line that the value $a \cdot x_0 + b \cdot y_0$ (where $x_0$ and $y_0$ are the coordinates of the original center of the first circle) must be subtracted from the coefficient $c$.</p>
+
+<h2>Implementation</h2>
+
+<p>We first describe all the necessary data structures and other auxiliary definitions:</p>
+
+<pre><code class="point-line-circle-struct">struct pt {
+    double x, y;
+
+    pt operator- (pt p) {
+        pt res = { x-p.x, y-p.y };
+        return res;
+    }
+};
+
+struct circle : pt {
+    double r;
+};
+
+struct line {
+    double a, b, c;
+};
+
+const double EPS = 1E-9;
+
+double sqr (double a) {
+    return a * a;
+}
+</code></pre>
+
+<p>Then the solution itself can be written this way (where the main function for the call is the second; and the first function is an auxiliary):</p>
+
+<pre><code class="find-tangents-to-two-circles">void tangents (pt c, double r1, double r2, vector&lt;line&gt; &amp; ans) {
+    double r = r2 - r1;
+    double z = sqr(c.x) + sqr(c.y);
+    double d = z - sqr(r);
+    if (d &lt; -EPS)  return;
+    d = sqrt (abs (d));
+    line l;
+    l.a = (c.x * r + c.y * d) / z;
+    l.b = (c.y * r - c.x * d) / z;
+    l.c = r1;
+    ans.push_back (l);
+}
+
+vector&lt;line&gt; tangents (circle a, circle b) {
+    vector&lt;line&gt; ans;
+    for (int i=-1; i&lt;=1; i+=2)
+        for (int j=-1; j&lt;=1; j+=2)
+            tangents (b-a, a.r*i, b.r*j, ans);
+    for (size_t i=0; i&lt;ans.size(); ++i)
+        ans[i].c -= ans[i].a * a.x + ans[i].b * a.y;
+    return ans;
+}
+</code></pre>
+
+<h2>Problems</h2>
+
+<p><a href="https://acm.timus.ru/problem.aspx?space=1&amp;num=1163">TIMUS 1163 Chapaev</a></p>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

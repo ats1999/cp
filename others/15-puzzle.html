@@ -1,0 +1,122 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>15 Puzzle Game: Existence Of The Solution  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/others/15-puzzle.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>15 Puzzle Game: Existence Of The Solution</h1>
+
+<p>This game is played on a $4 \times 4$ board. On this board there are $15$ playing tiles numbered from 1 to 15. One cell is left empty (denoted by 0). You need to get the board to the position presented below by repeatedly moving one of the tiles to the free space:</p>
+
+<p>$$\begin{matrix} 1 &amp; 2 &amp; 3 &amp; 4 &#92;&#92; 5 &amp; 6 &amp; 7 &amp; 8 &#92;&#92; 9 &amp; 10 &amp; 11 &amp; 12 &#92;&#92; 13 &amp; 14 &amp; 15 &amp; 0 \end{matrix}$$</p>
+
+<p>The game "15 Puzzle” was created by Noyes Chapman in 1880.</p>
+
+<h2>Existence Of The Solution</h2>
+
+<p>Let's consider this problem: given a position on the board, determine whether a sequence of moves which leads to a solution exists.</p>
+
+<p>Suppose we have some position on the board:</p>
+
+<p>$$\begin{matrix} a_1 &amp; a_2 &amp; a_3 &amp; a_4 &#92;&#92; a_5 &amp; a_6 &amp; a_7 &amp; a_8 &#92;&#92; a_9 &amp; a_{10} &amp; a_{11} &amp; a_{12} &#92;&#92; a_{13} &amp; a_{14} &amp; a_{15} &amp; a_{16} \end{matrix}$$</p>
+
+<p>where one of the elements equals zero and indicates an empty cell $a_z  = 0$</p>
+
+<p>Let’s consider the permutation:</p>
+
+<p>$$a_1 a_2 ... a_{z-1} a_{z+1} ... a_{15} a_{16}$$</p>
+
+<p>i.e. the permutation of numbers corresponding to the position on the board without a zero element</p>
+
+<p>Let $N$ be the number of inversions in this permutation (i.e. the number of such elements $a_i$  and $a_j$  that $i &lt; j$, but $a_i  > a_j$).</p>
+
+<p>Suppose $K$ is an index of a row where the empty element is located (i.e. using our convention, $K = (z - 1) \div \ 4 + 1$).</p>
+
+<p>Then, <strong>the solution exists iff $N + K$ is even</strong>.</p>
+
+<h2>Implementation</h2>
+
+<p>The algorithm above can be illustrated with the following program code:</p>
+
+<pre><code class="cpp">int a[16];
+for (int i=0; i&lt;16; ++i)
+    cin &gt;&gt; a[i];
+
+int inv = 0;
+for (int i=0; i&lt;16; ++i)
+    if (a[i])
+        for (int j=0; j&lt;i; ++j)
+            if (a[j] &gt; a[i])
+                ++inv;
+for (int i=0; i&lt;16; ++i)
+    if (a[i] == 0)
+        inv += 1 + i / 4;
+
+puts ((inv &amp; 1) ? "No Solution" : "Solution Exists");
+</code></pre>
+
+<h2>Proof</h2>
+
+<p>In 1879 Johnson proved that if $N + K$ is odd, then the solution doesn’t exist, and in the same year Story proved that all positions when $N + K$ is even have a solution.</p>
+
+<p>However, all these proofs were quite complex.</p>
+
+<p>In 1999 Archer proposed a much simpler proof (you can download his article <a href="http://www.cs.cmu.edu/afs/cs/academic/class/15859-f01/www/notes/15-puzzle.pdf">here</a>).</p>
+
+<h2>Practice Problems</h2>
+
+<ul>
+<li><a href="https://www.hackerrank.com/challenges/n-puzzle">Hackerrank - N-puzzle</a></li>
+</ul>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

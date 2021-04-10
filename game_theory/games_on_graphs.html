@@ -1,0 +1,275 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Games on arbitrary graphs  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/game_theory/games_on_graphs.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Games on arbitrary graphs</h1>
+
+<p>Let a game be played by two players on an arbitrary graph $G$.
+I.e. the current state of the game is a certain vertex.
+The players perform moves by turns, and move from the current vertex to an adjacent vertex using a connecting edge.
+Depending on the game, the person that is unable to move will either lose or win the game.</p>
+
+<p>We consider the most general case, the case of an arbitrary directed graph with cycles.
+It is our task to determine, given an initial state, who will win the game if both players play with optimal strategies or determine that the result of the game will be a draw.</p>
+
+<p>We will solve this problem very efficiently.
+We will find the solution for all possible starting vertices of the graph in linear time with respect to the number of edges: $O(m)$.</p>
+
+<h2>Description of the algorithm</h2>
+
+<p>We will call a vertex a winning vertex, if the player starting at this state will win the game, if they play optimally (regardless of what turns the other player makes).
+Similarly, we will call a vertex a losing vertex, if the player starting at this vertex will lose the game, if the opponent plays optimally.</p>
+
+<p>For some of the vertices of the graph, we already know in advance that they are winning or losing vertices: namely all vertices that have no outgoing edges.</p>
+
+<p>Also we have the following <strong>rules</strong>:</p>
+
+<ul>
+<li>if a vertex has an outgoing edge that leads to a losing vertex, then the vertex itself is a winning vertex.</li>
+<li>if all outgoing edges of a certain vertex lead to winning vertices, then the vertex itself is a losing vertex.</li>
+<li>if at some point there are still undefined vertices, and neither will fit the first or the second rule, then each of these vertices, when used as a starting vertex, will lead to a draw if both player play optimally.</li>
+</ul>
+
+<p>Thus, we can define an algorithm which runs in $O(n m)$ time immediately.
+We go through all vertices and try to apply the first or second rule, and repeat.</p>
+
+<p>However, we can accelerate this procedure, and get the complexity down to $O(m)$.</p>
+
+<p>We will go over all the vertices, for which we initially know if they are winning or losing states.
+For each of them, we start a <a href="./graph/depth-first-search.html">depth first search</a>.
+This DFS will move back over the reversed edges.
+First of all, it will not enter vertices which already are defined as winning or losing vertices.
+And further, if the search goes from a losing vertex to an undefined vertex, then we mark this one as a winning vertex, and continue the DFS using this new vertex.
+If we go from a winning vertex to an undefined vertex, then we must check whether all edges from this one leads to winning vertices.
+We can perform this test in $O(1)$ by storing the number of edges that lead to a winning vertex for each vertex.
+So if we go from a winning vertex to an undefined one, then we increase the counter, and check if this number is equal to the number of outgoing edges.
+If this is the case, we can mark this vertex as a losing vertex, and continue the DFS from this vertex.
+Otherwise we don't know yet, if this vertex is a winning or losing vertex, and therefore it doesn't make sense to keep continuing the DFS using it.</p>
+
+<p>In total we visit every winning and every losing vertex exactly once (undefined vertices are not visited), and we go over each edge also at most one time.
+Hence the complexity is $O(m)$.</p>
+
+<h2>Implementation</h2>
+
+<p>Here is the implementation of such a DFS.
+We assume that the variable <code>adj_rev</code> stores the adjacency list for the graph in <strong>reversed</strong> form, i.e. instead of storing the edge $(i, j)$ of the graph, we store $(j, i)$.
+Also for each vertex we assume that the outgoing degree is already computed.</p>
+
+<pre><code class="cpp">vector&lt;vector&lt;int&gt;&gt; adj_rev;
+
+vector&lt;bool&gt; winning;
+vector&lt;bool&gt; losing;
+vector&lt;bool&gt; visited;
+vector&lt;int&gt; degree;
+
+void dfs(int v) {
+    visited[v] = true;
+    for (int u : adj_rev[v]) {
+        if (!visited[u]) {
+            if (losing[v])
+                winning[u] = true;
+            else if (--degree[u] == 0)
+                losing[u] = true;
+            else
+                continue;
+            dfs(u);
+        }
+    }
+}
+</code></pre>
+
+<h2>Example: "Policeman and thief"</h2>
+
+<p>Here is a concrete example of such a game.</p>
+
+<p>There is $m \times n$ board.
+Some of the cells cannot be entered.
+The initial coordinates of the police officer and of the thief are known.
+One of the cells is the exit.
+If the policeman and the thief are located at the same cell at any moment, the policeman wins.
+If the thief is at the exit cell (without the policeman also being on the cell), then the thief wins.
+The policeman can walk in all 8 directions, the thief only in 4 (along the coordinate axis).
+Both the policeman and the thief will take turns moving.
+However they also can skip a turn if they want to.
+The first move is made by the policeman.</p>
+
+<p>We will now <strong>construct the graph</strong>.
+For this we must formalize the rules of the game.
+The current state of the game is determined by the coordinates of the police offices $P$, the coordinates of the thief $T$, and also by whose turn it is, let's call this variable $P_{\text{turn}}$ (which is true when it is the policeman's turn).
+Therefore a vertex of the graph is determined by the triple $(P, T, P_{\text{turn}})$
+The graph then can be easily constructed, simply by following the rules of the game.</p>
+
+<p>Next we need to determine which vertices are winning and which are losing ones initially.
+There is a <strong>subtle point</strong> here.
+The winning / losing vertices depend, in addition to the coordinates, also on $P_{\text{turn}}$ - whose turn it.
+If it is the policeman's turn, then the vertex is a winning vertex, if the coordinates of the policeman and the thief coincide, and the vertex is a losing one if it is not a winning one and the thief is on the exit vertex.
+If it is the thief's turn, then a vertex is a losing vertex, if the coordinates of the two players coincide, and it is a winning vertex if it is not a losing one, and the thief is at the exit vertex.</p>
+
+<p>The only point before implementing is not, that you need to decide if you want to build the graph <strong>explicitly</strong> or just construct it <strong>on the fly</strong>.
+On one hand, building the graph explicitly will be a lot easier and there is less chance of making mistakes.
+On the other hand, it will increase the amount of code and the running time will be slower than if you build the graph on the fly.</p>
+
+<p>The following implementation will construct the graph explicitly:</p>
+
+<pre><code class="cpp">struct State {
+    int P, T;
+    bool Pstep;
+};
+
+vector&lt;State&gt; adj_rev[100][100][2]; // [P][T][Pstep]
+bool winning[100][100][2];
+bool losing[100][100][2];
+bool visited[100][100][2];
+int degree[100][100][2];
+
+void dfs(State v) {
+    visited[v.P][v.T][v.Pstep] = true;
+    for (State u : adj_rev[v.P][v.T][v.Pstep]) {
+        if (!visited[u.P][u.T][u.Pstep]) {
+            if (losing[v.P][v.T][v.Pstep])
+                winning[u.P][u.T][u.Pstep] = true;
+            else if (--degree[u.P][u.T][u.Pstep] == 0)
+                losing[u.P][u.T][u.Pstep] = true;
+            else
+                continue;
+            dfs(u);
+        }
+    }
+}
+
+int main() {
+    int n, m;
+    cin &gt;&gt; n &gt;&gt; m;
+    vector&lt;string&gt; a(n);
+    for (int i = 0; i &lt; n; i++)
+        cin &gt;&gt; a[i];
+
+    for (int P = 0; P &lt; n*m; P++) {
+        for (int T = 0; T &lt; n*m; T++) {
+            for (int Pstep = 0; Pstep &lt;= 1; Pstep++) {
+                int Px = P/m, Py = P%m, Tx = T/m, Ty = T%m;
+                if (a[Px][Py]=='*' || a[Tx][Ty]=='*')
+                    continue;
+
+                bool&amp; win = winning[P][T][Pstep];
+                bool&amp; lose = losing[P][T][Pstep];
+                if (Pstep) {
+                    win = Px==Tx &amp;&amp; Py==Ty;
+                    lose = !win &amp;&amp; a[Tx][Ty] == 'E';
+                } else {
+                    lose = Px==Tx &amp;&amp; Py==Ty;
+                    win = !lose &amp;&amp; a[Tx][Ty] == 'E';
+                }
+                if (win || lose)
+                    continue;
+
+                State st = {P,T,!Pstep};
+                adj_rev[P][T][Pstep].push_back(st);
+                st.Pstep = Pstep;
+                degree[P][T][Pstep]++;
+
+                const int dx[] = {-1, 0, 1, 0, -1, -1, 1, 1};
+                const int dy[] = {0, 1, 0, -1, -1, 1, -1, 1};
+                for (int d = 0; d &lt; (Pstep ? 8 : 4); d++) {
+                    int PPx = Px, PPy = Py, TTx = Tx, TTy = Ty;
+                    if (Pstep) {
+                        PPx += dx[d];
+                        PPy += dy[d];
+                    } else {
+                        TTx += dx[d];
+                        TTy += dy[d];
+                    }
+
+                    if (PPx &gt;= 0 &amp;&amp; PPx &lt; n &amp;&amp; PPy &gt;= 0 &amp;&amp; PPy &lt; m &amp;&amp; a[PPx][PPy] != '*' &amp;&amp;
+                        TTx &gt;= 0 &amp;&amp; TTx &lt; n &amp;&amp; TTy &gt;= 0 &amp;&amp; TTy &lt; m &amp;&amp; a[TTx][TTy] != '*')
+                    {
+                        adj_rev[PPx*m+PPy][TTx*m+TTy][!Pstep].push_back(st);
+                        ++degree[P][T][Pstep];
+                    }
+                }
+            }
+        }
+    }
+
+    for (int P = 0; P &lt; n*m; P++) {
+        for (int T = 0; T &lt; n*m; T++) {
+            for (int Pstep = 0; Pstep &lt;= 1; Pstep++) {
+                if ((winning[P][T][Pstep] || losing[P][T][Pstep]) &amp;&amp; !visited[P][T][Pstep])
+                    dfs({P, T, (bool)Pstep});
+            }
+        }
+    }
+
+    int P_st, T_st;
+    for (int i = 0; i &lt; n; i++) {
+        for (int j = 0; j &lt; m; j++) {
+            if (a[i][j] == 'P')
+                P_st = i*m+j;
+            else if (a[i][j] == 'T')
+                T_st = i*m+j;
+        }
+    }
+
+    if (winning[P_st][T_st][true]) {
+        cout &lt;&lt; "Police catches the thief"  &lt;&lt; endl;
+    } else if (losing[P_st][T_st][true]) {
+        cout &lt;&lt; "The thief escapes" &lt;&lt; endl;
+    } else {
+        cout &lt;&lt; "Draw" &lt;&lt; endl;
+    }
+}
+</code></pre>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

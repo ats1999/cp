@@ -1,0 +1,190 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Generating all K-combinations  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/combinatorics/generating_combinations.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Generating all $K$-combinations</h1>
+
+<p>In this article we will discuss the problem of generating all $K$-combinations.
+Given the natural numbers $N$ and $K$, and considering a set of numbers from $1$ to $N$.
+The task is to derive all <strong>subsets of size $K$</strong>.</p>
+
+<h2>Generate next lexicographical $K$-combination</h2>
+
+<p>First we will generate them in lexicographical order.
+The algorithm for this is simple. The first combination will be ${1, 2, ..., K}$. Now let's see how
+to find the combination that immediately follows this, lexicographically. To do so, we consider our
+current combination, and find the rightmost element that has not yet reached its highest possible value. Once
+finding this element, we increment it by $1$, and assign the lowest valid value to all subsequent
+elements.</p>
+
+<pre><code class="cpp">bool next_combination(vector&lt;int&gt;&amp; a, int n) {
+    int k = (int)a.size();
+    for (int i = k - 1; i &gt;= 0; i--) {
+        if (a[i] &lt; n - k + i + 1) {
+            a[i]++;
+            for (int j = i + 1; j &lt; k; j++)
+                a[j] = a[j - 1] + 1;
+            return true;
+        }
+    }
+    return false;
+}
+</code></pre>
+
+<h2>Generate all $K$-combinations such that adjacent combinations differ by one element</h2>
+
+<p>This time we want to generate all $K$-combinations in such
+an order, that adjacent combinations differ exactly by one element.</p>
+
+<p>This can be solved using the <a href="./algebra/gray-code.html">Gray Code</a>:
+If we assign a bitmask to each subset, then by generating and iterating over these bitmasks with Gray codes, we can obtain our answer.</p>
+
+<p>The task of generating $K$-combinations can also be solved using Gray Codes in a different way:
+Generate Gray Codes for the numbers from $0$ to $2^N - 1$ and leave only those codes containing $K$ $1$s.
+The surprising fact is that in the resulting sequence of $K$ set bits, any two neighboring masks (including the
+first and last mask - neighboring in a cyclic sense) - will differ exactly by two bits, which is our objective (remove
+a number, add a number).</p>
+
+<p>Let us prove this:</p>
+
+<p>For the proof, we recall the fact that the sequence $G(N)$ (representing the $N$<sup>th</sup> Gray Code) can 
+be obtained as follows:</p>
+
+<p>$$G(N) = 0G(N-1) \cup 1G(N-1)^\text{R}$$</p>
+
+<p>That is, consider the Gray Code sequence for $N-1$, and prefix $0$ before every term. And consider the 
+reversed Gray Code sequence for $N-1$ and prefix a $1$ before every mask, and
+concatenate these two sequences.</p>
+
+<p>Now we may produce our proof.</p>
+
+<p>First, we prove that the first and last masks differ exactly in two bits. To do this, it is sufficient to note
+that the first mask of the sequence $G(N)$, will be of the form $N-K$ $0$s, followed by $K$ $1$s. As
+the first bit is set as $0$, after which $(N-K-1)$ $0$s follow, after which $K$ set bits follow and the last mask will be of the form $1$, then $(N-K)$ $0$s, then $K-1$ $1$s.
+Applying the principle of mathematical induction, and using the formula for $G(N)$, concludes the proof.</p>
+
+<p>Now our task is to show that any two adjacent codes also differ exactly in two bits, we can do this by considering our recursive equation for the generation of Gray Codes. Let us assume the content of the two halves formed by $G(N-1)$ is true. Now we need to prove that the new consecutive pair formed at the junction (by the concatenation of these two halves) is also valid, i.e. they differ by exactly two bits.</p>
+
+<p>This can be done, as we know the last mask of the first half and the first mask of the second half. The last mask of the first half would be $1$, then $(N-K-1)$ $0$s, then $K-1$ $1$s. And the first mask of the second half would be $0$, then $(N-K-2)$ $0$s would follow, and then $K$ $1$s. Thus, comparing the two masks, we find exactly two bits that differ.</p>
+
+<p>The following is a naive implementation working by generating all $2^{n}$ possible subsets, and finding subsets of size
+$K$.</p>
+
+<pre><code class="cpp">int gray_code (int n) {
+    return n ^ (n &gt;&gt; 1);
+}
+
+int count_bits (int n) {
+    int res = 0;
+    for (; n; n &gt;&gt;= 1)
+        res += n &amp; 1;
+    return res;
+}
+
+void all_combinations (int n, int k) {
+    for (int i = 0; i &lt; (1 &lt;&lt; n); i++) {
+        int cur = gray_code (i);
+        if (count_bits(cur) == k) {
+            for (int j = 0; j &lt; n; j++) {
+                if (cur &amp; (1 &lt;&lt; j))
+                    cout &lt;&lt; j + 1;
+            }
+            cout &lt;&lt; "\n";
+        }
+    }
+}
+</code></pre>
+
+<p>It's worth mentioning that a more efficient implementation exists that only resorts to building valid combinations and thus
+works in $O\left(N \cdot \binom{N}{K}\right)$ however it is recursive in nature and for smaller values of $N$ it probably has a larger constant
+than the previous solution.</p>
+
+<p>The implementation is derived from the formula:</p>
+
+<p>$$G(N, K) = 0G(N-1, K) \cup 1G(N-1, K-1)^\text{R}$$</p>
+
+<p>This formula is obtained by modifying the general equation to determine the Gray code, and works by selecting the
+subsequence from appropriate elements.</p>
+
+<p>Its implementation is as follows:</p>
+
+<pre><code class="cpp">vector&lt;int&gt; ans;
+
+void gen(int n, int k, int idx, bool rev) {
+    if (k &gt; n || k &lt; 0)
+        return;
+
+    if (!n) {
+        for (int i = 0; i &lt; idx; ++i) {
+            if (ans[i])
+                cout &lt;&lt; i + 1;
+        }
+        cout &lt;&lt; "\n";
+        return;
+    }
+
+    ans[idx] = rev;
+    gen(n - 1, k - rev, idx + 1, false);
+    ans[idx] = !rev;
+    gen(n - 1, k - !rev, idx + 1, true);
+}
+
+void all_combinations(int n, int k) {
+    ans.resize(n);
+    gen(n, k, 0, false);
+}
+</code></pre>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

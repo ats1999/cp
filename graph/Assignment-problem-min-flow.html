@@ -1,0 +1,165 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Assignment problem solution using min-cost-flo<  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/graph/Assignment-problem-min-flow.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Solving assignment problem using min-cost-flow</h1>
+
+<p>The <strong>assignment problem</strong> has two equivalent statements:</p>
+
+<ul>
+<li>Given a square matrix $A[1..N, 1..N]$, you need to select $N$ elements in it so that exactly one element is selected in each row and column, and the sum of the values of these elements is the smallest.</li>
+<li>There are $N$ orders and $N$ machines. The cost of manufacturing on each machine is known for each order.  Only one order can be performed on each machine. It is required to assign all orders to the machines so that the total cost is minimized.</li>
+</ul>
+
+<p>Here we will consider the solution of the problem based on the algorithm for finding the <a href="./graph/min_cost_flow.html">minimum cost flow (min-cost-flow)</a>, solving the assignment problem in $\mathcal{O}(N^5)$.</p>
+
+<h2>Description</h2>
+
+<p>Let's build a bipartite network: there is a source $S$, a drain $T$, in the first part there are $N$ vertices (corresponding to rows of the matrix, or orders), in the second there are also $N$ vertices (corresponding to the columns of the matrix, or machines). Between each vertex $i$ of the first set and each vertex $j$ of the second set, we draw an edge with bandwidth 1 and cost $A_{ij}$. From the source $S$ we draw edges to all vertices $i$ of the first set with bandwidth 1 and cost 0. We draw an edge with bandwidth 1 and cost 0 from each vertex of the second set $j$ to the drain $T$.</p>
+
+<p>We find in the resulting network the maximum flow of the minimum cost. Obviously, the value of the flow will be $N$. Further, for each vertex $i$ of the first segment there is exactly one vertex $j$ of the second segment, such that the flow $F_{ij}$ = 1. Finally, this is a one-to-one correspondence between the vertices of the first segment and the vertices of the second part, which is the solution to the problem (since the found flow has a minimal cost, then the sum of the costs of the selected edges will be the lowest possible, which is the optimality criterion).</p>
+
+<p>The complexity of this solution of the assignment problem depends on the algorithm by which the search for the maximum flow of the minimum cost is performed. The complexity will be $\mathcal{O}(N^5)$ using <a href="./graph/dijkstra.html">Dijkstra</a> or $\mathcal{O}(N^6)$ using <a href="./graph/bellman_ford.html">Bellman-Ford</a>.</p>
+
+<h2>Implementation</h2>
+
+<p>The implementation given here is long, it can probably be significantly reduced.
+It uses the <a href="./graph/bellman_ford.html">SPFA algorithm</a> for finding shortest paths.</p>
+
+<pre><code class="cpp">const int INF = 1000 * 1000 * 1000;
+
+vector&lt;int&gt; assignment(vector&lt;vector&lt;int&gt;&gt; a) {
+    int n = a.size();
+    int m = n * 2 + 2;
+    vector&lt;vector&lt;int&gt;&gt; f(m, vector&lt;int&gt;(m));
+    int s = m - 2, t = m - 1;
+    int cost = 0;
+    while (true) {
+        vector&lt;int&gt; dist(m, INF);
+        vector&lt;int&gt; p(m);
+        vector&lt;bool&gt; inq(m, false);
+        queue&lt;int&gt; q;
+        dist[s] = 0;
+        p[s] = -1;
+        q.push(s);
+        while (!q.empty()) {
+            int v = q.front();
+            q.pop();
+            inq[v] = false;
+            if (v == s) {
+                for (int i = 0; i &lt; n; ++i) {
+                    if (f[s][i] == 0) {
+                        dist[i] = 0;
+                        p[i] = s;
+                        inq[i] = true;
+                        q.push(i);
+                    }
+                }
+            } else {
+                if (v &lt; n) {
+                    for (int j = n; j &lt; n + n; ++j) {
+                        if (f[v][j] &lt; 1 &amp;&amp; dist[j] &gt; dist[v] + a[v][j - n]) {
+                            dist[j] = dist[v] + a[v][j - n];
+                            p[j] = v;
+                            if (!inq[j]) {
+                                q.push(j);
+                                inq[j] = true;
+                            }
+                        }
+                    }
+                } else {
+                    for (int j = 0; j &lt; n; ++j) {
+                        if (f[v][j] &lt; 0 &amp;&amp; dist[j] &gt; dist[v] - a[j][v - n]) {
+                            dist[j] = dist[v] - a[j][v - n];
+                            p[j] = v;
+                            if (!inq[j]) {
+                                q.push(j);
+                                inq[j] = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        int curcost = INF;
+        for (int i = n; i &lt; n + n; ++i) {
+            if (f[i][t] == 0 &amp;&amp; dist[i] &lt; curcost) {
+                curcost = dist[i];
+                p[t] = i;
+            }
+        }
+        if (curcost == INF)
+            break;
+        cost += curcost;
+        for (int cur = t; cur != -1; cur = p[cur]) {
+            int prev = p[cur];
+            if (prev != -1)
+                f[cur][prev] = -(f[prev][cur] = 1);
+        }
+    }
+
+    vector&lt;int&gt; answer(n);
+    for (int i = 0; i &lt; n; ++i) {
+        for (int j = 0; j &lt; n; ++j) {
+            if (f[i][j + n] == 1)
+                answer[i] = j;
+        }
+    }
+    return answer;
+}
+</code></pre>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,258 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Paint the edges of the tree  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/graph/tree_painting.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Paint the edges of the tree</h1>
+
+<p>This is a fairly common task. Given a tree $G$ with $N$ vertices. There are two types of queries: the first one is to paint an edge, the second one is to query the number of colored edges between two vertices.</p>
+
+<p>Here we will describe a fairly simple solution (using a <a href="./data_structures/segment_tree.html">segment tree</a>) that will answer each query in $O(\log N)$ time.
+The preprocessing step will take $O(N)$ time.</p>
+
+<h2>Algorithm</h2>
+
+<p>First, we need to find the <a href="./graph/lca.html">LCA</a> to reduce each query of the second kind $(i,j)$ into two queries $(l,i)$ and $(l,j)$, where $l$ is the LCA of $i$ and $j$.
+The answer of the query $(i,j)$ will be the sum of both subqueries.
+Both these queries have a special structure, the first vertex is an ancestor of the second one.
+For the rest of the article we will only talk about these special kind of queries.</p>
+
+<p>We will start by describing the <strong>preprocessing</strong> step.
+Run a depth-first search from the root of the tree and record the Euler tour of this depth-first search (each vertex is added to the list when the search visits it first and every time we return from one of its children).
+The same technique can be used in the LCA preprocessing.</p>
+
+<p>This list will contain each edge (in the sense that if $i$ and $j$ are the ends of the edge, then there will be a place in the list where $i$ and $j$ are neighbors in the list), and it appear exactly two times: in the forward direction (from $i$ to $j$, where vertex $i$ is closer to the root than vertex $j$) and in the opposite direction (from $j$ to $i$).</p>
+
+<p>We will build two lists for these edges.
+The first one will store the color of all edges in the forward direction, and the second one the color of all edges in the opposite direction.
+We will use $1$ if the edge is colored, and $0$ otherwise.
+Over these two lists we will build each a segment tree (for sum with a single modification), let's call them $T1$ and $T2$.</p>
+
+<p>Let us answer a query of the form $(i,j)$, where $i$ is the ancestor of $j$.
+We need to determine how many edges are painted on the path between $i$ and $j$.
+Let's find $i$ and $j$ in the Euler tour for the first time, let it be the positions $p$ and $q$ (this can be done in $O(1)$ if we calculate these positions in advance during preprocessing).
+Then the <strong>answer</strong> to the query is the sum $T1[p..q-1]$ minus the sum $T2[p..q-1]$.</p>
+
+<p><strong>Why?</strong>
+Consider the segment $[p;q]$ in the Euler tour.
+It contains all edges of the path we need from $i$ to $j$ but also contains a set of edges that lie on other paths from $i$.
+However there is one big difference between the edges we need and the rest of the edges: the edges we need will be listed only once in the forward direction, and all the other edges appear twice: once in the forward and once in the opposite direction.
+Hence, the difference $T1[p..q-1] - T2[p..q-1]$ will give us the correct answer (minus one is necessary because otherwise, we will capture an extra edge going out from vertex $j$).
+The sum query in the segment tree is executed in $O(\log N)$.</p>
+
+<p>Answering the <strong>first type of query</strong> (painting an edge) is even easier - we just need to update $T1$ and $T2$, namely to perform a single update of the element that corresponds to our edge (finding the edge in the list, again, is possible in $O(1)$, if you perform this search during preprocessing).
+A single modification in the segment tree is performed in $O(\log N)$.</p>
+
+<h2>Implementation</h2>
+
+<p>Here is the full implementation of the solution, including LCA computation:</p>
+
+<pre><code class="cpp">const int INF = 1000 * 1000 * 1000;
+
+typedef vector&lt;vector&lt;int&gt;&gt; graph;
+
+vector&lt;int&gt; dfs_list;
+vector&lt;int&gt; edges_list;
+vector&lt;int&gt; h;
+
+void dfs(int v, const graph&amp; g, const graph&amp; edge_ids, int cur_h = 1) {
+    h[v] = cur_h;
+    dfs_list.push_back(v);
+    for (size_t i = 0; i &lt; g[v].size(); ++i) {
+        if (h[g[v][i]] == -1) {
+            edges_list.push_back(edge_ids[v][i]);
+            dfs(g[v][i], g, edge_ids, cur_h + 1);
+            edges_list.push_back(edge_ids[v][i]);
+            dfs_list.push_back(v);
+        }
+    }
+}
+
+vector&lt;int&gt; lca_tree;
+vector&lt;int&gt; first;
+
+void lca_tree_build(int i, int l, int r) {
+    if (l == r) {
+        lca_tree[i] = dfs_list[l];
+    } else {
+        int m = (l + r) &gt;&gt; 1;
+        lca_tree_build(i + i, l, m);
+        lca_tree_build(i + i + 1, m + 1, r);
+        int lt = lca_tree[i + i], rt = lca_tree[i + i + 1];
+        lca_tree[i] = h[lt] &lt; h[rt] ? lt : rt;
+    }
+}
+
+void lca_prepare(int n) {
+    lca_tree.assign(dfs_list.size() * 8, -1);
+    lca_tree_build(1, 0, (int)dfs_list.size() - 1);
+
+    first.assign(n, -1);
+    for (int i = 0; i &lt; (int)dfs_list.size(); ++i) {
+        int v = dfs_list[i];
+        if (first[v] == -1)
+            first[v] = i;
+    }
+}
+
+int lca_tree_query(int i, int tl, int tr, int l, int r) {
+    if (tl == l &amp;&amp; tr == r)
+        return lca_tree[i];
+    int m = (tl + tr) &gt;&gt; 1;
+    if (r &lt;= m)
+        return lca_tree_query(i + i, tl, m, l, r);
+    if (l &gt; m)
+        return lca_tree_query(i + i + 1, m + 1, tr, l, r);
+    int lt = lca_tree_query(i + i, tl, m, l, m);
+    int rt = lca_tree_query(i + i + 1, m + 1, tr, m + 1, r);
+    return h[lt] &lt; h[rt] ? lt : rt;
+}
+
+int lca(int a, int b) {
+    if (first[a] &gt; first[b])
+        swap(a, b);
+    return lca_tree_query(1, 0, (int)dfs_list.size() - 1, first[a], first[b]);
+}
+
+vector&lt;int&gt; first1, first2;
+vector&lt;char&gt; edge_used;
+vector&lt;int&gt; tree1, tree2;
+
+void query_prepare(int n) {
+    first1.resize(n - 1, -1);
+    first2.resize(n - 1, -1);
+    for (int i = 0; i &lt; (int)edges_list.size(); ++i) {
+        int j = edges_list[i];
+        if (first1[j] == -1)
+            first1[j] = i;
+        else
+            first2[j] = i;
+    }
+
+    edge_used.resize(n - 1);
+    tree1.resize(edges_list.size() * 8);
+    tree2.resize(edges_list.size() * 8);
+}
+
+void sum_tree_update(vector&lt;int&gt;&amp; tree, int i, int l, int r, int j, int delta) {
+    tree[i] += delta;
+    if (l &lt; r) {
+        int m = (l + r) &gt;&gt; 1;
+        if (j &lt;= m)
+            sum_tree_update(tree, i + i, l, m, j, delta);
+        else
+            sum_tree_update(tree, i + i + 1, m + 1, r, j, delta);
+    }
+}
+
+int sum_tree_query(const vector&lt;int&gt;&amp; tree, int i, int tl, int tr, int l, int r) {
+    if (l &gt; r || tl &gt; tr)
+        return 0;
+    if (tl == l &amp;&amp; tr == r)
+        return tree[i];
+    int m = (tl + tr) &gt;&gt; 1;
+    if (r &lt;= m)
+        return sum_tree_query(tree, i + i, tl, m, l, r);
+    if (l &gt; m)
+        return sum_tree_query(tree, i + i + 1, m + 1, tr, l, r);
+    return sum_tree_query(tree, i + i, tl, m, l, m) +
+           sum_tree_query(tree, i + i + 1, m + 1, tr, m + 1, r);
+}
+
+int query(int v1, int v2) {
+    return sum_tree_query(tree1, 1, 0, (int)edges_list.size() - 1, first[v1], first[v2] - 1) -
+           sum_tree_query(tree2, 1, 0, (int)edges_list.size() - 1, first[v1], first[v2] - 1);
+}
+
+int main() {
+    // reading the graph
+    int n;
+    scanf("%d", &amp;n);
+    graph g(n), edge_ids(n);
+    for (int i = 0; i &lt; n - 1; ++i) {
+        int v1, v2;
+        scanf("%d%d", &amp;v1, &amp;v2);
+        --v1, --v2;
+        g[v1].push_back(v2);
+        g[v2].push_back(v1);
+        edge_ids[v1].push_back(i);
+        edge_ids[v2].push_back(i);
+    }
+
+    h.assign(n, -1);
+    dfs(0, g, edge_ids);
+    lca_prepare(n);
+    query_prepare(n);
+
+    for (;;) {
+        if () {
+            // request for painting edge x;
+            // if start = true, then the edge is painted, otherwise the painting
+            // is removed
+            edge_used[x] = start;
+            sum_tree_update(tree1, 1, 0, (int)edges_list.size() - 1, first1[x],
+                            start ? 1 : -1);
+            sum_tree_update(tree2, 1, 0, (int)edges_list.size() - 1, first2[x],
+                            start ? 1 : -1);
+        } else {
+            // query the number of colored edges on the path between v1 and v2
+            int l = lca(v1, v2);
+            int result = query(l, v1) + query(l, v2);
+            // result - the answer to the request
+        }
+    }
+}
+</code></pre>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

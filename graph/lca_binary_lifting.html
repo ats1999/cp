@@ -1,0 +1,146 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Lowest Common Ancestor - Binary Lifting  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/graph/lca_binary_lifting.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Lowest Common Ancestor - Binary Lifting</h1>
+
+<p>Let $G$ be a tree.
+For every query of the form <code>(u, v)</code> we want to find the lowest common ancestor of the nodes <code>u</code> and <code>v</code>, i.e. we want to find a node <code>w</code> that lies on the path from <code>u</code> to the root node, that lies on the path from <code>v</code> to the root node, and if there are multiple nodes we pick the one that is farthest away from the root node.
+In other words the desired node <code>w</code> is the lowest ancestor of <code>u</code> and <code>v</code>.
+In particular if <code>u</code> is an ancestor of <code>v</code>, then <code>u</code> is their lowest common ancestor.</p>
+
+<p>The algorithm described in this article will need $O(N \log N)$ for preprocessing the tree, and then $O(\log N)$ for each LCA query.</p>
+
+<h2>Algorithm</h2>
+
+<p>For each node we will precompute its ancestor above him, its ancestor two nodes above, its ancestor four above, etc.
+Let's store them in the array <code>up</code>, i.e. <code>up[i][j]</code> is the <code>2^j</code>-th ancestor above the node <code>i</code> with <code>i=1...N</code>, <code>j=0...ceil(log(N))</code>.
+These information allow us to jump from any node to any ancestor above it in $O(\log N)$ time.
+We can compute this array using a <a href="./graph/depth-first-search.html">DFS</a> traversal of the tree.</p>
+
+<p>For each node we will also remember the time of the first visit of this node (i.e. the time when the DFS discovers the node), and the time when we left it (i.e. after we visited all children and exit the DFS function).
+We can use this information to determine in constant time if a node is an ancestor of another node.</p>
+
+<p>Suppose now we received a query <code>(u, v)</code>.
+We can immediately check whether one node is the ancestor of the other.
+In this case this node is already the LCA.
+If <code>u</code> is not the ancestor of <code>v</code>, and <code>v</code> not the ancestor of <code>u</code>, we climb the ancestors of <code>u</code> until we find the highest (i.e. closest to the root) node, which is not an ancestor of <code>v</code> (i.e. a node <code>x</code>, such that <code>x</code> is not an ancestor of <code>v</code>, but <code>up[x][0]</code> is).
+We can find this node <code>x</code> in $O(\log N)$ time using the array <code>up</code>.</p>
+
+<p>We will describe this process in more detail.
+Let <code>L = ceil(log(N))</code>.
+Suppose first that <code>i = L</code>.
+If <code>up[u][i]</code> is not an ancestor of <code>v</code>, then we can assign <code>u = up[u][i]</code> and decrement <code>i</code>.
+If <code>up[u][i]</code> is an ancestor, then we just decrement <code>i</code>.
+Clearly after doing this for all non-negative <code>i</code> the node <code>u</code> will be the desired node - i.e. <code>u</code> is still not an ancestor of <code>v</code>, but <code>up[u][0]</code> is.</p>
+
+<p>Now, obviously, the answer to LCA will be <code>up[u][0]</code> - i.e., the smallest node among the ancestors of the node <code>u</code>, which is also an ancestor of <code>v</code>.</p>
+
+<p>So answering a LCA query will iterate <code>i</code> from <code>ceil(log(N))</code> to <code>0</code> and checks in each iteration if one node is the ancestor of the other.
+Consequently each query can be answered in $O(\log N)$.</p>
+
+<h2>Implementation</h2>
+
+<pre><code class="cpp">int n, l;
+vector&lt;vector&lt;int&gt;&gt; adj;
+
+int timer;
+vector&lt;int&gt; tin, tout;
+vector&lt;vector&lt;int&gt;&gt; up;
+
+void dfs(int v, int p)
+{
+    tin[v] = ++timer;
+    up[v][0] = p;
+    for (int i = 1; i &lt;= l; ++i)
+        up[v][i] = up[up[v][i-1]][i-1];
+
+    for (int u : adj[v]) {
+        if (u != p)
+            dfs(u, v);
+    }
+
+    tout[v] = ++timer;
+}
+
+bool is_ancestor(int u, int v)
+{
+    return tin[u] &lt;= tin[v] &amp;&amp; tout[u] &gt;= tout[v];
+}
+
+int lca(int u, int v)
+{
+    if (is_ancestor(u, v))
+        return u;
+    if (is_ancestor(v, u))
+        return v;
+    for (int i = l; i &gt;= 0; --i) {
+        if (!is_ancestor(up[u][i], v))
+            u = up[u][i];
+    }
+    return up[u][0];
+}
+
+void preprocess(int root) {
+    tin.resize(n);
+    tout.resize(n);
+    timer = 0;
+    l = ceil(log2(n));
+    up.assign(n, vector&lt;int&gt;(l + 1));
+    dfs(root, root);
+}
+</code></pre>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

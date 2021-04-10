@@ -1,0 +1,158 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Negative Cycle Search  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/graph/finding-negative-cycle-in-graph.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Finding a negative cycle in the graph</h1>
+
+<p>You are given a directed weighted graph $G$ with $N$ vertices and $M$ edges. Find any cycle of negative weight in it, if such a cycle exists.</p>
+
+<p>In another formulation of the problem you have to find all pairs of vertices which have a path of arbitrarily small weight between them.</p>
+
+<p>It is convenient to use different algorithms to solve these two variations of the problem, so we'll discuss both of them here.</p>
+
+<h2>Using Bellman-Ford algorithm</h2>
+
+<p>Bellman-Ford algorithm allows you to check whether there exists a cycle of negative weight in the graph, and if it does, find one of these cycles.</p>
+
+<p>The details of the algorithm are described in the article on the <a href="./graph/bellman_ford.html">Bellman-Ford</a> algorithm.
+Here we'll describe only its application to this problem.</p>
+
+<p>Do $N$ iterations of Bellman-Ford algorithm. If there were no changes on the last iteration, there is no cycle of negative weight in the graph. Otherwise take a vertex the distance to which has changed, and go from it via its ancestors until a cycle is found. This cycle will be the desired cycle of negative weight.</p>
+
+<h3>Implementation</h3>
+
+<pre><code class="cpp">struct Edge {
+    int a, b, cost;
+};
+
+int n, m;
+vector&lt;Edge&gt; edges;
+const int INF = 1000000000;
+
+void solve()
+{
+    vector&lt;int&gt; d(n);
+    vector&lt;int&gt; p(n, -1);
+    int x;
+    for (int i = 0; i &lt; n; ++i) {
+        x = -1;
+        for (Edge e : edges) {
+            if (d[e.a] + e.cost &lt; d[e.b]) {
+                d[e.b] = d[e.a] + e.cost;
+                p[e.b] = e.a;
+                x = e.b;
+            }
+        }
+    }
+
+    if (x == -1) {
+        cout &lt;&lt; "No negative cycle found.";
+    } else {
+        for (int i = 0; i &lt; n; ++i)
+            x = p[x];
+
+        vector&lt;int&gt; cycle;
+        for (int v = x;; v = p[v]) {
+            cycle.push_back(v);
+            if (v == x &amp;&amp; cycle.size() &gt; 1)
+                break;
+        }
+        reverse(cycle.begin(), cycle.end());
+
+        cout &lt;&lt; "Negative cycle: ";
+        for (int v : cycle)
+            cout &lt;&lt; v &lt;&lt; ' ';
+        cout &lt;&lt; endl;
+    }
+}
+</code></pre>
+
+<h2>Using Floyd-Warshall algorithm</h2>
+
+<p>The Floyd-Warshall algorithm allows to solve the second variation of the problem - finding all pairs of vertices $(i, j)$ which don't have a shortest path between them (i.e. a path of arbitrarily small weight exists).</p>
+
+<p>Again, the details can be found in the <a href="./graph/all-pair-shortest-path-floyd-warshall.html">Floyd-Warshall</a> article, and here we describe only its application.</p>
+
+<p>Run Floyd-Warshall algorithm on the graph.
+Initially $d[v][v] = 0$ for each $v$.
+But after running the algorithm $d[v][v]$ will be smaller than $0$ if there exists a negative length path from $v$ to $v$.
+We can use this to also find all pairs of vertices that don't have a shortest path between them.
+We iterate over all pairs of vertices $(i, j)$ and for each pair we check whether they have a shortest path between them.
+To do this try all possibilities for an intermediate vertex $t$.
+$(i, j)$ doesn't have a shortest path, if one of the intermediate vertices $t$ has $d[t][t] &lt; 0$ (i.e. $t$ is part of a cycle of negative weight), $t$ can be reached from $i$ and $j$ can be reached from $t$.
+Then the path from $i$ to $j$ can have arbitrarily small weight.
+We will denote this with <code>-INF</code>.</p>
+
+<h3>Implementation</h3>
+
+<pre><code class="cpp">for (int i = 0; i &lt; n; ++i) {
+    for (int j = 0; j &lt; n; ++j) {
+        for (int t = 0; t &lt; n; ++t) {
+            if (d[i][t] &lt; INF &amp;&amp; d[t][t] &lt; 0 &amp;&amp; d[t][j] &lt; INF)
+                d[i][j] = - INF; 
+        }
+    }
+}
+</code></pre>
+
+<h2>Practice Problems</h2>
+
+<ul>
+<li><a href="https://uva.onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;page=show_problem&amp;problem=499">UVA: Wormholes</a></li>
+<li><a href="http://www.spoj.com/problems/UCV2013B/">SPOJ: Alice in Amsterdam, I mean Wonderland</a></li>
+<li><a href="http://www.spoj.com/problems/JHNSN/">SPOJ: Johnsons Algorithm</a></li>
+</ul>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

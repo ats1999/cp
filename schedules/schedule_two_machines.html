@@ -1,0 +1,159 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Scheduling jobs on two machines  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/schedules/schedule_two_machines.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Scheduling jobs on two machines</h1>
+
+<p>This task is about finding an optimal schedule for $n$ jobs on two machines.
+Every item must first be processed on the first machine, and afterwards on the second one.
+The $i$-th job takes $a_i$ time on the first machine, and $b_i$ time on the second machine.
+Each machine can only process one job at a time.</p>
+
+<p>We want to find the optimal order of the jobs, so that the final processing time is the minimum possible.</p>
+
+<p>This solution that is discussed here is called Johnson's rule (named after S. M. Johnson).</p>
+
+<p>It is worth noting, that the task becomes NP-complete, if we have more than two machines.</p>
+
+<h2>Construction of the algorithm</h2>
+
+<p>Note first, that we can assume that the order of jobs for the first and the second machine have to coincide.
+In fact, since the jobs for the second machine become available after processing them at the first, and if there are several jobs available for the second machine, than the processing time will be equal to the sum of their $b_i$, regardless of their order.
+Therefore it is only advantageous to send the jobs to the second machine in the same order as we sent them to the first machine.</p>
+
+<p>Consider the order of the jobs, which coincides with their input order $1, 2, \dots, n$.</p>
+
+<p>We denote by $x_i$ the <strong>idle time</strong> of the second machine immediately before processing $i$.
+Our goal is to <strong>minimize the total idle time</strong>:
+$$F(x) = \sum x_i ~ \rightarrow \min$$</p>
+
+<p>For the first job we have $x_1 = a_1$.
+For the second job, since it gets sent to the machine at the time $a_1 + a_2$, and the second machine gets free at $x_1 + b_1$, we have $x_2 = \max\left((a_1 + a_2) - (x_1 + b_1), 0\right)$.
+In general we get the equation:
+$$x_k = \max\left(\sum_{i=1}^k a_i - \sum_{i=1}^{k-1} b_i - \sum_{i=1}^{k-1} x_i, 0 \right)$$</p>
+
+<p>We can now calculate the <strong>total idle time</strong> $F(x)$.
+It is claimed that it has the form
+$$F(x) = \max_{k=1 \dots n} K_i,$$
+where
+$$K_i = \sum_{i=1}^k a_i - \sum_{i=1}^{k-1} b_i.$$
+This can be easily verified using induction.</p>
+
+<p>We now use the <strong>permutation method</strong>:
+we will exchange two neighboring jobs $j$ and $j+1$ and see how this will change the total idle time.</p>
+
+<p>By the form of the expression of $K_i$, it is clear that only $K_j$ and $K_{j+1}$ change, we denote their new values with $K_j'$ and $K_{j+1}'$.</p>
+
+<p>If this change from of the jobs $j$ and $j+1$ increased the total idle time, it has to be the case that:
+$$\max(K_j, K_{j+1}) \le \max(K_j', K_{j+1}')$$
+(Switching two jobs might also have no impact at all.
+The above condition is only a sufficient one, but not a necessary one.)</p>
+
+<p>After removing $\sum_{i=1}^{j+1} a_i - \sum_{i=1}^{j-1} b_i$ from both sides of the inequality, we get:
+$$\max(-a_{j+1}, -b_j) \le \max(-b_{j+1}, -a_j)$$
+And after getting rid of the negative signs:
+$$\min(a_j, b_{j+1}) \le \min(b_j, a_{j+1})$$</p>
+
+<p>Thus we obtained a <strong>comparator</strong>:
+by sorting the jobs on it, we obtain an optimal order of the jobs, in which no two jobs can be switched with an improvement of the final time.</p>
+
+<p>However you can further <strong>simplify</strong> the sorting, if you look at the comparator from a different angle.
+The comparator can be interpreted in the following way:
+If we have the four times $(a_j, a_{j+1}, b_j, b_{j+1})$, and the minimum of them is a time corresponding to the first machine, then the corresponding job should be done first.
+If the minimum time is a time from the second machine, then it should go later.
+Thus we can sort the jobs by $\min(a_i, b_i)$, and if the processing time of the current job on the first machine is less then the processing time on the second machine, then this job must be done before all the remaining jobs, and otherwise after all remaining tasks.</p>
+
+<p>One way or another, it turns out that by Johnson's rule we can solve the problem by sorting the jobs, and thus receive a time complexity of $O(n \log n)$.</p>
+
+<h2>Implementation</h2>
+
+<p>Here we implement the second variation of the described algorithm.</p>
+
+<pre><code class="cpp">struct Job {
+    int a, b, idx;
+
+    bool operator&lt;(Job o) const {
+        return min(a, b) &lt; min(o.a, o.b);
+    }
+};
+
+vector&lt;Job&gt; johnsons_rule(vector&lt;Job&gt; jobs) {
+    sort(jobs.begin(), jobs.end());
+    vector&lt;Job&gt; a, b;
+    for (Job j : jobs) {
+        if (j.a &lt; j.b)
+            a.push_back(j);
+        else
+            b.push_back(j);
+    }
+    a.insert(a.end(), b.rbegin(), b.rend());
+    return a;
+}
+
+pair&lt;int, int&gt; finish_times(vector&lt;Job&gt; const&amp; jobs) {
+    int t1 = 0, t2 = 0;
+    for (Job j : jobs) {
+        t1 += j.a;
+        t2 = max(t2, t1) + j.b;
+    }
+    return make_pair(t1, t2);
+}
+</code></pre>
+
+<p>All the information about each job is store in struct.
+The first function sorts all jobs and computes the optimal schedule.
+The second function computes the finish times of both machines given a schedule.</p>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,228 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Finding the nearest pair of points  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/geometry/nearest_points.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Finding the nearest pair of points</h1>
+
+<h2>Problem statement</h2>
+
+<p>Given $n$ points on the plane. Each point $p_i$ is defined by its coordinates $(x_i,y_i)$. It is required to find among them two such points, such that the distance between them is minimal:</p>
+
+<p>$$ \min_{\scriptstyle i, j=0 \ldots n-1,\atop \scriptstyle i \neq j } \rho (p_i, p_j). $$</p>
+
+<p>We take the usual Euclidean distances:</p>
+
+<p>$$ \rho (p_i,p_j) = \sqrt{(x_i-x_j)^2 + (y_i-y_j)^2} .$$</p>
+
+<p>The trivial algorithm - iterating over all pairs and calculating the distance for each — works in $O(n^2)$.</p>
+
+<p>The algorithm running in time $O(n \log n)$ is described below. This algorithm was proposed by Preparata in 1975. Preparata and Shamos also showed that this algorithm is optimal in the decision tree model.</p>
+
+<h2>Algorithm</h2>
+
+<p>We construct an algorithm according to the general scheme of <strong>divide-and-conquer</strong> algorithms: the algorithm is designed as a recursive function, to which we pass a set of points; this recursive function splits this set in half, calls itself recursively on each half, and then performs some operations to combine the answers. The operation of combining consist of  detecting the cases when one point of the optimal solution fell into one half, and the other point into the other (in this case, recursive calls from each of the halves cannot detect this pair separately). The main difficulty, as always in case of divide and conquer algorithms, lies in the effective implementation of the merging stage. If a set of $n$ points is passed to the recursive function, then the merge stage should work no more than $O(n)$, then the asymptotics of the whole algorithm $T(n)$ will be found from the equation:</p>
+
+<p>$$T(n) = 2T(n/2) + O(n).$$</p>
+
+<p>The solution to this equation, as is known, is $T(n) = O(n \log n).$</p>
+
+<p>So, we proceed on to the construction of the algorithm. In order to come to an effective implementation of the merge stage in the future, we will divide the set of points into two subsets, according to their $x$-coordinates: In fact, we draw some vertical line dividing the set of points into two subsets of approximately the same size. It is convenient to make such a partition as follows: We sort the points in the standard way as pairs of numbers, ie.:</p>
+
+<p>$$p_i &lt; p_j \Longleftrightarrow (x_i &lt; x_j) \lor \Big(\left(x_i = x_j\right) \wedge \left(y_i &lt; y_j \right) \Big) $$</p>
+
+<p>Then take the middle point after sorting $p_m (m = \lfloor n/2 \rfloor)$, and all the points before it and the $p_m$ itself are assigned to the first half, and all the points after it - to the second half:</p>
+
+<p>$$A_1 = &#123;p_i \ | \ i = 0 \ldots m &#125;$$
+$$A_2 = &#123;p_i \ | \ i = m + 1 \ldots n-1 &#125;.$$</p>
+
+<p>Now, calling recursively on each of the sets $A_1$ and $A_2$, we will find the answers $h_1$ and $h_2$ for each of the halves. And take the best of them: $h = \min(h_1, h_2)$.</p>
+
+<p>Now we need to make a <strong>merge stage</strong>, i.e. we try to find such pairs of points, for which the distance between which is less than $h$ and one point is lying in $A_1$ and the other in $A_2$.
+It is obvious that it is sufficient to consider only those points that are separated from the vertical line by a distance less than $h$, i.e. the set $B$ of the points considered at this stage is equal to:</p>
+
+<p>$$B = &#123; p_i\ | \ | x_i - x_m\ | &lt; h &#125;.$$</p>
+
+<p>For each point in the set $B$, we try to find the points that are closer to it than $h$. For example, it is sufficient to consider only those points whose $y$-coordinate differs by no more than $h$. Moreover, it makes no sense to consider those points whose $y$-coordinate is greater than the $y$-coordinate of the current point. Thus, for each point $p_i$ we define the set of considered points $C(p_i)$ as follows:</p>
+
+<p>$$C(p_i) = &#123; p_j\ |\ p_j \in B,\ \ y_i - h &lt; y_j \le y_i &#125;.$$</p>
+
+<p>If we sort the points of the set $B$ by $y$-coordinate, it will be very easy to find $C(p_i)$: these are several points in a row ahead to the point $p_i$.</p>
+
+<p>So, in the new notation, the <strong>merging stage</strong> looks like this: build a set $B$, sort the points in it by $y$-coordinate, then for each point $p_i \in B$ consider all points $p_j \in C(p_i)$, and for each pair $(p_i,p_j)$ calculate the distance and compare with the current best distance.</p>
+
+<p>At first glance, this is still a non-optimal algorithm: it seems that the sizes of sets $C(p_i)$ will be of order $n$, and the required asymptotics will not work. However, surprisingly, it can be proved that the size of each of the sets $C(p_i)$ is a quantity $O(1)$, i.e. it does not exceed some small constant regardless of the points themselves. Proof of this fact is given in the next section.</p>
+
+<p>Finally, we pay attention to the sorting, which the above algorithm contains: first,sorting by pairs $(x, y)$, and then second, sorting the elements of the set $B$ by $y$. In fact, both of these sorts inside the recursive function can be eliminated (otherwise we would not reach the $O(n)$ estimate for the <strong>merging stage</strong>, and the general asymptotics of the algorithm would be $O(n \log^2 n)$). It is easy to get rid of the first sort — it is enough to perform this sort before starting the recursion: after all, the elements themselves do not change inside the recursion, so there is no need to sort again. With the second sorting a little more difficult to perform, performing it previously will not work. But, remembering the merge sort, which also works on the principle of divide-and-conquer, we can simply embed this sort in our recursion. Let recursion, taking some set of points (as we remember,ordered by pairs $(x, y)$), return the same set, but sorted by the $y$-coordinate. To do this, simply merge (in $O(n)$) the two results returned by recursive calls. This will result in a set sorted by $y$-coordinate.</p>
+
+<h2>Evaluation of the asymptotics</h2>
+
+<p>To show that the above algorithm is actually executed in $O(n \log n)$, we need to prove the following fact: $|C(p_i)| = O(1)$.</p>
+
+<p>So, let us consider some point $p_i$; recall that the set $C(p_i)$ is a set of points whose $y$-coordinate lies in the segment $[y_i-h; y_i]$, and, moreover, along the $x$ coordinate, the point $p_i$ itself, and all the points of the set $C(p_i)$ lie in the band width $2h$. In other words, the points we are considering $p_i$ and $C(p_i)$ lie in a rectangle of size $2h \times h$.</p>
+
+<p>Our task is to estimate the maximum number of points that can lie in this rectangle $2h \times h$; thus, we estimate the maximum size of the set $C(p_i)$. At the same time, when evaluating, we must not forget that there may be repeated points.</p>
+
+<p>Remember that $h$ was obtained from the results of two recursive calls — on sets $A_1$ and $A_2$, and $A_1$ contains points to the left of the partition line and partially on it, $A_2$ contains the remaining points of the partition line and points to the right of it. For any pair of points from $A_1$, as well as from $A_2$, the distance can not be less than $h$ — otherwise it would mean incorrect operation of the recursive function.</p>
+
+<p>To estimate the maximum number of points in the rectangle $2h \times h$ we divide it into two squares $h \times h$, the first square include all points $C(p_i) \cap A_1$, and the second contains all the others, i.e. $C(p_i) \cap A_2$. It follows from the above considerations that in each of these squares the distance between any two points is at least $h$.</p>
+
+<p>We show that there are at most four points in each square. For example, this can be done as follows: divide the square into $4$ sub-squares with sides $h/2$. Then there can be no more than one point in each of these sub-squares (since even the diagonal is equal to $h / \sqrt{2}$, which is less than $h$). Therefore, there can be no more than $4$ points in the whole square.</p>
+
+<p>So, we have proved that in a rectangle $2h \times h$ can not be more than $4 \cdot 2 = 8$ points, and, therefore, the size of the set $C(p_i)$ cannot exceed $7$, as required.</p>
+
+<h2>Implementation</h2>
+
+<p>We introduce a data structure to store a point (its coordinates and a number) and comparison operators required for two types of sorting:</p>
+
+<pre><code class="cpp">struct pt {
+    int x, y, id;
+};
+
+struct cmp_x {
+    bool operator()(const pt &amp; a, const pt &amp; b) const {
+        return a.x &lt; b.x || (a.x == b.x &amp;&amp; a.y &lt; b.y);
+    }
+};
+
+struct cmp_y {
+    bool operator()(const pt &amp; a, const pt &amp; b) const {
+        return a.y &lt; b.y;
+    }
+};
+
+int n;
+vector&lt;pt&gt; a;
+</code></pre>
+
+<p>For a convenient implementation of recursion, we introduce an auxiliary function upd_ans(), which will calculate the distance between two points and check whether it is better than the current answer:</p>
+
+<pre><code class="cpp">double mindist;
+pair&lt;int, int&gt; best_pair;
+
+void upd_ans(const pt &amp; a, const pt &amp; b) {
+    double dist = sqrt((a.x - b.x)*(a.x - b.x) + (a.y - b.y)*(a.y - b.y));
+    if (dist &lt; mindist) {
+        mindist = dist;
+        best_pair = {a.id, b.id};
+    }
+}
+</code></pre>
+
+<p>Finally, the implementation of the recursion itself. It is assumed that before calling it, the array $a[]$ is already sorted by $x$-coordinate. In recursion we pass just two pointers $l, r$, which indicate that it should look for the answer for $a[l \ldots r)$. If the distance between $r$ and $l$ is too small, the recursion must be stopped, and perform a trivial algorithm to find the nearest pair and then sort the subarray by $y$-coordinate.</p>
+
+<p>To merge two sets of points received from recursive calls into one (ordered by $y$-coordinate), we use the standard STL $merge()$ function, and create an auxiliary buffer $t[]$(one for all recursive calls). (Using inplace_merge () is impractical because it generally does not work in linear time.)</p>
+
+<p>Finally, the set $B$ is stored in the same array $t$.</p>
+
+<pre><code class="cpp">vector&lt;pt&gt; t;
+
+void rec(int l, int r) {
+    if (r - l &lt;= 3) {
+        for (int i = l; i &lt; r; ++i) {
+            for (int j = i + 1; j &lt; r; ++j) {
+                upd_ans(a[i], a[j]);
+            }
+        }
+        sort(a.begin() + l, a.begin() + r, cmp_y());
+        return;
+    }
+
+    int m = (l + r) &gt;&gt; 1;
+    int midx = a[m].x;
+    rec(l, m);
+    rec(m, r);
+
+    merge(a.begin() + l, a.begin() + m, a.begin() + m, a.begin() + r, t.begin(), cmp_y());
+    copy(t.begin(), t.begin() + r - l, a.begin() + l);
+
+    int tsz = 0;
+    for (int i = l; i &lt; r; ++i) {
+        if (abs(a[i].x - midx) &lt; mindist) {
+            for (int j = tsz - 1; j &gt;= 0 &amp;&amp; a[i].y - t[j].y &lt; mindist; --j)
+                upd_ans(a[i], t[j]);
+            t[tsz++] = a[i];
+        }
+    }
+}
+</code></pre>
+
+<p>By the way, if all the coordinates are integer, then at the time of the recursion you can not move to fractional values, and store in $mindist$ the square of the minimum distance.</p>
+
+<p>In the main program, recursion should be called as follows:</p>
+
+<pre><code class="cpp">t.resize(n);
+sort(a.begin(), a.end(), cmp_x());
+mindist = 1E20;
+rec(0, n);
+</code></pre>
+
+<h2>Generalization: finding a triangle with minimal perimeter</h2>
+
+<p>The algorithm described above is interestingly generalized to this problem: among a given set of points, choose three different points so that the sum of pairwise distances between them is the smallest.</p>
+
+<p>In fact, to solve this problem, the algorithm remains the same: we divide the field into two halves of the vertical line, call the solution recursively on both halves, choose the minimum $minper$ from the found perimeters, build a strip with the thickness of $minper / 2$, and iterate through all triangles that can improve the answer. (Note that the triangle with perimeter $\le minper$ has the longest side $\le minper / 2$.)</p>
+
+<h2>Practice problems</h2>
+
+<ul>
+<li><a href="https://uva.onlinejudge.org/index.php?option=onlinejudge&amp;page=show_problem&amp;problem=1186">UVA 10245 "The Closest Pair Problem" [difficulty: low]</a></li>
+<li><a href="https://www.spoj.com/problems/CLOPPAIR/">SPOJ #8725 CLOPPAIR "Closest Point Pair" [difficulty: low]</a></li>
+<li><a href="http://codeforces.com/contest/120/problem/J">CODEFORCES Team Olympiad Saratov - 2011 "Minimum amount" [difficulty: medium]</a></li>
+<li><a href="https://code.google.com/codejam/contest/311101/dashboard#s=a&amp;a=1">Google CodeJam 2009 Final " Min Perimeter "[difficulty: medium]</a></li>
+<li><a href="https://www.spoj.com/problems/CLOSEST/">SPOJ #7029 CLOSEST "Closest Triple" [difficulty: medium]</a></li>
+<li><a href="https://acm.timus.ru/problem.aspx?space=1&amp;num=1514">TIMUS 1514 National Park [difficulty: medium]</a></li>
+</ul>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

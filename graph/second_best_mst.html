@@ -1,0 +1,260 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Second Best Minimum Spanning Tree  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/graph/second_best_mst.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Second Best Minimum Spanning Tree</h1>
+
+<p>A Minimum Spanning Tree $T$ is a tree for the given graph $G$ which spans over all vertices of the given graph and has the minimum weight sum of all the edges, from all the possible spanning trees.
+A second best MST $T'$ is a spanning tree, that has the second minimum weight sum of all the edges, from all the possible spanning trees of the graph $G$.</p>
+
+<h2>Observation</h2>
+
+<p>Let $T$ be the Minimum Spanning Tree of a graph $G$.
+It can be observed, that the second best Minimum Spanning Tree differs from $T$ by only one edge replacement. (For a proof of this statement refer to problem 23-1 <a href="http://www-bcf.usc.edu/~shanghua/teaching/Spring2010/public_html/files/HW2_Solutions_A.pdf">here</a>).</p>
+
+<p>So we need to find an edge $e_{new}$ which is in not in $T$, and replace it with an edge in $T$ (let it be $e_{old}$) such that the new graph $T' = (T \cup &#92;{e_{new}&#92;}) \setminus &#92;{e_{old}&#92;}$ is a spanning tree and the weight difference ($e_{new} - e_{old}$) is minimum.</p>
+
+<h2>Using Kruskal's Algorithm</h2>
+
+<p>We can use Kruskal's algorithm to find the MST first, and then just try to remove a single edge from it and replace it with another.</p>
+
+<ol>
+<li>Sort the edges in $O(E \log E)$, then find a MST using Kruskal in $O(E)$.</li>
+<li>For each edge in the MST (we will have $V-1$ edges in it) temporarily exclude it from the edge list so that it cannot be chosen.</li>
+<li>Then, again try to find a MST in $O(E)$ using the remaining edges.</li>
+<li>Do this for all the edges in MST, and take the best of all.</li>
+</ol>
+
+<p>Note: we don’t need to sort the edges again in for Step 3.</p>
+
+<p>So, the overall time complexity will be $O(E \log V + E + V E)$ = $O(V E)$.</p>
+
+<h2>Modeling into a Lowest Common Ancestor (LCA) problem</h2>
+
+<p>In the previous approach we tried all possibilities of removing one edge of the MST.
+Here we will do the exact opposite.
+We try to add every edge that is not already in the MST.</p>
+
+<ol>
+<li>Sort the edges in $O(E \log E)$, then find a MST using Kruskal in $O(E)$.</li>
+<li>For each edge $e$ not already in the MST, temporarily add it to the MST, creating a cycle.</li>
+<li>Find the edge $k$ with maximal weight in the cycle that is not equal to $e$.</li>
+<li>Remove $k$ temporarily, creating a new spanning tree.</li>
+<li>Compute the weight difference $\delta = weight(e) - weight(k)$, and remember it together with the changed edge.</li>
+<li>Repeat step 2 for all other edges, and return the spanning tree with the smallest weight difference to the MST.</li>
+</ol>
+
+<p>The time complexity of the algorithm depends on how we compute the $k$s, which are the maximum weight edges in step 2 of this algorithm.
+One way to compute them efficiently in $O(E \log V)$ is to transform the problem into a Lowest Common Ancestor (LCA) problem.</p>
+
+<p>We will preprocess the LCA by rooting the MST and will also compute the maximum edge weights for each node on the paths to their ancestors. 
+This can be done using <a href="graph/lca_binary_lifting.html">Binary Lifting</a> for LCA.</p>
+
+<p>The final time complexity of this approach is $O(E \log V)$.</p>
+
+<p>For example:</p>
+
+<p><center><img src="https://raw.githubusercontent.com/e-maxx-eng/e-maxx-eng/master/img/second_best_mst_1.png" alt="MST" /> <img src="https://raw.githubusercontent.com/e-maxx-eng/e-maxx-eng/master/img/second_best_mst_2.png" alt="Second best MST" /> <br></p>
+
+<p><em>In the image left is the MST and right is the second best MST.</em>
+</center></p>
+
+<p>In the given graph suppose we root the MST at the blue vertex on the top, and then run our algorithm by start picking the edges not in MST.
+Let the edge picked first be the edge $(u, v)$ with weight 36.
+Adding this edge to the tree forms a cycle 36 - 7 - 2 - 34.</p>
+
+<p>Now we will find the maximum weight edge in this cycle by finding the $\text{LCA}(u, v) = p$.
+We compute the maximum weight edge on the paths from $u$ to $p$ and from $v$ to $p$.
+Note: the $\text{LCA}(u, v)$ can also be equal to $u$ or $v$ in some case.
+In this example we will get the edge with weight 34 as maximum edge weight in the cycle.
+By removing the edge we get a new spanning tree, that has a weight difference of only 2.</p>
+
+<p>After doing this also with all other edges that are not part of the initial MST, we can see that this spanning tree was also the second best spanning tree overall.
+Choosing the edge with weight 14 will increase the weight of the tree by 7, choosing the edge with weight 27 increases it by 14, choosing the edge with weight 28 increases it by 21, and choosing the edge with weight 39 will increase the tree by 5.</p>
+
+<h2>Implementation</h2>
+
+<pre><code class="cpp">struct edge {
+    int s, e, w, id;
+    bool operator&lt;(const struct edge&amp; other) { return w &lt; other.w; }
+};
+typedef struct edge Edge;
+
+const int N = 2e5 + 5;
+long long res = 0, ans = 1e18;
+int n, m, a, b, w, id, l = 21;
+vector&lt;Edge&gt; edges;
+vector&lt;int&gt; h(N, 0), parent(N, -1), size(N, 0), present(N, 0);
+vector&lt;vector&lt;pair&lt;int, int&gt;&gt;&gt; adj(N), dp(N, vector&lt;pair&lt;int, int&gt;&gt;(l));
+vector&lt;vector&lt;int&gt;&gt; up(N, vector&lt;int&gt;(l, -1));
+
+pair&lt;int, int&gt; combine(pair&lt;int, int&gt; a, pair&lt;int, int&gt; b) {
+    vector&lt;int&gt; v = {a.first, a.second, b.first, b.second};
+    int topTwo = -3, topOne = -2;
+    for (int c : v) {
+        if (c &gt; topOne) {
+            topTwo = topOne;
+            topOne = c;
+        } else if (c &gt; topTwo &amp;&amp; c &lt; topOne) {
+            topTwo = c;
+        }
+    }
+    return {topOne, topTwo};
+}
+
+void dfs(int u, int par, int d) {
+    h[u] = 1 + h[par];
+    up[u][0] = par;
+    dp[u][0] = {d, -1};
+    for (auto v : adj[u]) {
+        if (v.first != par) {
+            dfs(v.first, u, v.second);
+        }
+    }
+}
+
+pair&lt;int, int&gt; lca(int u, int v) {
+    pair&lt;int, int&gt; ans = {-2, -3};
+    if (h[u] &lt; h[v]) {
+        swap(u, v);
+    }
+    for (int i = l - 1; i &gt;= 0; i--) {
+        if (h[u] - h[v] &gt;= (1 &lt;&lt; i)) {
+            ans = combine(ans, dp[u][i]);
+            u = up[u][i];
+        }
+    }
+    if (u == v) {
+        return ans;
+    }
+    for (int i = l - 1; i &gt;= 0; i--) {
+        if (up[u][i] != -1 &amp;&amp; up[v][i] != -1 &amp;&amp; up[u][i] != up[v][i]) {
+            ans = combine(ans, combine(dp[u][i], dp[v][i]));
+            u = up[u][i];
+            v = up[v][i];
+        }
+    }
+    ans = combine(ans, combine(dp[u][0], dp[v][0]));
+    return ans;
+}
+
+int main(void) {
+    cin &gt;&gt; n &gt;&gt; m;
+    for (int i = 1; i &lt;= n; i++) {
+        parent[i] = i;
+        size[i] = 1;
+    }
+    for (int i = 1; i &lt;= m; i++) {
+        cin &gt;&gt; a &gt;&gt; b &gt;&gt; w; // 1-indexed
+        edges.push_back({a, b, w, i - 1});
+    }
+    sort(edges.begin(), edges.end());
+    for (int i = 0; i &lt;= m - 1; i++) {
+        a = edges[i].s;
+        b = edges[i].e;
+        w = edges[i].w;
+        id = edges[i].id;
+        if (unite_set(a, b)) { 
+            adj[a].emplace_back(b, w);
+            adj[b].emplace_back(a, w);
+            present[id] = 1;
+            res += w;
+        }
+    }
+    dfs(1, 0, 0);
+    for (int i = 1; i &lt;= l - 1; i++) {
+        for (int j = 1; j &lt;= n; ++j) {
+            if (up[j][i - 1] != -1) {
+                int v = up[j][i - 1];
+                up[j][i] = up[v][i - 1];
+                dp[j][i] = combine(dp[j][i - 1], dp[v][i - 1]);
+            }
+        }
+    }
+    for (int i = 0; i &lt;= m - 1; i++) {
+        id = edges[i].id;
+        w = edges[i].w;
+        if (!present[id]) {
+            auto rem = lca(edges[i].s, edges[i].e);
+            if (rem.first != w) {
+                if (ans &gt; res + w - rem.first) {
+                    ans = res + w - rem.first;
+                }
+            } else if (rem.second != -1) {
+                if (ans &gt; res + w - rem.second) {
+                    ans = res + w - rem.second;
+                }
+            }
+        }
+    }
+    cout &lt;&lt; ans &lt;&lt; "\n";
+    return 0;
+}
+</code></pre>
+
+<h2>References</h2>
+
+<ol>
+<li>Competitive Programming-3, by Steven Halim</li>
+<li><a href="http://web.mit.edu/6.263/www/quiz1-f05-sol.pdf">web.mit.edu</a></li>
+</ol>
+
+<h2>Problems</h2>
+
+<ul>
+<li><a href="https://codeforces.com/problemset/problem/609/E">Codeforces - Minimum spanning tree for each edge</a></li>
+</ul>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Lowest Common Ancestor - Tarjan's off-line algorithm  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/graph/lca_tarjan.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Lowest Common Ancestor - Tarjan's off-line algorithm</h1>
+
+<p>We have a tree $G$ with $n$ nodes and we have $m$ queries of the form $(u, v)$.
+For each query $(u, v)$ we want to find the lowest common ancestor of the vertices $u$ and $v$, i.e. the node that is an ancestor of both $u$ and $v$ and has the greatest depth in the tree.
+The node $v$ is also an ancestor of $v$, so the LCA can also be one of the two nodes.</p>
+
+<p>In this article we will solve the problem off-line, i.e. we assume that all queries are known in advance, and we therefore answer the queries in any order we like.
+The following algorithm allows to answer all $m$ queries in $O(n + m)$ total time, i.e. for sufficiently large $m$ in $O(1)$ for each query.</p>
+
+<h2>Algorithm</h2>
+
+<p>The algorithm is named after Robert Tarjan, who discovered it in 1979 and also made many other contributions to the <a href="./data_structures/disjoint_set_union.html">Disjoint Set Union</a> data structure, which will be heavily used in this algorithm.</p>
+
+<p>The algorithm answers all queries with one <a href="./graph/depth-first-search.html">DFS</a> traversal of the tree.
+Namely a query $(u, v)$ is answered at node $u$, if node $v$ has already been visited previously, or vice versa.</p>
+
+<p>So let's assume we are currently at node $v$, we have already made recursive DFS calls, and also already visited the second node $u$ from the query $(u, v)$.
+Let's learn how to find the LCA of these two nodes.</p>
+
+<p>Note that $\text{LCA}(u, v)$ is either the node $v$ or one of its ancestors.
+So we need to find the lowest node among the ancestors of $v$ (including $v$), for which the node $u$ is a descendant. 
+Also note that for a fixed $v$ the visited nodes of the tree split into a set of disjoint sets. 
+Each ancestor $p$ of node $v$ has his own set containing this node and all subtrees with roots in those of its children who are not part of the path from $v$ to the root of the tree.
+The set which contains the node $u$ determines the $\text{LCA}(u, v)$:
+the LCA is the representative of the set, namely the node on lies on the path between $v$ and the root of the tree.</p>
+
+<p>We only need to learn to efficiently maintain all these sets.
+For this purpose we apply the data structure DSU.
+To be able to apply Union by rank, we store the real representative (the value on the path between $v$ and the root of the tree) of each set in the array <code>ancestor</code>.</p>
+
+<p>Let's discuss the implementation of the DFS.
+Let's assume we are currently visiting the node $v$.
+We place the node in a new set in the DSU, <code>ancestor[v] = v</code>.
+As usual we process all children of $v$.
+For this we must first recursively call DFS from that node, and then add this node with all its subtree to the set of $v$.
+This can be done with the function <code>union_sets</code> and the following assignment <code>ancestor[find_set(v)] = v</code> (this is necessary, because <code>union_sets</code> might change the representative of the set).</p>
+
+<p>Finally after processing all children we can answer all queries of the form $(u, v)$ for which $u$ has been already visited.
+The answer to the query, i.e. the LCA of $u$ and $v$, will be the node <code>ancestor[find_set(u)]</code>.
+It is easy to see that a query will only be answered once.</p>
+
+<p>Let's us determine the time complexity of this algorithm. 
+Firstly we have $O(n)$ because of the DFS.
+Secondly  we have the function calls of <code>union_sets</code> which happen $n$ times, resulting also in $O(n)$.
+And thirdly we have the calls of <code>find_set</code> for every query, which gives $O(m)$.
+So in total the time complexity is $O(n + m)$, which means that for sufficiently large $m$ this corresponds to $O(1)$ for answering one query.</p>
+
+<h2>Implementation</h2>
+
+<p>Here is an implementation of this algorithm.
+The implementation of DSU has been not included, as it can be used without any modifications.</p>
+
+<pre><code class="cpp">vector&lt;vector&lt;int&gt;&gt; adj;
+vector&lt;vector&lt;int&gt;&gt; queries;
+vector&lt;int&gt; ancestor;
+vector&lt;bool&gt; visited;
+
+void dfs(int v)
+{
+    visited[v] = true;
+    ancestor[v] = v;
+    for (int u : adj[v]) {
+        if (!visited[u]) {
+            dfs(u);
+            union_sets(v, u);
+            ancestor[find_set(v)] = v;
+        }
+    }
+    for (int other_node : queries[v]) {
+        if (visited[other_node])
+            cout &lt;&lt; "LCA of " &lt;&lt; v &lt;&lt; " and " &lt;&lt; other_node
+                 &lt;&lt; " is " &lt;&lt; ancestor[find_set(other_node)] &lt;&lt; ".\n";
+    }
+}
+
+void compute_LCAs() {
+    // initialize n, adj and DSU
+    // for (each query (u, v)) {
+    //    queries[u].push_back(v);
+    //    queries[v].push_back(u);
+    // }
+
+    ancestor.resize(n);
+    visited.assign(n, false);
+    dfs(0);
+}
+</code></pre>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

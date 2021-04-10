@@ -1,0 +1,144 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Finding the largest zero submatrix  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/dynamic_programming/zero_matrix.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Finding the largest zero submatrix</h1>
+
+<p>You are given a matrix with <code>n</code> rows and <code>m</code> columns. Find the largest submatrix consisting of only zeros (a submatrix is a rectangular area of the matrix).</p>
+
+<h2>Algorithm</h2>
+
+<p>Elements of the matrix will be <code>a[i][j]</code>, where <code>i = 0...n - 1</code>, <code>j = 0... m - 1</code>. For simplicity, we will consider all non-zero elements equal to 1.</p>
+
+<h3>Step 1: Auxiliary dynamic</h3>
+
+<p>First, we calculate the following auxiliary matrix: <code>d[i][j]</code>, nearest row that has a 1 above <code>a[i][j]</code>. Formally speaking, <code>d[i][j]</code> is the largest row number (from <code>0</code> to <code>i - 1</code>), in which there is a element equal to <code>1</code> in the <code>j</code>-th column. 
+While iterating from top-left to bottom-right, when we stand in row <code>i</code>, we know the values from the previous row, so, it is enough to update just the elements with value <code>1</code>. We can save the values in a simple array <code>d[i]</code>, <code>i = 1...m - 1</code>, because in the further algorithm we will process the matrix one row at a time and only need the values of the current row.</p>
+
+<pre><code class="cpp">vector&lt;int&gt; d(m, -1);
+for (int i = 0; i &lt; n; ++i) {
+    for (int j = 0; j &lt; m; ++j) {
+        if (a[i][j] == 1) {
+            d[j] = i;
+        }
+    }
+}
+</code></pre>
+
+<h3>Step 2: Problem solving</h3>
+
+<p>We can solve the problem in $O(n m^2)$ iterating through rows, considering every possible left and right columns for a submatrix. The bottom of the rectangle will be the current row, and using <code>d[i][j]</code> we can find the top row. However, it is possible to go further and significantly improve the complexity of the solution.</p>
+
+<p>It is clear that the desired zero submatrix is bounded on all four sides by some ones, which prevent it from increasing in size and improving the answer. Therefore,  we will not miss the answer if we act as follows: for every cell <code>j</code> in row <code>i</code> (the bottom row of a potential zero submatrix) we will have <code>d[i][j]</code> as the top row of the current zero submatrix. It now remains to determine the optimal left and right boundaries of the zero submatrix, i.e. maximally push this submatrix to the left and right of the <code>j</code>-th column.</p>
+
+<p>What does it mean to push the maximum to the left? It means to find an index <code>k1</code> for which <code>d[i][k1] &gt; d[i][j]</code>, and at the same time <code>k1</code> - the closest one to the left of the index <code>j</code>. It is clear that then <code>k1 + 1</code> gives the number of the left column of the required zero submatrix. If there is no such index at all, then put <code>k1</code> = <code>-1</code>(this means that we were able to extend the current zero submatrix to the left all the way to the border of matrix <code>a</code>).</p>
+
+<p>Symmetrically, you can define an index <code>k2</code> for the right border: this is the closest index to the right of <code>j</code> such that <code>d[i][k2] &gt; d[i][j]</code> (or <code>m</code>, if there is no such index).</p>
+
+<p>So, the indices <code>k1</code> and <code>k2</code>, if we learn to search for them effectively, will give us all the necessary information about the current zero submatrix. In particular, its area will be equal to <code>(i - d[i][j]) * (k2 - k1 - 1)</code>.</p>
+
+<p>How to look for these indexes <code>k1</code> and <code>k2</code> effectively with fixed <code>i</code> and <code>j</code>? We can do that in $O(1)$ on average.</p>
+
+<p>To achieve such complexity, you can use the stack as follows. Let's first learn how to search for an index <code>k1</code>, and save its value for each index <code>j</code> within the current row <code>i</code> in matrix <code>d1[i][j]</code>. To do this, we will look through all the columns <code>j</code> from left to right, and we will store in the stack only those columns that have <code>d[][]</code> strictly greater than <code>d[i][j]</code>. It is clear that when moving from a column <code>j</code> to the next column, it is necessary to update the content of the stack. When there is an inappropriate element at the top of the stack (i.e. <code>d[][] &lt;= d[i][j]</code>) pop it. It is easy to understand that it is enough to remove from the stack only from its top, and from none of its other places (because the stack will contain an increasing <code>d</code> sequence of columns).</p>
+
+<p>The value <code>d1[i][j]</code> for each <code>j</code> will be equal to the value lying at that moment on top of the stack.</p>
+
+<p>The dynamics <code>d2[i][j]</code> for finding the indices <code>k2</code> is considered similar, only you need to view the columns from right to left.</p>
+
+<p>It is clear that since there are exactly <code>m</code> pieces added to the stack on each line, there could not be more deletions either, the sum of complexities will be linear, so the final complexity of the algorithm is $O(nm)$.</p>
+
+<p>It should also be noted that this algorithm consumes $O(m)$ memory (not counting the input data - the matrix <code>a[][]</code>).</p>
+
+<h3>Implementation</h3>
+
+<pre><code class="cpp">int zero_matrix(vector&lt;vector&lt;int&gt;&gt; a) {
+    int n = a.size();
+    int m = a[0].size();
+
+    int ans = 0;
+    vector&lt;int&gt; d(m, -1), d1(m), d2(m);
+    stack&lt;int&gt; st;
+    for (int i = 0; i &lt; n; ++i) {
+        for (int j = 0; j &lt; m; ++j) {
+            if (a[i][j] == 1)
+                d[j] = i;
+        }
+
+        for (int j = 0; j &lt; m; ++j) {
+            while (!st.empty() &amp;&amp; d[st.top()] &lt;= d[j])
+                st.pop();
+            d1[j] = st.empty() ? -1 : st.top();
+            st.push(j);
+        }
+        while (!st.empty())
+            st.pop();
+
+        for (int j = m - 1; j &gt;= 0; --j) {
+            while (!st.empty() &amp;&amp; d[st.top()] &lt;= d[j])
+                st.pop();
+            d2[j] = st.empty() ? m : st.top();
+            st.push(j);
+        }
+        while (!st.empty())
+            st.pop();
+
+        for (int j = 0; j &lt; m; ++j)
+            ans = max(ans, (i - d[j]) * (d2[j] - d1[j] - 1));
+    }
+    return ans;
+}
+</code></pre>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

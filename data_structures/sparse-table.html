@@ -1,0 +1,210 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Sparse Table - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/data_structures/sparse-table.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Sparse Table</h1>
+
+<p>Sparse Table is a data structure, that allows answering range queries.
+It can answer most range queries in $O(\log n)$, but its true power is answering range minimum queries (or equivalent range maximum queries).
+For those queries it can compute the answer in $O(1)$ time.</p>
+
+<p>The only drawback of this data structure is, that it can only be used on <em>immutable</em> arrays.
+This means, that the array cannot be changed between two queries.
+If any element in the array changes, the complete data structure has to be recomputed.</p>
+
+<h2>Intuition</h2>
+
+<p>Any non-negative number can be uniquely represented as a sum of decreasing powers of two.
+This is just a variant of the binary representation of a number.
+E.g. $13 = (1101)_2 = 8 + 4 + 1$.
+For a number $x$ there can be at most $\lceil \log_2 x \rceil$ summands.</p>
+
+<p>By the same reasoning any interval can be uniquely represented as a union of intervals with lengths that are decreasing powers of two.
+E.g. $[2, 14] = [2, 9] \cup [10, 13] \cup [14, 14]$, where the complete interval has length 13, and the individual intervals have the lengths 8, 4 and 1 respectably.
+And also here the union consists of at most $\lceil \log_2(\text{length of interval}) \rceil$ many intervals.</p>
+
+<p>The main idea behind Sparse Tables is to precompute all answers for range queries with power of two length.
+Afterwards a different range query can be answered by splitting the range into ranges with power of two lengths, looking up the precomputed answers, and combining them to receive a complete answer.</p>
+
+<h2>Precomputation</h2>
+
+<p>We will use a 2-dimensional array for storing the answers to the precomputed queries.
+$\text{st}[i][j]$ will store the answer for the range $[i, i + 2^j - 1]$ of length $2^j$.
+The size of the 2-dimensional array will be $\text{MAXN} \times (K + 1)$, where $\text{MAXN}$ is the biggest possible array length.
+$\text{K}$ has to satisfy $\text{K} \ge \lfloor \log_2 \text{MAXN} \rfloor$, because $2^{\lfloor \log_2 \text{MAXN} \rfloor}$ is the biggest power of two range, that we have to support.
+For arrays with reasonable length ($\le 10^7$ elements), $K = 25$ is a good value.</p>
+
+<pre><code class="cpp">int st[MAXN][K + 1];
+</code></pre>
+
+<p>Because the range $[i, i + 2^j - 1]$ of length $2^j$ splits nicely into the ranges $[i, i + 2^{j - 1} - 1]$ and $[i + 2^{j - 1}, i + 2^j - 1]$, both of length $2^{j - 1}$, we can generate the table efficiently using dynamic programming:</p>
+
+<pre><code class="cpp">for (int i = 0; i &lt; N; i++)
+    st[i][0] = f(array[i]);
+
+for (int j = 1; j &lt;= K; j++)
+    for (int i = 0; i + (1 &lt;&lt; j) &lt;= N; i++)
+        st[i][j] = f(st[i][j-1], st[i + (1 &lt;&lt; (j - 1))][j - 1]);
+</code></pre>
+
+<p>The function $f$ will depend on the type of query.
+For range sum queries it will compute the sum, for range minimum queries it will compute the minimum.</p>
+
+<p>The time complexity of the precomputation is $O(\text{N} \log \text{N})$.</p>
+
+<h2>Range Sum Queries</h2>
+
+<p>For this type of queries, we want to find the sum of all values in a range.
+Therefore the natural definition of the function $f$ is $f(x, y) = x + y$.
+We can construct the data structure with:</p>
+
+<pre><code class="cpp">long long st[MAXN][K + 1];
+
+for (int i = 0; i &lt; N; i++)
+    st[i][0] = array[i];
+
+for (int j = 1; j &lt;= K; j++)
+    for (int i = 0; i + (1 &lt;&lt; j) &lt;= N; i++)
+        st[i][j] = st[i][j-1] + st[i + (1 &lt;&lt; (j - 1))][j - 1];
+</code></pre>
+
+<p>To answer the sum query for the range $[L, R]$, we iterate over all powers of two, starting from the biggest one.
+As soon as a power of two $2^j$ is smaller or equal to the length of the range ($= R - L + 1$), we process the first the first part of range $[L, L + 2^j - 1]$, and continue with the remaining range $[L + 2^j, R]$.</p>
+
+<pre><code class="cpp">long long sum = 0;
+for (int j = K; j &gt;= 0; j--) {
+    if ((1 &lt;&lt; j) &lt;= R - L + 1) {
+        sum += st[L][j];
+        L += 1 &lt;&lt; j;
+    }
+}
+</code></pre>
+
+<p>Time complexity for a Range Sum Query is $O(K) = O(\log \text{MAXN})$.</p>
+
+<h2>Range Minimum Queries (RMQ)</h2>
+
+<p>These are the queries where the Sparse Table shines.
+When computing the minimum of a range, it doesn't matter if we process a value in the range once or twice.
+Therefore instead of splitting a range into multiple ranges, we can also split the range into only two overlapping ranges with power of two length.
+E.g. we can split the range $[1, 6]$ into the ranges $[1, 4]$ and $[3, 6]$.
+The range minimum of $[1, 6]$ is clearly the same as the minimum of the range minimum of $[1, 4]$ and the range minimum of $[3, 6]$.
+So we can compute the minimum of the range $[L, R]$ with:</p>
+
+<p>$$\min(\text{st}[L][j], \text{st}[R - 2^j + 1][j]) \quad \text{ where } j = \log_2(R - L + 1)$$</p>
+
+<p>This requires that we are able to compute $\log_2(R - L + 1)$ fast.
+You can accomplish that by precomputing all logarithms:</p>
+
+<pre><code class="cpp">int log[MAXN+1];
+log[1] = 0;
+for (int i = 2; i &lt;= MAXN; i++)
+    log[i] = log[i/2] + 1;
+</code></pre>
+
+<p>Afterwards we need to precompute the Sparse Table structure. This time we define $f$ with $f(x, y) = \min(x, y)$.</p>
+
+<pre><code class="cpp">int st[MAXN][K + 1];
+
+for (int i = 0; i &lt; N; i++)
+    st[i][0] = array[i];
+
+for (int j = 1; j &lt;= K; j++)
+    for (int i = 0; i + (1 &lt;&lt; j) &lt;= N; i++)
+        st[i][j] = min(st[i][j-1], st[i + (1 &lt;&lt; (j - 1))][j - 1]);
+</code></pre>
+
+<p>And the minimum of a range $[L, R]$ can be computed with:</p>
+
+<pre><code class="cpp">int j = log[R - L + 1];
+int minimum = min(st[L][j], st[R - (1 &lt;&lt; j) + 1][j]);
+</code></pre>
+
+<p>Time complexity for a Range Minimum Query is $O(1)$.</p>
+
+<h2>Similar data structures supporting more types of queries</h2>
+
+<p>One of the main weakness of the $O(1)$ approach discussed in the previous section is, that this approach only supports queries of <a href="https://en.wikipedia.org/wiki/Idempotence">idempotent functions</a>.
+I.e. it works great for range minimum queries, but it is not possible to answer range sum queries using this approach.</p>
+
+<p>There are similar data structures that can handle any type of associative functions and answer range queries in $O(1)$.
+One of them is called is called <a href="https://discuss.codechef.com/questions/117696/tutorial-disjoint-sparse-table">Disjoint Sparse Table</a>.
+Another one would be the <a href="./data_structures/sqrt-tree.html">Sqrt Tree</a>.</p>
+
+<h2>Practice Problems</h2>
+
+<ul>
+<li><a href="http://www.spoj.com/problems/RMQSQ/">SPOJ - RMQSQ</a></li>
+<li><a href="http://www.spoj.com/problems/THRBL/">SPOJ - THRBL</a></li>
+<li><a href="https://www.codechef.com/problems/MSTICK">Codechef - MSTICK</a></li>
+<li><a href="https://www.codechef.com/problems/SEAD">Codechef - SEAD</a></li>
+<li><a href="http://codeforces.com/contest/475/problem/D">Codeforces - CGCDSSQ</a></li>
+<li><a href="http://codeforces.com/problemset/problem/514/D">Codeforces - R2D2 and Droid Army</a></li>
+<li><a href="http://codeforces.com/problemset/problem/872/B">Codeforces - Maximum of Maximums of Minimums</a></li>
+<li><a href="http://www.spoj.com/problems/TNVFC1M/">SPOJ - Miraculous</a></li>
+<li><a href="https://devskill.com/CodingProblems/ViewProblem/19">DevSkills - Multiplication Interval</a></li>
+<li><a href="http://codeforces.com/contest/713/problem/D">Codeforces - Animals and Puzzles</a></li>
+<li><a href="http://codeforces.com/contest/675/problem/E">Codeforces - Trains and Statistics</a></li>
+<li><a href="http://www.spoj.com/problems/POSTERIN/">SPOJ - Postering</a></li>
+<li><a href="http://www.spoj.com/problems/RPLN/">SPOJ - Negative Score</a></li>
+<li><a href="http://www.spoj.com/problems/CITY2/">SPOJ - A Famous City</a></li>
+<li><a href="http://www.spoj.com/problems/DIFERENC/">SPOJ - Diferencija</a></li>
+<li><a href="http://codeforces.com/contest/863/problem/E">Codeforces - Turn off the TV</a></li>
+<li><a href="http://codeforces.com/contest/15/problem/D">Codeforces - Map</a></li>
+<li><a href="http://codeforces.com/contest/873/problem/E">Codeforces - Awards for Contestants</a></li>
+<li><a href="http://codeforces.com/contest/5/problem/C">Codeforces - Longest Regular Bracket Sequence</a></li>
+</ul>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

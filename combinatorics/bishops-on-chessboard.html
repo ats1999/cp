@@ -1,0 +1,123 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Placing Bishops on a Chessboard  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/combinatorics/bishops-on-chessboard.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Placing Bishops on a Chessboard</h1>
+
+<p>Find the number of ways to place $K$ bishops on an $N \times N$ chessboard so that no two bishops attack each other.</p>
+
+<h2>Algorithm</h2>
+
+<p>This problem can be solved using dynamic programming.</p>
+
+<p>Let's enumerate the diagonals of the chessboard as follows: black diagonals have odd indices, white diagonals have even indices, and the diagonals are numbered in non-decreasing order of the number of squares in them. Here is an example for a $5 \times 5$ chessboard.</p>
+
+<p>$$\begin{matrix}
+\bf{1} &amp; 2 &amp; \bf{5} &amp; 6 &amp; \bf{9} &#92;\
+2 &amp; \bf{5} &amp; 6 &amp; \bf{9} &amp; 8 &#92;\
+\bf{5} &amp; 6 &amp; \bf{9} &amp; 8 &amp; \bf{7} &#92;\
+6 &amp; \bf{9} &amp; 8 &amp; \bf{7} &amp; 4 &#92;\
+\bf{9} &amp; 8 &amp; \bf{7} &amp; 4 &amp; \bf{3} &#92;\
+\end{matrix}$$</p>
+
+<p>Let <code>D[i][j]</code> denote the number of ways to place <code>j</code> bishops on diagonals with indices up to <code>i</code> which have the same color as diagonal <code>i</code>.
+Then <code>i = 1...2N-1</code> and <code>j = 0...K</code>.</p>
+
+<p>We can calculate <code>D[i][j]</code> using only values of <code>D[i-2]</code> (we subtract 2 because we only consider diagonals of the same color as $i$).
+There are two ways to get <code>D[i][j]</code>.
+Either we place all <code>j</code> bishops on previous diagonals: then there are <code>D[i-2][j]</code> ways to achieve this.
+Or we place one bishop on diagonal <code>i</code> and <code>j-1</code> bishops on previous diagonals.
+The number of ways to do this equals the number of squares in diagonal <code>i</code> minus <code>j-1</code>, because each of <code>j-1</code> bishops placed on previous diagonals will block one square on the current diagonal.
+The number of squares in diagonal <code>i</code> can be calculated as follows:</p>
+
+<pre><code class="cpp">int squares (int i) {
+    if (i &amp; 1)
+        return i / 4 * 2 + 1;
+    else
+        return (i - 1) / 4 * 2 + 2;
+}
+</code></pre>
+
+<p>The base case is simple: <code>D[i][0] = 1</code>, <code>D[1][1] = 1</code>.</p>
+
+<p>Once we have calculated all values of <code>D[i][j]</code>, the answer can be obtained as follows:
+consider all possible numbers of bishops placed on black diagonals <code>i=0...K</code>, with corresponding numbers of bishops on white diagonals <code>K-i</code>.
+The bishops placed on black and white diagonals never attack each other, so the placements can be done independently.
+The index of the last black diagonal is <code>2N-1</code>, the last white one is <code>2N-2</code>.
+For each <code>i</code> we add <code>D[2N-1][i] * D[2N-2][K-i]</code> to the answer.</p>
+
+<h2>Implementation</h2>
+
+<pre><code class="cpp">int bishop_placements(int N, int K)
+{
+    if (K &gt; 2 * N - 1)
+        return 0;
+
+    vector&lt;vector&lt;int&gt;&gt; D(N * 2, vector&lt;int&gt;(K + 1));
+    for (int i = 0; i &lt; N * 2; ++i)
+        D[i][0] = 1;
+    D[1][1] = 1;
+    for (int i = 2; i &lt; N * 2; ++i)
+        for (int j = 1; j &lt;= K; ++j)
+            D[i][j] = D[i-2][j] + D[i-2][j-1] * (squares(i) - j + 1);
+
+    int ans = 0;
+    for (int i = 0; i &lt;= K; ++i)
+        ans += D[N*2-1][i] * D[N*2-2][K-i];
+    return ans;
+}
+</code></pre>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

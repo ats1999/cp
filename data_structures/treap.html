@@ -1,0 +1,372 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Treap  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/data_structures/treap.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Treap (Cartesian tree)</h1>
+
+<p>Treap is a data structure which combines binary tree and binary heap (hence the name: tree + heap $\Rightarrow$ Treap).</p>
+
+<p>More specifically, treap is a data structure that stores pairs (X, Y) in a binary tree in such a way that it is a binary search tree by X and a binary heap by Y.
+Assuming that all X and all Y are different, we can see that if some node of the tree contains values ($X_0$, $Y_0$), all nodes in the left subtree have $X &lt; X_0$, all nodes in the right subtree have $X > X_0$, and all nodes in both left and right subtrees have $Y &lt; Y_0$.</p>
+
+<p>Treaps have been proposed by Siedel and Aragon in 1989.</p>
+
+<h2>Advantages of such data organisation</h2>
+
+<p>In such implementation X values are the keys (and at same time the values stored in the treap), and Y values are called <strong>priorities</strong>. Without priorities, the treap would be a regular binary search tree by X, and one set of X values could correspond to a lot of different trees, some of them degenerate (for example, in the form of a linked list), and therefore extremely slow (the main operations would have $O(N)$ complexity).</p>
+
+<p>At the same time, <strong>priorities</strong> allow to <strong>uniquely</strong> specify the tree that will be constructed (of course, it does not depend on the order in which values are added), which can be proven using corresponding theorem. Obviously, if you <strong>choose the priorities randomly</strong>, you will get non-degenerate trees on average, which will ensure $O(\log N)$ complexity for the main operations. Hence another name of this data structure - <strong>randomized binary search tree</strong>.</p>
+
+<h2>Operations</h2>
+
+<p>A treap provides the following operations:</p>
+
+<ul>
+<li><strong>Insert(X,Y)</strong> in $O(\log N)$.<br />
+Adds a new node to the tree. One possible variant is to pass only X and generate Y randomly inside the operation (while ensuring that it's different from all other priorities in the tree).</li>
+<li><strong>Search (X)</strong> in $O(\log N)$.<br />
+Looks for a node with the specified key value X. The implementation is the same as for an ordinary binary search tree.</li>
+<li><strong>Erase (X)</strong> in $O(\log N)$.<br />
+Looks for a node with the specified key value X and removes it from the tree.</li>
+<li><strong>Build ($X_1$, ..., $X_N$)</strong> in $O(N)$.<br />
+Builds a tree from a list of values. This can be done in linear time (assuming that $X_1, ..., X_N$ are sorted), but we will not discuss this implementation here. We will just use $N$ serial calls of <strong>Insert</strong> operation, which has $O(N \log N)$ complexity.</li>
+<li><strong>Union ($T_1$, $T_2$)</strong> in $O(M \log (N/M))$.<br />
+Merges two trees, assuming that all the elements are different. It is possible to achieve the same complexity if duplicate elements should be removed during merge.</li>
+<li><strong>Intersect ($T_1$, $T_2$)</strong> in $O(M \log (N/M))$.<br />
+Finds the intersection of two trees (i.e. their common elements). We will not consider the implementation of this operation here.</li>
+</ul>
+
+<p>In addition, due to the fact that a treap is a binary search tree, it can implement other operations, such as finding the K-th largest element or finding the index of an element.</p>
+
+<h2>Implementation Description</h2>
+
+<p>In terms of implementation, each node contains X, Y and pointers to the left (L) and right (R) children.</p>
+
+<p>We will implement all the required operations using just two auxiliary operations: Split and Merge.</p>
+
+<p><strong>Split (T, X)</strong> separates tree T in 2 subtrees L and R trees (which are the return values of split) so that L contains all elements with key $X_L &lt; X$, and R contains all elements with key $X_R > X$. This operation has $O (\log N)$ complexity and is implemented using an obvious recursion.</p>
+
+<p><strong>Merge ($T_1$, $T_2$)</strong> combines two subtrees $T_1$ and $T_2$ and returns the new tree. This operation also has $O (\log N)$ complexity. It works under the assumption that $T_1$ and $T_2$ are ordered (all keys X in $T_1$ are smaller than keys in $T_2$). Thus, we need to combine these trees without violating the order of priorities Y. To do this, we choose as the root the tree which has higher priority Y in the root node, and recursively call Merge for the other tree and the corresponding subtree of the selected root node.</p>
+
+<p>Now implementation of <strong>Insert (X, Y)</strong> becomes obvious. First we descend in the tree (as in a regular binary search tree by X), and stop at the first node in which the priority value is less than Y. We have found the place where we will insert the new element. Next, we call <strong>Split (T, X)</strong> on the subtree starting at the found node, and use returned subtrees L and R as left and right children of the new node.</p>
+
+<p>Implementation of <strong>Erase (X)</strong> is also clear. First we descend in the tree (as in a regular binary search tree by X), looking for the element we want to delete. Once the node is found, we call <strong>Merge</strong> on it children and put the return value of the operation in the place of the element we're deleting.</p>
+
+<p>We implement <strong>Build</strong> operation with $O (N \log N)$ complexity using $N$ <strong>Insert</strong> calls.</p>
+
+<p><strong>Union ($T_1$, $T_2$)</strong> has theoretical complexity $O (M \log (N / M))$, but in practice it works very well, probably with a very small hidden constant. Let's assume without loss of generality that $T_1 \rightarrow Y > T_2 \rightarrow Y$, i. e. root of $T_1$ will be the root of the result. To get the result, we need to merge trees $T_1 \rightarrow L$, $T_1 \rightarrow R$ and $T_2$ in two trees which could be children of $T_1$ root. To do this, we call Split ($T_2$, $T_1\rightarrow X$), thus splitting $T_2$ in two parts L and R, which we then recursively combine with children of $T_1$: Union ($T_1 \rightarrow L$, $L$) and Union ($T_1 \rightarrow R$, $R$), thus getting left and right subtrees of the result.</p>
+
+<h2>Implementation</h2>
+
+<pre><code class="cpp">struct item {
+    int key, prior;
+    item * l, * r;
+    item() { }
+    item (int key, int prior) : key(key), prior(prior), l(NULL), r(NULL) { }
+};
+typedef item * pitem;
+
+void split (pitem t, int key, pitem &amp; l, pitem &amp; r) {
+    if (!t)
+        l = r = NULL;
+    else if (key &lt; t-&gt;key)
+        split (t-&gt;l, key, l, t-&gt;l),  r = t;
+    else
+        split (t-&gt;r, key, t-&gt;r, r),  l = t;
+}
+
+void insert (pitem &amp; t, pitem it) {
+    if (!t)
+        t = it;
+    else if (it-&gt;prior &gt; t-&gt;prior)
+        split (t, it-&gt;key, it-&gt;l, it-&gt;r),  t = it;
+    else
+        insert (it-&gt;key &lt; t-&gt;key ? t-&gt;l : t-&gt;r, it);
+}
+
+void merge (pitem &amp; t, pitem l, pitem r) {
+    if (!l || !r)
+        t = l ? l : r;
+    else if (l-&gt;prior &gt; r-&gt;prior)
+        merge (l-&gt;r, l-&gt;r, r),  t = l;
+    else
+        merge (r-&gt;l, l, r-&gt;l),  t = r;
+}
+
+void erase (pitem &amp; t, int key) {
+    if (t-&gt;key == key) {
+        pitem th = t;
+        merge (t, t-&gt;l, t-&gt;r);
+        delete th;
+    }
+    else
+        erase (key &lt; t-&gt;key ? t-&gt;l : t-&gt;r, key);
+}
+
+pitem unite (pitem l, pitem r) {
+    if (!l || !r)  return l ? l : r;
+    if (l-&gt;prior &lt; r-&gt;prior)  swap (l, r);
+    pitem lt, rt;
+    split (r, l-&gt;key, lt, rt);
+    l-&gt;l = unite (l-&gt;l, lt);
+    l-&gt;r = unite (l-&gt;r, rt);
+    return l;
+}
+</code></pre>
+
+<h2>Maintaining the sizes of subtrees</h2>
+
+<p>To extend the functionality of the treap, it is often necessary to store the number of nodes in subtree of each node - field <code>int cnt</code> in the <code>item</code> structure. For example, it can be used to find K-th largest element of tree in $O (\log N)$, or to find the index of the element in the sorted list with the same complexity. The implementation of these operations will be the same as for the regular binary search tree.</p>
+
+<p>When a tree changes (nodes are added or removed etc.), <code>cnt</code> of some nodes should be updated accordingly. We'll create two functions: <code>cnt()</code> will return the current value of <code>cnt</code> or 0 if the node does not exist, and <code>upd_cnt()</code> will update the value of <code>cnt</code> for this node assuming that for its children L and R the values of <code>cnt</code> have already been updated. Evidently it's sufficient to add calls of <code>upd_cnt()</code> to the end of <code>insert</code>, <code>erase</code>, <code>split</code> and <code>merge</code> to keep <code>cnt</code> values up-to-date.</p>
+
+<pre><code class="cpp">int cnt (pitem t) {
+    return t ? t-&gt;cnt : 0;
+}
+
+void upd_cnt (pitem t) {
+    if (t)
+        t-&gt;cnt = 1 + cnt(t-&gt;l) + cnt (t-&gt;r);
+}
+</code></pre>
+
+<h2>Building a Treap in $O (N)$ in offline mode</h2>
+
+<p>Given a sorted list of keys, it is possible to construct a treap faster than by inserting the keys one at a time which takes $O(N \log N)$. Since the keys are sorted, a balanced binary search tree can be easily constructed in linear time. The heap values $Y$ are initialized randomly and then can be heapified independent of the keys $X$ to <a href="https://en.wikipedia.org/wiki/Binary_heap#Building_a_heap">build the heap</a> in $O(N)$.</p>
+
+<pre><code class="cpp">void heapify (pitem t) {
+    if (!t) return;
+    pitem max = t;
+    if (t-&gt;l != NULL &amp;&amp; t-&gt;l-&gt;prior &gt; max-&gt;prior)
+        max = t-&gt;l;
+    if (t-&gt;r != NULL &amp;&amp; t-&gt;r-&gt;prior &gt; max-&gt;prior)
+        max = t-&gt;r;
+    if (max != t) {
+        swap (t-&gt;prior, max-&gt;prior);
+        heapify (max);
+    }
+}
+
+pitem build (int * a, int n) {
+    // Construct a treap on values {a[0], a[1], ..., a[n - 1]}
+    if (n == 0) return NULL;
+    int mid = n / 2;
+    pitem t = new item (a[mid], rand ());
+    t-&gt;l = build (a, mid);
+    t-&gt;r = build (a + mid + 1, n - mid - 1);
+    heapify (t);
+    upd_cnt(t)
+    return t;
+}
+</code></pre>
+
+<p>Note: calling <code>upd_cnt(t)</code> is only necessary if you need the subtree sizes.</p>
+
+<h2>Implicit Treaps</h2>
+
+<p>Implicit treap is a simple modification of the regular treap which is a very powerful data structure. In fact, implicit treap can be considered as an array with the following procedures implemented (all in $O (\log N)$ in the online mode):</p>
+
+<ul>
+<li>Inserting an element in the array in any location</li>
+<li>Removal of an arbitrary element</li>
+<li>Finding sum, minimum / maximum element etc. on an arbitrary interval</li>
+<li>Addition, painting on an arbitrary interval</li>
+<li>Reversing elements on an arbitrary interval</li>
+</ul>
+
+<p>The idea is that the keys should be <strong>indices</strong> of the elements in the array. But we will not store these values explicitly (otherwise, for example, inserting an element would cause changes of the key in $O (N)$ nodes of the tree).</p>
+
+<p>Note that the key of a node is the number of nodes less than it (such nodes can be present not only in its left subtree but also in left subtrees of its ancestors). 
+More specifically, the <strong>implicit key</strong> for some node T is the number of vertices $cnt (T \rightarrow L)$ in the left subtree of this node plus similar values $cnt (P \rightarrow L) + 1$ for each ancestor P of the node T, if T is in the right subtree of P.</p>
+
+<p>Now it's clear how to calculate the implicit key of current node quickly. Since in all operations we arrive to any node by descending in the tree, we can just accumulate this sum and pass it to the function. If we go to the left subtree, the accumulated sum does not change, if we go to the right subtree it increases by $cnt (T \rightarrow L) +1$.</p>
+
+<p>Here are the new implementations of <strong>Split</strong> and <strong>Merge</strong>:</p>
+
+<pre><code class="cpp">void merge (pitem &amp; t, pitem l, pitem r) {
+    if (!l || !r)
+        t = l ? l : r;
+    else if (l-&gt;prior &gt; r-&gt;prior)
+        merge (l-&gt;r, l-&gt;r, r),  t = l;
+    else
+        merge (r-&gt;l, l, r-&gt;l),  t = r;
+    upd_cnt (t);
+}
+
+void split (pitem t, pitem &amp; l, pitem &amp; r, int key, int add = 0) {
+    if (!t)
+        return void( l = r = 0 );
+    int cur_key = add + cnt(t-&gt;l); //implicit key
+    if (key &lt;= cur_key)
+        split (t-&gt;l, l, t-&gt;l, key, add),  r = t;
+    else
+        split (t-&gt;r, t-&gt;r, r, key, add + 1 + cnt(t-&gt;l)),  l = t;
+    upd_cnt (t);
+}
+</code></pre>
+
+<p>Now let's consider the implementation of various operations on implicit treaps:</p>
+
+<ul>
+<li><strong>Insert element</strong>.<br />
+Suppose we need to insert an element at position <code>pos</code>. We divide the treap into two parts, which correspond to arrays <code>[0..pos-1]</code> and <code>[pos..sz]</code>; to do this we call <code>split</code> (T, $T_1$, $T_2$, pos). Then we can combine tree $T_1$ with the new vertex by calling <code>merge</code> ($T_1$, $T_1$, new_item) (it is easy to see that all preconditions are met). Finally, we combine trees $T_1$ and $T_2$ back into T by calling <code>merge</code> (T, $T_1$, $T_2$).</li>
+<li><strong>Delete element</strong>.<br />
+This operation is even easier: find the element to be deleted T, perform merge of its children L and R, and replace the element T with the result of merge. In fact, element deletion in the implicit treap is exactly the same as in the regular treap.</li>
+<li>Find <strong>sum / minimum</strong>, etc. on the interval.<br />
+First, create an additional field F in the <code>item</code> structure to store the value of the target function for this node's subtree. This field is easy to maintain similarly to maintaining sizes of subtrees: create a function which calculates this value for a node based on values for its children and add calls of this function in the end of all functions which modify the tree.<br />
+Second, we need to know how to process a query for an arbitrary interval [A; B].<br />
+To get a part of tree which corresponds to the interval [A; B], we need to call <code>split</code> (T, $T_1$, $T_2$, A), and then <code>split</code> ($T_2$, $T_2$, $T_3$, B - A + 1): after this $T_2$ will consist of all the elements in the interval [A; B], and only of them. Therefore, the response to the query will be stored in the field F of the root of $T_2$. After the query is answered, the tree has to be restored by calling <code>merge</code> (T, $T_1$, $T_2$) and <code>merge</code> ($T$, $T$, $T_3$).</li>
+<li><strong>Addition / painting</strong> on the interval.<br />
+We act similarly to the previous paragraph, but instead of the field F we will store a field <code>add</code> which will contain the added value for the subtree (or the value to which the subtree is painted). Before performing any operation we have to "push" this value correctly - i.e. change $T \rightarrow L \rightarrow add$ and $T \rightarrow R \rightarrow add$, and to clean up <code>add</code> in the parent node. This way after any changes to the tree the information will not be lost.</li>
+<li><strong>Reverse</strong> on the interval.<br />
+This is again similar to the previous operation: we have to add boolean flag ‘rev’ and set it to true when the subtree of the current node has to be reversed. "Pushing" this value is a bit complicated - we swap children of this node and set this flag to true for them.</li>
+</ul>
+
+<p>Here is an example implementation of the implicit treap with reverse on the interval. For each node we store field called <code>value</code> which is the actual value of the array element at current position. We also provide implementation of the function <code>output()</code>, which outputs an array that corresponds to the current state of the implicit treap.</p>
+
+<pre><code class="cpp">typedef struct item * pitem;
+struct item {
+    int prior, value, cnt;
+    bool rev;
+    pitem l, r;
+};
+
+int cnt (pitem it) {
+    return it ? it-&gt;cnt : 0;
+}
+
+void upd_cnt (pitem it) {
+    if (it)
+        it-&gt;cnt = cnt(it-&gt;l) + cnt(it-&gt;r) + 1;
+}
+
+void push (pitem it) {
+    if (it &amp;&amp; it-&gt;rev) {
+        it-&gt;rev = false;
+        swap (it-&gt;l, it-&gt;r);
+        if (it-&gt;l)  it-&gt;l-&gt;rev ^= true;
+        if (it-&gt;r)  it-&gt;r-&gt;rev ^= true;
+    }
+}
+
+void merge (pitem &amp; t, pitem l, pitem r) {
+    push (l);
+    push (r);
+    if (!l || !r)
+        t = l ? l : r;
+    else if (l-&gt;prior &gt; r-&gt;prior)
+        merge (l-&gt;r, l-&gt;r, r),  t = l;
+    else
+        merge (r-&gt;l, l, r-&gt;l),  t = r;
+    upd_cnt (t);
+}
+
+void split (pitem t, pitem &amp; l, pitem &amp; r, int key, int add = 0) {
+    if (!t)
+        return void( l = r = 0 );
+    push (t);
+    int cur_key = add + cnt(t-&gt;l);
+    if (key &lt;= cur_key)
+        split (t-&gt;l, l, t-&gt;l, key, add),  r = t;
+    else
+        split (t-&gt;r, t-&gt;r, r, key, add + 1 + cnt(t-&gt;l)),  l = t;
+    upd_cnt (t);
+}
+
+void reverse (pitem t, int l, int r) {
+    pitem t1, t2, t3;
+    split (t, t1, t2, l);
+    split (t2, t2, t3, r-l+1);
+    t2-&gt;rev ^= true;
+    merge (t, t1, t2);
+    merge (t, t, t3);
+}
+
+void output (pitem t) {
+    if (!t)  return;
+    push (t);
+    output (t-&gt;l);
+    printf ("%d ", t-&gt;value);
+    output (t-&gt;r);
+}
+</code></pre>
+
+<h2>Literature</h2>
+
+<ul>
+<li><a href="https://www.cs.cmu.edu/~scandal/papers/treaps-spaa98.pdf">Blelloch, Reid-Miller "Fast Set Operations Using Treaps"</a></li>
+</ul>
+
+<h2>Practice Problems</h2>
+
+<ul>
+<li><a href="http://www.spoj.com/problems/ADAAPHID/">SPOJ - Ada and Aphids</a></li>
+<li><a href="http://www.spoj.com/problems/ADACROP/">SPOJ - Ada and Harvest</a></li>
+<li><a href="http://codeforces.com/contest/762/problem/E">Codeforces - Radio Stations</a></li>
+<li><a href="http://www.spoj.com/problems/COUNT1IT/">SPOJ - Ghost Town</a></li>
+<li><a href="http://www.spoj.com/problems/IITWPC4D/">SPOJ - Arrangement Validity</a></li>
+<li><a href="http://www.spoj.com/problems/ALLIN1/">SPOJ - All in One</a></li>
+<li><a href="http://codeforces.com/contest/847/problem/D">Codeforces - Dog Show</a></li>
+<li><a href="http://codeforces.com/contest/863/problem/D">Codeforces - Yet Another Array Queries Problem</a></li>
+<li><a href="http://www.spoj.com/problems/MEANARR/">SPOJ - Mean of Array</a></li>
+<li><a href="http://www.spoj.com/problems/TWIST/">SPOJ - TWIST</a></li>
+<li><a href="http://www.spoj.com/problems/KOILINE/">SPOJ - KOILINE</a></li>
+<li><a href="https://www.codechef.com/problems/PRESTIGE">CodeChef - The Prestige</a></li>
+<li><a href="https://codeforces.com/contest/702/problem/F">Codeforces - T-Shirts</a></li>
+<li><a href="https://codeforces.com/problemset/problem/167/D">Codeforces - Wizards and Roads</a></li>
+<li><a href="https://codeforces.com/contest/295/problem/E">Codeforces - Yaroslav and Points</a></li>
+</ul>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

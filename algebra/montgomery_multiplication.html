@@ -1,0 +1,254 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Montgomery Multiplication  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/algebra/montgomery_multiplication.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Montgomery Multiplication</h1>
+
+<p>Many algorithms in number theory, like <a href="./algebra/primality_tests.html">prime testing</a> or <a href="./algebra/factorization.html">integer factorization</a>, and in cryptography, like RSA, require lots of operations modulo a large number.
+A multiplications like $x y \bmod{n}$ is quite slow to compute with the typical algorithms, since it requires a division to know how many times $n$ has to be subtracted from the product.
+And division is a really expensive operation, especially with big numbers.</p>
+
+<p>The <strong>Montgomery (modular) multiplication</strong> is a method that allows computing such multiplications faster.
+Instead of dividing the product and subtracting $n$ multiple times, it adds multiples of $n$ to cancel out the lower bits and then just discards the lower bits.</p>
+
+<h2>Montgomery representation</h2>
+
+<p>However the Montgomery multiplication doesn't come for free.
+The algorithm works only in the <strong>Montgomery space</strong>.
+And we need to transform our numbers into that space, before we can start multiplying.</p>
+
+<p>For the space we need a positive integer $r \ge n$ coprime to $n$, i.e. $\gcd(n, r) = 1$.
+In practice we always choose $r$ to be $2^m$ for a positive integer $m$, since multiplications, divisions and modulo $r$ operations can then be efficiently implemented using shifts and other bit operations.
+$n$ will be an odd number in pretty much all applications, since it is not hard to factorize an even number.
+So every power of $2$ will be coprime to $n$.</p>
+
+<p>The representative $\bar{x}$ of a number $x$ in the Montgomery space is defined as: $$\bar{x} := x \cdot r \bmod n$$</p>
+
+<p>Notice, the transformation is actually such a multiplication that we want to optimize.
+So this is still an expensive operation.
+However you only need to transform a number once into the space.
+As soon as you are in the Montgomery space, you can perform as many operations as you want efficiently.
+And at the end you transform the final result back.
+So as long as you are doing lots of operations modulo $n$, this will be no problem.</p>
+
+<p>Inside the Montgomery space you can still perform most operations as usual.
+You can add two elements ($x \cdot r + y \cdot r \equiv (x + y) \cdot r \bmod n$), subtract, check for equality, and even compute the greatest common multiple of a number with $n$ (since $\gcd(n, r) = 1$).
+All with the usual algorithms.</p>
+
+<p>However this is not the case for multiplication.</p>
+
+<p>We expect the result to be:
+$$\bar{x} * \bar{y} = \overline{x \cdot y} = (x \cdot y) \cdot r \bmod n.$$
+But the normal multiplication will give us:
+$$\bar{x} \cdot \bar{y} = (x \cdot y) \cdot r \cdot r \bmod n.$$
+Therefore the multiplication in the Montgomery space is defined as:
+$$\bar{x} * \bar{y} := \bar{x} \cdot \bar{y} \cdot r^{-1} \bmod n.$$</p>
+
+<h2>Montgomery reduction</h2>
+
+<p>The multiplication of two numbers in the Montgomery space requires an efficient computation of $x \cdot r^{-1} \bmod n$.
+This operation is called the <strong>Montgomery reduction</strong>, and is also known as the algorithm <strong>REDC</strong>.</p>
+
+<p>Because $\gcd(n, r) = 1$, we know that there are two numbers $r^{-1}$ and $n^{\prime}$ with $0 &lt; r^{-1}, n^{\prime} &lt; n$ with
+$$r \cdot r^{-1} + n \cdot n^{\prime} = 1.$$
+Both $r^{-1}$ and $n^{\prime}$ can be computed using the <a href="./algebra/extended-euclid-algorithm.html">Extended Euclidean algorithm</a>.</p>
+
+<p>Using this identity we can write $x \cdot r^{-1}$ as:
+$$\begin{aligned}
+x \cdot r^{-1} &amp;= x \cdot r \cdot r^{-1} / r = x \cdot (-n \cdot n^{\prime} + 1) / r &#92;&#92;
+&amp;= (-x \cdot n \cdot n^{\prime} + x) / r \equiv (-x \cdot n \cdot n^{\prime} + l \cdot r \cdot n + x) / r \bmod n&#92;&#92;
+&amp;\equiv ((-x \cdot n^{\prime} + l \cdot r) \cdot n + x) / r \bmod n&#92;&#92;
+\end{aligned}$$</p>
+
+<p>The equivalences hold for any arbitrary integer $l$.
+This means, that we can add or subtract an arbitrary multiple of $r$ to $x \cdot n^{\prime}$, or in other words, we can compute $q := x \cdot n^{\prime}$ modulo $r$.</p>
+
+<p>This gives us the following algorithm to compute $x \cdot r^{-1} \bmod n$:</p>
+
+<pre><code class="text">function reduce(x):
+    q = (x mod r) * n' mod r
+    a = (x - q * n) / r
+    if a &lt; 0:
+        a += n
+    return a
+</code></pre>
+
+<p>Since $x &lt; n \cdot n &lt; r \cdot n$ (even if $x$ is the product of a multiplication) and $q \cdot n &lt; r \cdot n$ we know that $-n &lt; (x - q \cdot n) / r &lt; n$.
+Therefore the final modulo operation is implemented using a single check and one addition.</p>
+
+<p>As we see, we can perform the Montgomery reduction without any heavy modulo operations.
+If we choose $r$ as a power of $2$, the modulo operations and divisions in the algorithm can be computed using bitmasking and shifting.</p>
+
+<p>A second application of the Montgomery reduction is to transfer a number back from the Montgomery space into the normal space.</p>
+
+<h2>Fast inverse trick</h2>
+
+<p>For computing the inverse $n^{\prime} := n^{-1} \bmod r$ efficiently, we can use the following trick (which is inspired from the Newton's method):
+$$a \cdot x \equiv 1 \bmod 2^k \Longrightarrow a \cdot x \cdot (2 - a \cdot x) \equiv 1 \bmod 2^{2k}$$
+This can easily be proven.
+If we have $a \cdot x = 1 + m \cdot 2^k$, then we have:
+$$\begin{aligned}
+a \cdot x \cdot (2 - a \cdot x) &amp;= 2 \cdot a \cdot x - (a \cdot x)^2 &#92;&#92;
+&amp;= 2 \cdot (1 + m \cdot 2^k) - (1 + m \cdot 2^k)^2 &#92;&#92;
+&amp;= 2 + 2 \cdot m \cdot 2^k - 1 - 2 \cdot m \cdot 2^k - m^2 \cdot 2^{2k} &#92;&#92;
+&amp;= 1 - m^2 \cdot 2^{2k} &#92;&#92;
+&amp;\equiv 1 \bmod 2^{2k}.
+\end{aligned}$$</p>
+
+<p>This means we can start with $x = 1$ as the inverse of $a$ modulo $2^1$, apply the trick a few times and in each iteration we double the number of correct bits of $x$.</p>
+
+<h2>Implementation</h2>
+
+<p>Using the GCC compiler we can compute $x \cdot y \bmod n$ still efficiently, when all three numbers are 64 bit integer, since the compiler supports 128 bit integer with the types <code>__int128</code> and <code>__uint128</code>.</p>
+
+<pre><code class="cpp">long long result = (__int128)x * y % n;
+</code></pre>
+
+<p>However there is no type for 256 bit integer.
+Therefore we will here show an implementation for a 128 bit multiplication.</p>
+
+<pre><code class="cpp">using u64 = uint64_t;
+using u128 = __uint128_t;
+using i128 = __int128_t;
+
+struct u256 {
+    u128 high, low;
+
+    static u256 mult(u128 x, u128 y) {
+        u64 a = x &gt;&gt; 64, b = x;
+        u64 c = y &gt;&gt; 64, d = y;
+        // (a*2^64 + b) * (c*2^64 + d) =
+        // (a*c) * 2^128 + (a*d + b*c)*2^64 + (b*d)
+        u128 ac = (u128)a * c;
+        u128 ad = (u128)a * d;
+        u128 bc = (u128)b * c;
+        u128 bd = (u128)b * d;
+        u128 carry = (u128)(u64)ad + (u128)(u64)bc + (bd &gt;&gt; 64u);
+        u128 high = ac + (ad &gt;&gt; 64u) + (bc &gt;&gt; 64u) + (carry &gt;&gt; 64u);
+        u128 low = (ad &lt;&lt; 64u) + (bc &lt;&lt; 64u) + bd;
+        return {high, low};
+    }
+};
+
+struct Montgomery {
+    Montgomery(u128 n) : mod(n), inv(1) {
+        for (int i = 0; i &lt; 7; i++)
+            inv *= 2 - n * inv;
+    }
+
+    u128 init(u128 x) {
+        x %= mod;
+        for (int i = 0; i &lt; 128; i++) {
+            x &lt;&lt;= 1;
+            if (x &gt;= mod)
+                x -= mod;
+        }
+        return x;
+    }
+
+    u128 reduce(u256 x) {
+        u128 q = x.low * inv;
+        i128 a = x.high - u256::mult(q, mod).high;
+        if (a &lt; 0)
+            a += mod;
+        return a;
+    }
+
+    u128 mult(u128 a, u128 b) {
+        return reduce(u256::mult(a, b));
+    }
+
+    u128 mod, inv;
+};
+</code></pre>
+
+<h2>Fast transformation</h2>
+
+<p>The current method of transforming a number into Montgomery space is pretty slow.
+There are faster ways.</p>
+
+<p>You can notice the following relation:
+$$\bar{x} := x \cdot r \bmod n = x \cdot r^2 / r = x * r^2$$</p>
+
+<p>Transforming a number into the space is just a multiplication inside the space of the number with $r^2$.
+Therefore we can precompute $r^2 \bmod n$ and just perform a multiplication instead of shifting the number 128 times.</p>
+
+<p>In the following code we initialize <code>r2</code> with <code>-n % n</code>, which is equivalent to $r - n \equiv r \bmod n$, shift it 4 times to get $r \cdot 2^4 \bmod n$.
+This number can be interpreted as $2^4$ in Montgomery space.
+If we square it $5$ times, we get $(2^4)^{2^5} = (2^4)^{32} = 2^{128} = r$ in Montgomery space, which is exactly $r^2 \bmod n$.</p>
+
+<pre><code>struct Montgomery {
+    Montgomery(u128 n) : mod(n), inv(1), r2(-n % n) {
+        for (int i = 0; i &lt; 7; i++)
+            inv *= 2 - n * inv;
+
+        for (int i = 0; i &lt; 4; i++) {
+            r2 &lt;&lt;= 1;
+            if (r2 &gt;= mod)
+                r2 -= mod;
+        }
+        for (int i = 0; i &lt; 5; i++)
+            r2 = mul(r2, r2);
+    }
+
+    u128 init(u128 x) {
+        return mult(x, r2);
+    }
+
+    u128 mod, inv, r2;
+};
+</code></pre>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

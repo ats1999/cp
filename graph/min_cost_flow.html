@@ -1,0 +1,216 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Minimum-cost flow - Successive shortest path algorithm  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/graph/min_cost_flow.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Minimum-cost flow - Successive shortest path algorithm</h1>
+
+<p>Given a network $G$ consisting of $n$ vertices and $m$ edges.
+For each edge (generally speaking, oriented edges, but see below), the capacity (a non-negative integer) and the cost per unit of flow along this edge (some integer) are given.
+Also the source $s$ and the sink $t$ are marked.</p>
+
+<p>For a given value $K$, we have to find a flow of this quantity, and among all flows of this quantity we have to choose the flow with the lowest cost.
+This task is called <strong>minimum-cost flow problem</strong>.</p>
+
+<p>Sometimes the task is given a little differently:
+you want to find the maximum flow, and among all maximal flows we want to find the one with the least cost.
+This is called the <strong>minimum-cost maximum-flow problem</strong>.</p>
+
+<p>Both these problems can be solved effectively with the algorithm of sucessive shortest paths.</p>
+
+<h2>Algorithm</h2>
+
+<p>This algorithm is very similar to the <a href="./graph/edmonds_karp.html">Edmonds-Karp</a> for computing the maximum flow.</p>
+
+<h3>Simplest case</h3>
+
+<p>First we only consider the simplest case, where the graph is oriented, and there is at most one edge between any pair of vertices (e.g. if $(i, j)$ is an edge in the graph, then $(j, i)$ cannot be part in it as well).</p>
+
+<p>Let $U_{i j}$ be the capacity of an edge $(i, j)$ if this edge exists.
+And let $C_{i j}$ be the cost per unit of flow along this edge $(i, j)$.
+And finally let $F_{i, j}$ be the flow along the edge $(i, j)$.
+Initially all flow values are zero.</p>
+
+<p>We <strong>modify</strong> the network as follows:
+for each edge $(i, j)$ we add the <strong>reverse edge</strong> $(j, i)$ to the network with the capacity $U_{j i} = 0$ and the cost $C_{j i} = -C_{i j}$.
+Since, according to our restrictions, the edge $(j, i)$ was not in the network before, we still have a network that is not a multigraph (graph with multiple edges).
+In addition we will always keep the condition $F_{j i} = -F_{i j}$ true during the steps of the algorithm.</p>
+
+<p>We define the <strong>residual network</strong> for some fixed flow $F$ as follow (just like in the Ford-Fulkerson algorithm):
+the residual network contains only unsaturated edges (i.e. edges in which $F_{i j} &lt; U_{i j}$), and the residual capacity of each such edge is $R_{i j} = U_{i j} - F_{i j}$.</p>
+
+<p>Now we can talk about the <strong>algorithms</strong> to compute the minimum-cost flow.
+At each iteration of the algorithm we find the shortest path in the residual graph from $s$ to $t$.
+In contrary to Edmonds-Karp we look for the shortest path in terms of the cost of the path, instead of the number of edges.
+If there doesn't exists a path anymore, then the algorithm terminates, and the stream $F$ is the desired one.
+If a path was found, we increase the flow along it as much as possible (i.e. we find the minimal residual capacity $R$ of the path, and increase the flow by it, and reduce the back edges by the same amount).
+If at some point the flow reaches the value $K$, then we stop the algorithm (note that in the last iteration of the algorithm it is necessary to increase the flow by only such an amount so that the final flow value doesn't surpass $K$).</p>
+
+<p>It is not difficult to see, that if we set $K$ to infinity, then the algorithm will find the minimum-cost maximum-flow.
+So both variations of the problem can be solved by the same algorithm.</p>
+
+<h3>Undirected graphs / multigraphs</h3>
+
+<p>The case of an undirected graph or a multigraph doesn't differ conceptually from the algorithm above.
+The algorithm will also work on these graphs.
+However it becomes a little more difficult to implement it.</p>
+
+<p>An <strong>undirected edge</strong> $(i, j)$ is actually the same as two oriented edges $(i, j)$ and $(j, i)$ with the same capacity and values.
+Since the above-described minimum-cost flow algorithm generates a back edge for each directed edge, so it splits the undirected edge into $4$ directed edges, and we actually get a <strong>multigraph</strong>.</p>
+
+<p>How do we deal with <strong>multiple edges</strong>?
+First the flow for each of the multiple edges must be kept separately.
+Secondly, when searching for the shortest path, it is necessary to take into account that it is important which of the multiple edges is used in the path.
+Thus instead of the usual ancestor array we additionally must store the edge number from which we came from along with the ancestor.
+Thirdly, as the flow increases along a certain edge, it is necessary to reduce the flow along the back edge.
+Since we have multiple edges, we have to store the edge number for the reversed edge for each edge.</p>
+
+<p>There are no other obstructions with undirected graphs or multigraphs.</p>
+
+<h3>Complexity</h3>
+
+<p>Analog to the analysis of the Edmonds-Karp algorithm we get the following estimation:
+$O(n m) \cdot T(n, m)$, where $T(n, m)$ is the time required to find the shortest path in a graph with $n$ vertices and $m$ edges</p>
+
+<p>If this search is done with the <a href="./graph/dijkstra.html">Dijkstra algorithm</a>, then the complexity for the minimum-cost algorithm would become $O(n^3 m)$.
+However we deal with edges with negative cost.
+So Dijkstra is not applicable, at least not unmodified.</p>
+
+<p>Instead we can use the <a href="./graph/bellman_ford.html">Bellman-Ford algorithm</a>. With it the complexity becomes $O(n^2 m^2)$.</p>
+
+<h2>Implementation</h2>
+
+<p>Here is an implementation using the <a href="./graph/bellman_ford.html">SPFA algorithm</a> for the simplest case.</p>
+
+<pre><code class="cpp">struct Edge
+{
+    int from, to, capacity, cost;
+};
+
+vector&lt;vector&lt;int&gt;&gt; adj, cost, capacity;
+
+const int INF = 1e9;
+
+void shortest_paths(int n, int v0, vector&lt;int&gt;&amp; d, vector&lt;int&gt;&amp; p) {
+    d.assign(n, INF);
+    d[v0] = 0;
+    vector&lt;bool&gt; inq(n, false);
+    queue&lt;int&gt; q;
+    q.push(v0);
+    p.assign(n, -1);
+
+    while (!q.empty()) {
+        int u = q.front();
+        q.pop();
+        inq[u] = false;
+        for (int v : adj[u]) {
+            if (capacity[u][v] &gt; 0 &amp;&amp; d[v] &gt; d[u] + cost[u][v]) {
+                d[v] = d[u] + cost[u][v];
+                p[v] = u;
+                if (!inq[v]) {
+                    inq[v] = true;
+                    q.push(v);
+                }
+            }
+        }
+    }
+}
+
+int min_cost_flow(int N, vector&lt;Edge&gt; edges, int K, int s, int t) {
+    adj.assign(N, vector&lt;int&gt;());
+    cost.assign(N, vector&lt;int&gt;(N, 0));
+    capacity.assign(N, vector&lt;int&gt;(N, 0));
+    for (Edge e : edges) {
+        adj[e.from].push_back(e.to);
+        adj[e.to].push_back(e.from);
+        cost[e.from][e.to] = e.cost;
+        cost[e.to][e.from] = -e.cost;
+        capacity[e.from][e.to] = e.capacity;
+    }
+
+    int flow = 0;
+    int cost = 0;
+    vector&lt;int&gt; d, p;
+    while (flow &lt; K) {
+        shortest_paths(N, s, d, p);
+        if (d[t] == INF)
+            break;
+
+        // find max flow on that path
+        int f = K - flow;
+        int cur = t;
+        while (cur != s) {
+            f = min(f, capacity[p[cur]][cur]);
+            cur = p[cur];
+        }
+
+        // apply flow
+        flow += f;
+        cost += f * d[t];
+        cur = t;
+        while (cur != s) {
+            capacity[p[cur]][cur] -= f;
+            capacity[cur][p[cur]] += f;
+            cur = p[cur];
+        }
+    }
+
+    if (flow &lt; K)
+        return -1;
+    else
+        return cost;
+}
+</code></pre>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,118 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Finding the equation of a line for a segment  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/geometry/segment-to-line.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Finding the equation of a line for a segment</h1>
+
+<p>The task is: given the coordinates of the ends of a segment, construct a line passing through it.</p>
+
+<p>We assume that the segment is non-degenerate, i.e. has a length greater than zero (otherwise, of course, infinitely many different lines pass through it).</p>
+
+<h3>Two-dimensional case</h3>
+
+<p>Let the given segment be $PQ$ i.e. the known coordinates of its ends $P_x , P_y , Q_x , Q_y$ .</p>
+
+<p>It is necessary to construct <strong>the equation of a line in the plane</strong> passing through this segment, i.e. find the coefficients $A , B , C$ in the equation of a line:</p>
+
+<p>$$A x + B y + C = 0.$$</p>
+
+<p>Note that for the required triples $(A, B, C)$ there are <strong>infinitely many</strong> solutions which describe the given segment:
+you can multiply all three coefficients by an arbitrary non-zero number and get the same straight line.
+Therefore, our task is to find one of these triples.</p>
+
+<p>It is easy to verify (by substitution of these expressions and the coordinates of the points $P$ and $Q$ into the equation of a straight line) that the following set of coefficients fits:</p>
+
+<p>$$A = P_y - Q_y,$$
+$$B = Q_x - P_x,$$
+$$C = - A P_x - B P_y.$$</p>
+
+<h3>Integer case</h3>
+
+<p>An important advantage of this method of constructing a straight line is that if the coordinates of the ends were integer, then the coefficients obtained will also be <strong>integer</strong> . In some cases, this allows one to perform geometric operations without resorting to real numbers at all.</p>
+
+<p>However, there is a small drawback: for the same straight line different triples of coefficients can be obtained.
+To avoid this, but do not go away from the integer coefficients, you can apply the following technique, often called <strong>rationing</strong>. Find the <a href="./algebra/euclid-algorithm.html">greatest common divisor</a> of numbers $| A | , | B | , | C |$ , we divide all three coefficients by it, and then we make the normalization of the sign: if $A &lt;0$ or $A = 0, B &lt;0$ then multiply all three coefficients by $-1$ .
+As a result, we will come to the conclusion that for identical straight lines, identical triples of coefficients will be obtained, which makes it easy to check straight lines for equality.</p>
+
+<h3>Real case</h3>
+
+<p>When working with real numbers, you should always be aware of errors.</p>
+
+<p>The coefficients $A$ and $B$ will have the order of the original coordinates, the coefficient $C$ is of the order of the square of them. This may already be quite large numbers, and, for example, when we <a href="./geometry/lines-intersection.html">intersect straight lines</a>, they will become even larger, which can lead to large rounding errors already when the coordinates of the end points are of order $10^3$.</p>
+
+<p>Therefore, when working with real numbers, it is desirable to produce the so-called <strong>normalization</strong>, this is straightforward: namely, to make the coefficients such that $A ^ 2 + B ^ 2 = 1$ . To do this, calculate the number $Z$ :</p>
+
+<p>$$Z = \sqrt{A ^ 2 + B ^ 2},$$</p>
+
+<p>and divide all three coefficients $A , B , C$ by it.</p>
+
+<p>Thus, the order of the coefficients $A$ and $B$ will not depend on the order of the input coordinates, and the coefficient $C$ will be of the same order as the input coordinates. In practice, this leads to a significant improvement in the accuracy of calculations.</p>
+
+<p>Finally, we mention the <strong>comparison</strong> of straight lines - in fact, after such a normalization, for the same straight line, only two triples of coefficients can be obtained: up to multiplication by $-1$.
+Accordingly, if we make an additional normalization taking into account the sign (if $A &lt; -\varepsilon$  or $| A | &lt; \varepsilon$, $B &lt;- \varepsilon$ then multiply by $-1$ ), the resulting coefficients will be unique.</p>
+
+<h3>Three-dimensional and multidimensional case</h3>
+
+<p>Already in the three-dimensional case there is <strong>no simple equation</strong> describing a straight line (it can be defined as the intersection of two planes, that is, a system of two equations, but this is an inconvenient method).</p>
+
+<p>Consequently, in the three-dimensional and multidimensional cases we must use the <strong>parametric method of defining a straight line</strong> , i.e. as a point $p$ and a vector $v$ :</p>
+
+<p>$$p + v t, ~~~ t \in \mathbb{R}.$$</p>
+
+<p>Those. a straight line is all points that can be obtained from a point $p$ adding a vector $v$ with an arbitrary coefficient.</p>
+
+<p>The <strong>construction</strong> of a straight line in a parametric form along the coordinates of the ends of a segment is trivial, we just take one end of the segment for the point $p$, and the vector from the first to the second end — for the vector $v$.</p>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

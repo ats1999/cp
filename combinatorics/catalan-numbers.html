@@ -1,0 +1,152 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Catalan Numbers and its Applications  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/combinatorics/catalan-numbers.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Catalan Numbers</h1>
+
+<p>Catalan numbers is a number sequence, which is found useful in a number of combinatorial problems, often involving recursively-defined objects.</p>
+
+<p>This sequence was named after the Belgian mathematician <a href="https://en.wikipedia.org/wiki/Eug%C3%A8ne_Charles_Catalan">Catalan</a>, who lived in the 19th century. (In fact it was known before to Euler, who lived a century before Catalan).</p>
+
+<p>The first few numbers Catalan numbers, $C_n$ (starting from zero):</p>
+
+<p>$1, 1, 2, 5, 14, 42, 132, 429, 1430, \ldots$</p>
+
+<h3>Application in some combinatorial problems</h3>
+
+<p>The Catalan number $C_n$ is the solution for</p>
+
+<ul>
+<li>Number of correct bracket sequence consisting of $n$ opening and $n$ closing brackets.</li>
+<li>The number of rooted full binary trees with $n + 1$ leaves (vertices are not numbered). A rooted binary tree is full if every vertex has either two children or no children.</li>
+<li>The number of ways to completely parenthesize $n + 1$ factors.</li>
+<li>The number of triangulations of a convex polygon with $n + 2$ sides (i.e. the number of partitions of polygon into disjoint triangles by using the diagonals).</li>
+<li>The number of ways to connect the $2n$ points on a circle to form $n$ disjoint chords.</li>
+<li>The number of <a href="https://en.wikipedia.org/wiki/Graph_isomorphism">non-isomorphic</a> full binary trees with $n$ internal nodes (i.e. nodes having at least one son).</li>
+<li>The number of monotonic lattice paths from point $(0, 0)$ to point $(n, n)$ in a square lattice of size $n \times n$, which do not pass above the main diagonal (i.e. connecting $(0, 0)$ to $(n, n)$).</li>
+<li>Number of permutations of length $n$ that can be <a href="https://en.wikipedia.org/wiki/Stack-sortable_permutation">stack sorted</a> (i.e. it can be shown that the rearrangement is stack sorted if and only if there is no such index $i &lt; j &lt; k$, such that $a_k &lt; a_i &lt; a_j$ ).</li>
+<li>The number of <a href="https://en.wikipedia.org/wiki/Noncrossing_partition">non-crossing partitions</a> of a set of $n$ elements.</li>
+<li>The number of ways to cover the ladder $1 \ldots n$ using $n$ rectangles (The ladder consists of $n$ columns, where $i^{th}$ column has a height $i$).</li>
+</ul>
+
+<h2>Calculations</h2>
+
+<p>There are two formulas for the Catalan numbers: <strong>Recursive and Analytical</strong>. Since, we believe that all the mentioned above problems are equivalent (have the same solution), for the proof of the formulas below we will choose the task which it is easiest to do.</p>
+
+<h3>Recursive formula</h3>
+
+<p>$$C_0 = C_1 = 1$$
+ $$C_n = \sum_{k = 0}^{n-1} C_k C_{n-1-k} , {n} \geq 2$$</p>
+
+<p>The recurrence formula can be easily deduced from the problem of the correct bracket sequence.</p>
+
+<p>The leftmost opening parenthesis $l$ corresponds to certain closing bracket $r$, which divides the sequence into 2 parts which in turn should be a correct sequence of brackets. Thus formula is also divided into 2 parts. If we denote $k = {r - l - 1}$, then for fixed $r$, there will be exactly $C_k C_{n-1-k}$ such bracket sequences. Summing this over all admissible $k's$, we get the recurrence relation on $C_n$.</p>
+
+<p>You can also think it in this manner. By definition, $C_n$ denotes number of correct bracket sequences. Now, the sequence may be divided into 2 parts of length $k$ and ${n - k}$, each of which should be a correct bracket sequence. Example :</p>
+
+<p>$( ) ( ( ) )$ can be divided into $( )$ and $( ( ) )$, but cannot be divided into $( ) ($ and $( ) )$. Again summing over all admissible $k's$, we get the recurrence relation on $C_n$.</p>
+
+<h4>C++ implementation <span class="toggle-code">Show/Hide</span></h4>
+
+<pre><code class="cpp">const int MOD = ....
+const int MAX = ....
+int catalan[MAX];
+void init() {
+    catalan[0] = catalan[1] = 1;
+    for (int i=2; i&lt;=n; i++) {
+        catalan[i] = 0;
+        for (int j=0; j &lt; i; j++) {
+            catalan[i] += (catalan[j] * catalan[i-j-1]) % MOD;
+            if (catalan[i] &gt;= MOD) {
+                catalan[i] -= MOD;
+            }
+        }
+    }
+}
+</code></pre>
+
+<h3>Analytical formula</h3>
+
+<p>$$C_n = \frac{1}{n + 1} {\binom{2n}{n}}$$</p>
+
+<p>(here $\binom{n}{k}$ denotes the usual binomial coefficient, i.e. number of ways to select $k$ objects from set of $n$ objects).</p>
+
+<p>The above formula can be easily concluded from the problem of the monotonic paths in square grid. The total number of  monotonic paths in the lattice size of $n \times n$ is given by $\binom{2n}{n}$.</p>
+
+<p>Now we count the number of monotonic paths which cross the main diagonal. Consider such paths crossing the main diagonal and find the first edge in it which is above the diagonal. Reflect the path about the diagonal all the way, going after this edge. The result is always a monotonic path in the grid $(n - 1) \times (n + 1)$. On the other hand, any monotonic path in the lattice $(n - 1) \times (n + 1)$ must intersect the diagonal. Hence, we enumerated all monotonic paths crossing the main diagonal in the lattice $n \times n$.</p>
+
+<p>The number of monotonic paths in the lattice $(n - 1) \times (n + 1)$ are $\binom{2n}{n-1}$ . Let us call such paths as "bad" paths. As a result, to obtain the number of monotonic paths which do not cross the main diagonal, we subtract the above "bad" paths, obtaining the formula:</p>
+
+<p>$$C_n = \binom{2n}{n} - \binom{2n}{n-1} = \frac{1}{n + 1} \binom{2n}{n} , {n} \geq 0$$</p>
+
+<h2>Reference</h2>
+
+<ul>
+<li><a href="http://www.geometer.org/mathcircles/catalan.pdf">Catalan Number by Tom Davis</a></li>
+</ul>
+
+<h2>Practice Problems</h2>
+
+<ul>
+<li><a href="https://www.codechef.com/APRIL12/problems/PANSTACK/">Codechef - PANSTACK</a></li>
+<li><a href="http://www.spoj.com/problems/SKYLINE/">Spoj - Skyline</a></li>
+<li><a href="https://uva.onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;page=show_problem&amp;problem=932">UVA - Safe Salutations</a></li>
+<li><a href="http://codeforces.com/problemset/problem/9/D">Codeforces - How many trees?</a></li>
+<li><a href="http://www.spoj.com/problems/FUNPROB/">SPOJ - FUNPROB</a></li>
+<li><a href="http://lightoj.com/volume_showproblem.php?problem=1170">LOJ - 1170 - Counting Perfect BST</a></li>
+<li><a href="https://uva.onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;page=show_problem&amp;problem=4752">UVA - 12887 - The Soldier's Dilemma</a></li>
+</ul>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

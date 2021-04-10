@@ -1,0 +1,327 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Bellman-Ford Algorithm - shortest paths with negative weights  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/graph/bellman_ford.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Bellman-Ford Algorithm</h1>
+
+<p><strong>Single source shortest path with negative weight edges</strong></p>
+
+<p>Suppose that we are given a weighted directed graph $G$ with $n$ vertices and $m$ edges, and some specified vertex $v$. You want to find the length of shortest paths from vertex $v$ to every other vertex.</p>
+
+<p>Unlike the Dijkstra algorithm, this algorithm can also be applied to graphs containing negative weight edges . However, if the graph contains a negative cycle, then, clearly, the shortest path to some vertices may not exist (due to the fact that the weight of the shortest path must be equal to minus infinity); however, this algorithm can be modified to signal the presence of a cycle of negative weight, or even deduce this cycle.</p>
+
+<p>The algorithm bears the name of two American scientists: Richard Bellman and Lester Ford. Ford actually invented this algorithm in 1956 during the study of another mathematical problem, which eventually reduced to a subproblem of finding the shortest paths in the graph, and Ford gave an outline of the algorithm to solve this problem. Bellman in 1958 published an article devoted specifically to the problem of finding the shortest path, and in this article he clearly formulated the algorithm in the form in which it is known to us now.</p>
+
+<h2>Description of the algorithm</h2>
+
+<p>Let us assume that the graph contains no negative weight cycle. The case of presence of a negative weight cycle will be discussed below in a separate section.</p>
+
+<p>We will create an array of distances $d[0 \ldots n-1]$, which after execution of the algorithm will contain the answer to the problem. In the beginning we fill it as follows: $d[v] = 0$, and all other elements $d[ ]$ equal to infinity $\infty$.</p>
+
+<p>The algorithm consists of several phases. Each phase scans through all edges of the graph, and the algorithm tries to produce <b>relaxation</b> along each edge $(a,b)$ having weight $c$. Relaxation along the edges is an attempt to improve the value $d[b]$ using value $d[a] + c$. In fact, it means that we are trying to improve the answer for this vertex using edge $(a,b)$ and current response for vertex $a$.</p>
+
+<p>It is claimed that $n-1$ phases of the algorithm are sufficient to correctly calculate the lengths of all shortest paths in the graph (again, we believe that the cycles of negative weight do not exist). For unreachable vertices the distance $d[ ]$ will remain equal to infinity $\infty$.</p>
+
+<h2>Implementation</h2>
+
+<p>Unlike many other graph algorithms, for Bellman-Ford algorithm, it is more convenient to represent the graph using a single list of all edges (instead of $n$ lists of edges - edges from each vertex). We start the implementation with a structure $\rm edge$ for representing the edges. The input to the algorithm are numbers $n$, $m$, list $e$ of edges and the starting vertex $v$. All the vertices are numbered $0$ to $n - 1$.</p>
+
+<h3>The simplest implementation</h3>
+
+<p>The constant $\rm INF$ denotes the number "infinity" — it should be selected in such a way that it is greater than all possible path lengths.</p>
+
+<pre><code class="cpp">struct edge
+{
+    int a, b, cost;
+};
+
+int n, m, v;
+vector&lt;edge&gt; e;
+const int INF = 1000000000;
+
+void solve()
+{
+    vector&lt;int&gt; d (n, INF);
+    d[v] = 0;
+    for (int i=0; i&lt;n-1; ++i)
+        for (int j=0; j&lt;m; ++j)
+            if (d[e[j].a] &lt; INF)
+                d[e[j].b] = min (d[e[j].b], d[e[j].a] + e[j].cost);
+    // display d, for example, on the screen
+}
+</code></pre>
+
+<p>The check <code>if (d[e[j].a] &lt; INF)</code> is needed only if the graph contains negative weight edges: no such verification would result in relaxation from the vertices to which paths have not yet found, and incorrect distance, of the type $\infty - 1$, $\infty - 2$ etc. would appear.</p>
+
+<h3>A better implementation</h3>
+
+<p>This algorithm can be somewhat speeded up: often we already get the answer in a few phases and no useful work is done in remaining phases, just a waste visiting all edges. So, let's keep the flag, to tell whether something changed in the current phase or not, and if any phase, nothing changed, the algorithm can be stopped. (This optimization does not improve the asymptotic behavior, i.e., some graphs will still need all $n-1$ phases, but significantly accelerates the behavior of the algorithm "on an average", i.e., on random graphs.)</p>
+
+<p>With this optimization, it is generally unnecessary to restrict manually the number of phases of the algorithm to $n-1$ — the algorithm will stop after the desired number of phases.</p>
+
+<pre><code class="cpp">void solve()
+{
+    vector&lt;int&gt; d (n, INF);
+    d[v] = 0;
+    for (;;)
+    {
+        bool any = false;
+
+        for (int j=0; j&lt;m; ++j)
+            if (d[e[j].a] &lt; INF)
+                if (d[e[j].b] &gt; d[e[j].a] + e[j].cost)
+                {
+                    d[e[j].b] = d[e[j].a] + e[j].cost;
+                    any = true;
+                }
+
+        if (!any) break;
+    }
+    // display d, for example, on the screen
+}
+</code></pre>
+
+<h3>Retrieving Path</h3>
+
+<p>Let us now consider how to modify the algorithm so that it not only finds the length of shortest paths, but also allows to reconstruct the shortest paths.</p>
+
+<p>For that, let's create another array $p[0 \ldots n-1]$, where for each vertex we store its "predecessor", i.e. the penultimate vertex in the shortest path leading to it. In fact, the shortest path to any vertex $a$ is a shortest path to some vertex $p[a]$, to which we added $a$ at the end of the path.</p>
+
+<p>Note that the algorithm works on the same logic: it assumes that the shortest distance to one vertex is already calculated, and, tries to improve the shortest distance to other vertices from that vertex. Therefore, at the time of improvement we just need to remember $p[ ]$, i.e,  the vertex from which this improvement has occurred.</p>
+
+<p>Following is an implementation of the Bellman-Ford with the retrieval of shortest path to a given node $t$:</p>
+
+<pre><code class="cpp">void solve()
+{
+    vector&lt;int&gt; d (n, INF);
+    d[v] = 0;
+    vector&lt;int&gt; p (n, -1);
+
+    for (;;)
+    {
+        bool any = false;
+        for (int j = 0; j &lt; m; ++j)
+            if (d[e[j].a] &lt; INF)
+                if (d[e[j].b] &gt; d[e[j].a] + e[j].cost)
+                {
+                    d[e[j].b] = d[e[j].a] + e[j].cost;
+                    p[e[j].b] = e[j].a;
+                    any = true;
+                }
+        if (!any)  break;
+    }
+
+    if (d[t] == INF)
+        cout &lt;&lt; "No path from " &lt;&lt; v &lt;&lt; " to " &lt;&lt; t &lt;&lt; ".";
+    else
+    {
+        vector&lt;int&gt; path;
+        for (int cur = t; cur != -1; cur = p[cur])
+            path.push_back (cur);
+        reverse (path.begin(), path.end());
+
+        cout &lt;&lt; "Path from " &lt;&lt; v &lt;&lt; " to " &lt;&lt; t &lt;&lt; ": ";
+        for (size_t i=0; i&lt;path.size(); ++i)
+            cout &lt;&lt; path[i] &lt;&lt; ' ';
+    }
+}
+</code></pre>
+
+<p>Here starting from the vertex $t$, we go through the predecessors till we reach starting vertex with no predecessor, and store all the vertices in the path in the list $\rm path$. This list is a shortest path from $v$ to $t$, but in reverse order, so we call $\rm reverse()$ function over $\rm path$ and then output the path.</p>
+
+<h2>The proof of the algorithm</h2>
+
+<p>First, note that for all unreachable vertices $u$ the algorithm will work correctly, the label $d[u]$ will remain equal to infinity (because the algorithm Bellman-Ford will find some way to all reachable vertices from the start vertex $v$, and relaxation for all other  remaining vertices will never happen).</p>
+
+<p>Let us now prove the following assertion: After the execution of $i_{th}$ phase, the Bellman-Ford algorithm correctly finds all shortest paths whose number of edges does not exceed $i$.</p>
+
+<p>In other words, for any vertex $a$ let us denote the $k$ number of edges in the shortest path to it (if there are several such paths, you can take any). According to this statement, the algorithm guarantees that after $k_{th}$ phase the shortest path for vertex $a$ will be found.</p>
+
+<p><b>Proof</b>: Consider an arbitrary vertex $a$ to which there is a path from the starting vertex $v$, and consider a shortest path to it $(p_0=v, p_1, \ldots, p_k=a)$. Before the first phase, the shortest path to the vertex $p_0 = v$ was found correctly. During the first phase, the edge $(p_0,p_1)$ has been checked by the algorithm, and therefore, the distance to the vertex $p_1$ was correctly calculated after the first phase. Repeating this statement $k$ times, we see that after $k_{th}$ phase the distance to the vertex $p_k = a$ gets calculated correctly, which we wanted to prove.</p>
+
+<p>The last thing to notice is that any shortest path cannot have more than $n - 1$ edges. Therefore, the algorithm sufficiently goes up to the $(n-1)_{th}$ phase. After that, it is guaranteed that no relaxation will improve the distance to some vertex.</p>
+
+<h2>The case of a negative cycle</h2>
+
+<p>Everywhere above we considered that there is no negative cycle in the graph (precisely, we are interested in a negative cycle that is reachable from the starting vertex $v$, and, for an unreachable cycles nothing in the above algorithm changes). In the presence of a negative cycle(s), there are further complications associated with the fact that distances to all vertices in this cycle, as well as the distances to the vertices reachable from this cycle is not defined — they should be equal to minus infinity $(- \infty)$.</p>
+
+<p>It is easy to see that the Bellman-Ford algorithm can endlessly do the relaxation among all vertices of this cycle and the vertices reachable from it. Therefore, if you do not limit the number of phases to $n - 1$, the algorithm will run indefinitely, constantly improving the distance from these vertices.</p>
+
+<p>Hence we obtain the <b> criterion for presence of a cycle of negative weights reachable for source vertex $v$</b>: after $(n-1)_{th}$ phase, if we run algorithm for one more phase, and it performs at least one more relaxation, then the graph contains a negative weight cycle that is reachable from $v$; otherwise, such a cycle does not exist.</p>
+
+<p>Moreover, if such a cycle is found, the Bellman-Ford algorithm can be modified so that it retrieves this cycle as a sequence of vertices contained in it. For this, it is sufficient to remember the last vertex $x$ for which there was a relaxation in $n_th$ phase. This vertex will either lie in a negative weight cycle, or is reachable from it. To get the vertices that are guaranteed to lie in a negative cycle, starting from the vertex $x$, pass through to the predecessors $n$ times. Hence we will get the vertex $y$, namely the vertex in the cycle earliest reachable from source. We have to go from this vertex, through the predecessors, until we get back to the same vertex $y$ (and it will happen, because relaxation in a negative weight cycle occur in a circular manner).</p>
+
+<h3>Implementation:</h3>
+
+<pre><code class="cpp">void solve()
+{
+    vector&lt;int&gt; d (n, INF);
+    d[v] = 0;
+    vector&lt;int&gt; p (n - 1);
+    int x;
+    for (int i=0; i&lt;n; ++i)
+    {
+        x = -1;
+        for (int j=0; j&lt;m; ++j)
+            if (d[e[j].a] &lt; INF)
+                if (d[e[j].b] &gt; d[e[j].a] + e[j].cost)
+                {
+                    d[e[j].b] = max (-INF, d[e[j].a] + e[j].cost);
+                    p[e[j].b] = e[j].a;
+                    x = e[j].b;
+                }
+    }
+
+    if (x == -1)
+        cout &lt;&lt; "No negative cycle from " &lt;&lt; v;
+    else
+    {
+        int y = x;
+        for (int i=0; i&lt;n; ++i)
+            y = p[y];
+
+        vector&lt;int&gt; path;
+        for (int cur=y; ; cur=p[cur])
+        {
+            path.push_back (cur);
+            if (cur == y &amp;&amp; path.size() &gt; 1)
+                break;
+        }
+        reverse (path.begin(), path.end());
+
+        cout &lt;&lt; "Negative cycle: ";
+        for (size_t i=0; i&lt;path.size(); ++i)
+            cout &lt;&lt; path[i] &lt;&lt; ' ';
+    }
+}
+</code></pre>
+
+<p>Due to the presence of a negative cycle, for $n$ iterations of the algorithm, the distances may go far in the negative range (to negative numbers of the order of $-n m W$, where $W$ is the maximum absolute value of any weight in the graph). Hence in the code, we adopted additional measures against the integer overflow as follows:</p>
+
+<pre><code class="cpp">d[e[j].b] = max (-INF, d[e[j].a] + e[j].cost);
+</code></pre>
+
+<p>The above implementation looks for a negative cycle reachable from some starting vertex $v$; however, the algorithm can be modified to just looking for any negative cycle in the graph. For this we need to put all the distance $d[i]$ to zero and not infinity — as if we are looking for the shortest path from all vertices simultaneously; the validity of the detection of a negative cycle is not affected.</p>
+
+<p>For more on this topic — see separate article, <a href="./graph/finding-negative-cycle-in-graph.html">Finding a negative cycle in the graph</a>.</p>
+
+<h2>Shortest Path Faster Algorithm (SPFA)</h2>
+
+<p>SPFA is a improvement of the Bellman-Ford algorithm which takes advantage of the fact that not all attempts at relaxation will work.
+The main idea is to create a queue containing only the vertices that were relaxed but that still could further relax their neighbors.
+And whenever you can relax some neighbor, you should put him in the queue. This algorithm can also be used to detect negative cycles as the Bellman-Ford.</p>
+
+<p>The worst case of this algorithm is equal to the $O(n m)$ of the Bellman-Ford, but in practice it works much faster and some <a href="https://en.wikipedia.org/wiki/Shortest_Path_Faster_Algorithm#Average-case_performance">people claim that it works even in $O(m)$ on average</a>. However be careful, because this algorithm is deterministic and it is easy to create counterexamples that make the algorithm run in $O(n m)$.</p>
+
+<p>There are some care to be taken in the implementation, such as the fact that the algorithm continues forever if there is a negative cycle.
+To avoid this, it is possible to create a counter that stores how many times a vertex has been relaxed and stop the algorithm as soon as some vertex got relaxed for the $n$-th time.
+Note, also there is no reason to put a vertex in the queue if it is already in.</p>
+
+<pre><code class="cpp">const int INF = 1000000000;
+vector&lt;vector&lt;pair&lt;int, int&gt;&gt;&gt; adj;
+
+bool spfa(int s, vector&lt;int&gt;&amp; d) {
+    int n = adj.size();
+    d.assign(n, INF);
+    vector&lt;int&gt; cnt(n, 0);
+    vector&lt;bool&gt; inqueue(n, false);
+    queue&lt;int&gt; q;
+
+    d[s] = 0;
+    q.push(s);
+    inqueue[s] = true;
+    while (!q.empty()) {
+        int v = q.front();
+        q.pop();
+        inqueue[v] = false;
+
+        for (auto edge : adj[v]) {
+            int to = edge.first;
+            int len = edge.second;
+
+            if (d[v] + len &lt; d[to]) {
+                d[to] = d[v] + len;
+                if (!inqueue[to]) {
+                    q.push(to);
+                    inqueue[to] = true;
+                    cnt[to]++;
+                    if (cnt[to] &gt; n)
+                        return false;  // negative cycle
+                }
+            }
+        }
+    }
+    return true;
+}
+</code></pre>
+
+<h2>Related problems in online judges</h2>
+
+<p>A list of tasks that can be solved using the Bellman-Ford algorithm:</p>
+
+<ul>
+<li><a href="http://www.e-olimp.com.ua/problems/1453">E-OLIMP #1453 "Ford-Bellman" [difficulty: low]</a></li>
+<li><a href="http://uva.onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;page=show_problem&amp;problem=364">UVA #423 "MPI Maelstrom" [difficulty: low]</a></li>
+<li><a href="http://uva.onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;category=7&amp;page=show_problem&amp;problem=475">UVA #534 "Frogger" [difficulty: medium]</a></li>
+<li><a href="http://uva.onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;category=12&amp;page=show_problem&amp;problem=1040">UVA #10099 "The Tourist Guide" [difficulty: medium]</a></li>
+<li><a href="http://uva.onlinejudge.org/index.php?option=onlinejudge&amp;page=show_problem&amp;problem=456">UVA #515 "King" [difficulty: medium]</a></li>
+<li><a href="https://uva.onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;page=show_problem&amp;problem=3964">UVA 12519 - The Farnsworth Parabox</a></li>
+</ul>
+
+<p>See also the problem list in the article <a href="./graph/finding-negative-cycle-in-graph.html">Finding the negative cycle in a graph</a>.
+* <a href="https://cses.fi/problemset/task/1673">CSES - High Score</a>
+* <a href="https://cses.fi/problemset/task/1197">CSES - Cycle Finding</a></p>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

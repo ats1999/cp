@@ -1,0 +1,298 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Sqrt Decomposition  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/data_structures/sqrt_decomposition.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Sqrt Decomposition</h1>
+
+<p>Sqrt Decomposition is a method (or a data structure) that allows you to perform some common operations (finding sum of the elements of the sub-array, finding the minimal/maximal element, etc.) in $O(\sqrt n)$ operations, which is much faster than $O(n)$ for the trivial algorithm.</p>
+
+<p>First we describe the data structure for one of the simplest applications of this idea, then show how to generalize it to solve some other problems, and finally look at a slightly different use of this idea: splitting the input requests into sqrt blocks.</p>
+
+<h2>Sqrt-decomposition based data structure</h2>
+
+<p>Given an array $a[0 \dots n-1]$, implement a data structure that allows to find the sum of the elements $a[l \dots r]$ for arbitrary $l$ and $r$ in $O(\sqrt n)$ operations.</p>
+
+<h3>Description</h3>
+
+<p>The basic idea of sqrt decomposition is preprocessing. We'll divide the array $a$ into blocks of length approximately $\sqrt n$, and for each block $i$ we'll precalculate the sum of elements in it $b[i]$.</p>
+
+<p>We can assume that both the size of the block and the number of blocks are equal to $\sqrt n$ rounded up:</p>
+
+<p>$$ s = \lceil \sqrt n \rceil $$</p>
+
+<p>Then the array $a$ is divided into blocks in the following way:</p>
+
+<p>$$ \underbrace{a[0], a[1], \dots, a[s-1]}&#95;{\text{b[0]}}, \underbrace{a[s], \dots, a[2s-1]}&#95;{\text{b[1]}}, \dots, \underbrace{a[(s-1) \cdot s], \dots, a[n-1]}&#95;{\text{b[s-1]}} $$</p>
+
+<p>The last block may have fewer elements than the others (if $n$ not a multiple of $s$), it is not important to the discussion (as it can be handled easily).
+Thus, for each block $k$, we know the sum of elements on it $b[k]$:</p>
+
+<p>$$ b[k] = \sum\limits_{i=k\cdot s}^{\min {(n-1,(k+1)\cdot s - 1})} a[i] $$</p>
+
+<p>So, we have calculated the values of $b[k]$ (this required $O(n)$ operations). How can they help us to answer each query $[l, r]$ ?
+Notice that if the interval $[l, r]$ is long enough, it will contain several whole blocks, and for those blocks we can find the sum of elements in them in a single operation. As a result, the interval $[l, r]$ will contain parts of only two blocks, and we'll have to calculate the sum of elements in these parts trivially.</p>
+
+<p>Thus, in order to calculate the sum of elements on the interval $[l, r]$ we only need to sum the elements of the two "tails":
+$[l\dots (k + 1)\cdot s-1]$ and $[p\cdot s\dots r]$ , and sum the values $b[i]$ in all the blocks from $k + 1$ to $p-1$:</p>
+
+<p>$$ \sum\limits&#95;{i=l}^r a[i] = \sum\limits&#95;{i=l}^{(k+1) \cdot s-1} a[i] + \sum\limits&#95;{i=k+1}^{p-1} b[i] + \sum\limits&#95;{i=p\cdot s}^r a[i] $$</p>
+
+<p><em>Note: When $k = p$, i.e. $l$ and $r$ belong to the same block, the formula can't be applied, and the sum should be calculated trivially.</em></p>
+
+<p>This approach allows us to significantly reduce the number of operations. Indeed, the size of each "tail" does not exceed the block length $s$, and the number of blocks in the sum does not exceed $s$. Since we have chosen $s \approx \sqrt n$, the total number of operations required to find the sum of elements on the interval $[l, r]$ is $O(\sqrt n)$.</p>
+
+<h3>Implementation</h3>
+
+<p>Let's start with the simplest implementation:</p>
+
+<pre><code class="cpp">// input data
+int n;
+vector&lt;int&gt; a (n);
+
+// preprocessing
+int len = (int) sqrt (n + .0) + 1; // size of the block and the number of blocks
+vector&lt;int&gt; b (len);
+for (int i=0; i&lt;n; ++i)
+    b[i / len] += a[i];
+
+// answering the queries
+for (;;) {
+    int l, r;
+  // read input data for the next query
+    int sum = 0;
+    for (int i=l; i&lt;=r; )
+        if (i % len == 0 &amp;&amp; i + len - 1 &lt;= r) {
+            // if the whole block starting at i belongs to [l, r]
+            sum += b[i / len];
+            i += len;
+        }
+        else {
+            sum += a[i];
+            ++i;
+        }
+}
+</code></pre>
+
+<p>This implementation has unreasonably many division operations (which are much slower than other arithmetical operations). Instead, we can calculate the indices of the blocks $c_l$ and $c_r$ which contain indices $l$ and $r$, and loop through blocks $c_l+1 \dots c_r-1$ with separate processing of the "tails" in blocks $c_l$ and $c_r$. This approach corresponds to the last formula in the description, and makes the case $c_l = c_r$ a special case.</p>
+
+<pre><code class="cpp">int sum = 0;
+int c_l = l / len,   c_r = r / len;
+if (c_l == c_r)
+    for (int i=l; i&lt;=r; ++i)
+        sum += a[i];
+else {
+    for (int i=l, end=(c_l+1)*len-1; i&lt;=end; ++i)
+        sum += a[i];
+    for (int i=c_l+1; i&lt;=c_r-1; ++i)
+        sum += b[i];
+    for (int i=c_r*len; i&lt;=r; ++i)
+        sum += a[i];
+}
+</code></pre>
+
+<h2>Other problems</h2>
+
+<p>So far we were discussing the problem of finding the sum of elements of a continuous subarray. This problem can be extended to allow to <strong>update individual array elements</strong>. If an element $a[i]$ changes, it's sufficient to update the value of $b[k]$ for the block to which this element belongs ($k = i / s$) in one operation:</p>
+
+<p>$$ b[k] += a_{new}[i] - a_{old}[i] $$</p>
+
+<p>On the other hand, the task of finding the sum of elements can be replaced with the task of finding minimal/maximal element of a subarray. If this problem has to address individual elements' updates as well, updating the value of $b[k]$ is also possible, but it will require iterating through all values of block $k$ in $O(s) = O(\sqrt{n})$ operations.</p>
+
+<p>Sqrt decomposition can be applied in a similar way to a whole class of other problems: finding the number of zero elements, finding the first non-zero element, counting elements which satisfy a certain property etc.</p>
+
+<p>Another class of problems appears when we need to <strong>update array elements on intervals</strong>: increment existing elements or replace them with a given value.</p>
+
+<p>For example, let's say we can do two types of operations on an array: add a given value $\delta$ to all array elements on interval $[l, r]$ or query the value of element $a[i]$. Let's store the value which has to be added to all elements of block $k$ in $b[k]$ (initially all $b[k] = 0$). During each "add" operation we need to add $\delta$ to $b[k]$ for all blocks which belong to interval $[l, r]$ and to add $\delta$ to $a[i]$ for all elements which belong to the "tails" of the interval. The answer a query $i$ is simply $a[i] + b[i/s]$. This way "add" operation has $O(\sqrt{n})$ complexity, and answering a query has $O(1)$ complexity.</p>
+
+<p>Finally, those two classes of problems can be combined if the task requires doing <strong>both</strong> element updates on an interval and queries on an interval. Both operations can be done with $O(\sqrt{n})$ complexity. This will require two block arrays $b$ and $c$: one to keep track of element updates and another to keep track of answers to the query.</p>
+
+<p>There exist other problems which can be solved using sqrt decomposition, for example, a problem about maintaining a set of numbers which would allow adding/deleting numbers, checking whether a number belongs to the set and finding $k$-th largest number. To solve it one has to store numbers in increasing order, split into several blocks with $\sqrt{n}$ numbers in each. Every time a number is added/deleted, the blocks have to be rebalanced by moving numbers between beginnings and ends of adjacent blocks.</p>
+
+<h2>Mo's algorithm</h2>
+
+<p>A similar idea, based on sqrt decomposition, can be used to answer range queries ($Q$) offline in $O((N+Q)\sqrt{N})$.
+This might sound like a lot worse than the methods in the previous section, since this is a slightly worse complexity than we had earlier and cannot update values between two queries.
+But in a lot of situations this method has advantages.
+During a normal sqrt decomposition, we have to precompute the answers for each block, and merge them during answering queries.
+In some problems this merging step can be quite problematic.
+E.g. when each queries asks to find the <strong>mode</strong> of its range (the number that appears the most often).
+For this each block would have to store the count of each number in it in some sort of data structure, and we cannot longer perform the merge step fast enough any more.
+<strong>Mo's algorithm</strong> uses a completely different approach, that can answer these kind of queries fast, because it only keeps track of one data structure, and the only operations with it are easy and fast.</p>
+
+<p>The idea is to answer the queries in a special order based on the indices.
+We will first answer all queries which have the left index in block 0, then answer all queries which have left index in block 1 and so on.
+And also we will have to answer the queries of a block is a special order, namely sorted by the right index of the queries.</p>
+
+<p>As already said we will use a single data structure.
+This data structure will store information about the range.
+At the beginning this range will be empty.
+When we want to answer the next query (in the special order), we simply extend or reduce the range, by adding/removing elements on both sides of the current range, until we transformed it into the query range.
+This way, we only need to add or remove a single element once at a time, which should be pretty easy operations in our data structure.</p>
+
+<p>Since we change the order of answering the queries, this is only possible when we are allowed to answer the queries in offline mode.</p>
+
+<h3>Implementation</h3>
+
+<p>In Mo's algorithm we use two functions for adding an index and for removing an index from the range which we are currently maintaining.</p>
+
+<pre><code class="cpp">void remove(idx);  // TODO: remove value at idx from data structure
+void add(idx);     // TODO: add value at idx from data structure
+int get_answer();  // TODO: extract the current answer of the data structure
+
+int block_size;
+
+struct Query {
+    int l, r, idx;
+    bool operator&lt;(Query other) const
+    {
+        return make_pair(l / block_size, r) &lt;
+               make_pair(other.l / block_size, other.r);
+    }
+};
+
+vector&lt;int&gt; mo_s_algorithm(vector&lt;Query&gt; queries) {
+    vector&lt;int&gt; answers(queries.size());
+    sort(queries.begin(), queries.end());
+
+    // TODO: initialize data structure
+
+    int cur_l = 0;
+    int cur_r = -1;
+    // invariant: data structure will always reflect the range [cur_l, cur_r]
+    for (Query q : queries) {
+        while (cur_l &gt; q.l) {
+            cur_l--;
+            add(cur_l);
+        }
+        while (cur_r &lt; q.r) {
+            cur_r++;
+            add(cur_r);
+        }
+        while (cur_l &lt; q.l) {
+            remove(cur_l);
+            cur_l++;
+        }
+        while (cur_r &gt; q.r) {
+            remove(cur_r);
+            cur_r--;
+        }
+        answers[q.idx] = get_answer();
+    }
+    return answers;
+}
+</code></pre>
+
+<p>Based on the problem we can use a different data structure and modify the <code>add</code>/<code>remove</code>/<code>get_answer</code> functions accordingly.
+For example if we are asked to find range sum queries then we use a simple integer as data structure, which is $0$ at the beginning.
+The <code>add</code> function will simply add the value of the position and subsequently update the answer variable.
+On the other hand <code>remove</code> function will subtract the value at position and subsequently update the answer variable.
+And <code>get_answer</code> just returns the integer.</p>
+
+<p>For answering mode-queries, we can use a binary search tree (e.g. <code>map&lt;int, int&gt;</code>) for storing how often each number appears in the current range, and a second binary search tree (e.g. <code>set&lt;pair&lt;int, int&gt;&gt;</code>) for keeping counts of the numbers (e.g. as count-number pairs) in order.
+The <code>add</code> method removes the current number from the second BST, increases the count in the first one, and inserts the number back into the second one.
+<code>remove</code> does the same thing, it only decreases the count.
+And <code>get_answer</code> just looks at second tree and returns the best value in $O(1)$.</p>
+
+<h3>Complexity</h3>
+
+<p>Sorting all queries will take $O(Q \log Q)$.</p>
+
+<p>How about the other operations?
+How many times will the <code>add</code> and <code>remove</code> be called?</p>
+
+<p>Let's say the block size is $S$.</p>
+
+<p>If we only look at all queries having the left index in the same block, the queries are sorted by the right index.
+Therefore we will call <code>add(cur_r)</code> and <code>remove(cur_r)</code> only $O(N)$ times for all these queries combined.
+This gives $O(\frac{N}{S} N)$ calls for all blocks.</p>
+
+<p>The value of <code>cur_l</code> can change by at most $O(S)$ during between two queries.
+Therefore we have an additional $O(S Q)$ calls of <code>add(cur_l)</code> and <code>remove(cur_l)</code>.</p>
+
+<p>For $S \approx \sqrt{N}$ this gives $O((N + Q) \sqrt{N})$ operations in total.
+Thus the complexity is $O((N+Q)F\sqrt{N})$ where $O(F)$  is the complexity of <code>add</code> and <code>remove</code> function.</p>
+
+<h3>Tips for improving runtime</h3>
+
+<ul>
+<li>Block size of precisely $\sqrt{N}$ doesn't always offer the best runtime.  For example, if $\sqrt{N}=750$ then it may happen that block size of $700$ or $800$ may run better.
+More importantly, don't compute the block size at runtime - make it <code>const</code>. Division by constants is well optimized by compilers.</li>
+<li>In odd blocks sort the right index in ascending order and in even blocks sort it in descending order. This will minimize the movement of right pointer, as the normal sorting will move the right pointer from the end back to the beginning at the start of every block. With the improved version this resetting is no more necessary.</li>
+</ul>
+
+<pre><code class="cpp">bool cmp(pair&lt;int, int&gt; p, pair&lt;int, int&gt; q) {
+    if (p.first / BLOCK_SIZE != q.first / BLOCK_SIZE)
+        return p &lt; q;
+    return (p.first / BLOCK_SIZE &amp; 1) ? (p.second &lt; q.second) : (p.second &gt; q.second);
+}
+</code></pre>
+
+<p>You can read about even faster sorting approach <a href="https://codeforces.com/blog/entry/61203">here</a>.</p>
+
+<h2>Practice Problems</h2>
+
+<ul>
+<li><a href="https://uva.onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;page=show_problem&amp;problem=3154">UVA - 12003 - Array Transformer</a></li>
+<li><a href="https://uva.onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;page=show_problem&amp;problem=3141">UVA - 11990 Dynamic Inversion</a></li>
+<li><a href="http://www.spoj.com/problems/GIVEAWAY/">SPOJ - Give Away</a></li>
+<li><a href="http://codeforces.com/contest/786/problem/C">Codeforces - Till I Collapse</a></li>
+<li><a href="http://codeforces.com/contest/840/problem/D">Codeforces - Destiny</a></li>
+<li><a href="http://codeforces.com/contest/13/problem/E">Codeforces - Holes</a></li>
+<li><a href="https://codeforces.com/problemset/problem/617/E">Codeforces - XOR and Favorite Number</a></li>
+<li><a href="http://codeforces.com/problemset/problem/86/D">Codeforces - Powerful array</a></li>
+<li><a href="https://www.spoj.com/problems/DQUERY">SPOJ - DQUERY</a></li>
+</ul>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

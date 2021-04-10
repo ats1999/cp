@@ -1,0 +1,189 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Breadth First Search  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/graph/breadth-first-search.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Breadth-first search</h1>
+
+<p>Breadth first search is one of the basic and essential searching algorithms on graphs.</p>
+
+<p>As a result of how the algorithm works, the path found by breadth first search to any node is the shortest path to that node, i.e the path that contains the smallest number of edges in unweighted graphs.</p>
+
+<p>The algorithm works in $O(n + m)$ time, where $n$ is number of vertices and $m$ is the number of edges.</p>
+
+<h2>Description of the algorithm</h2>
+
+<p>The algorithm takes as input an unweighted graph and the id of the source vertex $s$. The input graph can be directed or undirected,
+it does not matter to the algorithm.</p>
+
+<p>The algorithm can be understood as a fire spreading on the graph: at the zeroth step only the source $s$ is on fire. At each step, the fire burning at each vertex spreads to all of its neighbors. In one iteration of the algorithm, the "ring of
+fire" is expanded in width by one unit (hence the name of the algorithm).</p>
+
+<p>More precisely, the algorithm can be stated as follows: Create a queue $q$ which will contain the vertices to be processed and a
+Boolean array $used[]$ which indicates for each vertex, if it has been lit (or visited) or not.</p>
+
+<p>Initially, push the source $s$ to the queue and set $used[s] = true$, and for all other vertices $v$ set $used[v] = false$.
+Then, loop until the queue is empty and in each iteration, pop a vertex from the front of the queue. Iterate through all the edges going out
+of this vertex and if some of these edges go to vertices that are not already lit, set them on fire and place them in the queue.</p>
+
+<p>As a result, when the queue is empty, the "ring of fire" contains all vertices reachable from the source $s$, with each vertex reached in the shortest possible way.
+You can also calculate the lengths of the shortest paths (which just requires maintaining an array of path lengths $d[]$) as well as save information to restore all of these shortest paths (for this, it is necessary to maintain an array of "parents" $p[]$, which stores for each vertex the vertex from which we reached it).</p>
+
+<h2>Implementation</h2>
+
+<p>We write code for the described algorithm in C++.</p>
+
+<pre><code class="cpp">vector&lt;vector&lt;int&gt;&gt; adj;  // adjacency list representation
+int n; // number of nodes
+int s; // source vertex
+
+queue&lt;int&gt; q;
+vector&lt;bool&gt; used(n);
+vector&lt;int&gt; d(n), p(n);
+
+q.push(s);
+used[s] = true;
+p[s] = -1;
+while (!q.empty()) {
+    int v = q.front();
+    q.pop();
+    for (int u : adj[v]) {
+        if (!used[u]) {
+            used[u] = true;
+            q.push(u);
+            d[u] = d[v] + 1;
+            p[u] = v;
+        }
+    }
+}
+</code></pre>
+
+<p>If we have to restore and display the shortest path from the source to some vertex $u$, it can be done in the following manner:</p>
+
+<pre><code class="cpp">if (!used[u]) {
+    cout &lt;&lt; "No path!";
+} else {
+    vector&lt;int&gt; path;
+    for (int v = u; v != -1; v = p[v])
+        path.push_back(v);
+    reverse(path.begin(), path.end());
+    cout &lt;&lt; "Path: ";
+    for (int v : path)
+        cout &lt;&lt; v &lt;&lt; " ";
+}
+</code></pre>
+
+<h2>Applications of BFS</h2>
+
+<ul>
+<li><p>Find the shortest path from a source to other vertices in an unweighted graph.</p></li>
+<li><p>Find all connected components in an undirected graph in $O(n + m)$ time:
+To do this, we just run BFS starting from each vertex, except for vertices which have already been visited from previous runs.
+Thus, we perform normal BFS from each of the vertices, but do not reset the array $used[]$ each and every time we get a new connected component, and the total running time will still be $O(n + m)$ (performing multiple BFS on the graph without zeroing the array $used []$ is called a series of breadth first searches).</p></li>
+<li><p>Finding a solution to a problem or a game with the least number of moves, if each state of the game can be represented by a vertex of the graph, and the transitions from one state to the other are the edges of the graph.</p></li>
+<li><p>Finding the shortest path in a graph with weights 0 or 1:
+This requires just a little modification to normal breadth-first search: Instead of maintaining array $used[]$, we will now check if the distance to vertex is shorter than current found distance, then if the current edge is of zero weight, we add it to the front of the queue else we add it to the back of the queue.This modification is explained in more detail in the article <a href="graph/01_bfs.html">0-1 BFS</a>.</p></li>
+<li><p>Finding the shortest cycle in a directed unweighted graph:
+Start a breadth-first search from each vertex.
+As soon as we try to go from the current vertex back to the source vertex, we have found the shortest cycle containing the source vertex.
+At this point we can stop the BFS, and start a new BFS from the next vertex.
+From all such cycles (at most one from each BFS) choose the shortest.</p></li>
+<li><p>Find all the edges that lie on any shortest path between a given pair of vertices $(a, b)$.
+To do this, run two breadth first searches:
+one from $a$ and one from $b$.
+Let $d_a []$ be the array containing shortest distances obtained from the first BFS (from $a$) and $d_b []$ be the array containing shortest distances obtained from the second BFS from $b$.
+Now for every edge $(u, v)$ it is easy to check whether that edge lies on any shortest path between $a$ and $b$:
+the criterion is the condition $d_a [u] + 1 + d_b [v] = d_a [b]$.</p></li>
+<li><p>Find all the vertices on any shortest path between a given pair of vertices $(a, b)$.
+To accomplish that, run two breadth first searches:
+one from $a$ and one from $b$.
+Let $d_a []$ be the array containing shortest distances obtained from the first BFS (from $a$) and $d_b []$ be the array containing shortest distances obtained from the second BFS (from $b$).
+Now for each vertex it is easy to check whether it lies on any shortest path between $a$ and $b$:
+the criterion is the condition $d_a [v] + d_b [v] = d_a [b]$.</p></li>
+<li><p>Find the shortest path of even length from a source vertex $s$ to a target vertex $t$ in an unweighted graph:
+For this, we must construct an auxiliary graph, whose vertices are the state $(v, c)$, where $v$ - the current node, $c = 0$ or $c = 1$ - the current parity.
+Any edge $(a, b)$ of the original graph in this new column will turn into two edges $((u, 0), (v, 1))$ and $((u, 1), (v, 0))$.
+After that we run a BFS to find the shortest path from the starting vertex $(s, 0)$ to the end vertex $(t, 0)$.</p></li>
+</ul>
+
+<h2>Practice Problems</h2>
+
+<ul>
+<li><a href="http://spoj.com/problems/AKBAR">SPOJ: AKBAR</a></li>
+<li><a href="http://www.spoj.com/problems/NAKANJ/">SPOJ: NAKANJ</a></li>
+<li><a href="http://www.spoj.com/problems/WATER">SPOJ: WATER</a></li>
+<li><a href="http://www.spoj.com/problems/MICEMAZE/">SPOJ: MICE AND MAZE</a></li>
+<li><a href="http://acm.timus.ru/problem.aspx?space=1&amp;num=2034">Timus: Caravans</a></li>
+<li><a href="https://devskill.com/CodingProblems/ViewProblem/60">DevSkills - Holloween Party</a></li>
+<li><a href="https://devskill.com/CodingProblems/ViewProblem/150">DevSkills - Ohani And The Link Cut Tree</a></li>
+<li><a href="http://www.spoj.com/problems/SPIKES/">SPOJ - Spiky Mazes</a></li>
+<li><a href="http://www.spoj.com/problems/ADV04F1/">SPOJ - Four Chips (hard)</a></li>
+<li><a href="http://www.spoj.com/problems/INVESORT/">SPOJ - Inversion Sort</a></li>
+<li><a href="http://codeforces.com/contest/59/problem/E">Codeforces - Shortest Path</a></li>
+<li><a href="http://www.spoj.com/problems/MULTII/">SPOJ - Yet Another Multiple Problem</a></li>
+<li><a href="https://uva.onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;page=show_problem&amp;problem=2387">UVA 11392 - Binary 3xType Multiple</a></li>
+<li><a href="https://uva.onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;page=show_problem&amp;problem=1909">UVA 10968 - KuPellaKeS</a></li>
+<li><a href="http://codeforces.com/contest/796/problem/D">Codeforces - Police Stations</a></li>
+<li><a href="http://codeforces.com/contest/821/problem/D">Codeforces - Okabe and City</a></li>
+<li><a href="http://www.spoj.com/problems/DIGOKEYS/">SPOJ - Find the Treasure</a></li>
+<li><a href="http://codeforces.com/contest/653/problem/E">Codeforces - Bear and Forgotten Tree 2</a></li>
+<li><a href="http://codeforces.com/contest/769/problem/C">Codeforces - Cycle in Maze</a></li>
+<li><a href="https://uva.onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;page=show_problem&amp;problem=2287">UVA - 11312 - Flipping Frustration</a></li>
+<li><a href="http://www.spoj.com/problems/ADACYCLE/">SPOJ - Ada and Cycle</a></li>
+<li><a href="https://cses.fi/problemset/task/1193">CSES - Labyrinth</a></li>
+<li><a href="https://cses.fi/problemset/result/794325/">CSES - Message Route</a></li>
+<li><a href="https://cses.fi/problemset/task/1194">CSES - Monsters</a></li>
+</ul>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

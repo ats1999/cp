@@ -1,0 +1,306 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Expression parsing  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/string/expression_parsing.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Expression parsing</h1>
+
+<p>A string containing a mathematical expression containing numbers and various operators is given.
+We have to compute the value of it in $O(n)$, where $n$ is the length of the string.</p>
+
+<p>The algorithm discussed here translates an expression into the so-called <strong>reverse Polish notation</strong> (explicitly or implicitly), and evaluates this expression.</p>
+
+<h2>Reverse Polish notation</h2>
+
+<p>The reverse Polish notation is a form of writing mathematical expressions, in which the operators are located after their operands.
+For example the following expression
+$$a + b * c * d + (e - f) * (g * h + i)$$
+can be written in reverse Polish notation in the following way:
+$$a b c * d * + e f - g h * i + * +$$</p>
+
+<p>The reverse Polish notation was developed by the Australian philosopher and computer science specialist Charles Hamblin in the mid 1950s on the basis of the Polish notation, which was proposed in 1920 by the Polish mathematician Jan Łukasiewicz.</p>
+
+<p>The convenience of the reverse Polish notation is, that expressions in this form are very <strong>easy to evaluate</strong> in linear time.
+We use a stack, which is initially empty.
+We will iterate over the operands and operators of the expression in reverse Polish notation.
+If the current element is a number, then we put the value on top of the stack, if the current element is an operator, then we get the top two elements from the stack, perform the operation, and put the result back on top of the stack.
+In the end there will be exactly one element left in the stack, which will be the value of the expression.</p>
+
+<p>Obviously this simple evaluation runs in $O(n)$ time.</p>
+
+<h2>Parsing of simple expressions</h2>
+
+<p>For the time being we only consider a simplified problem:
+we assume that all operators are <strong>binary</strong> (i.e. they take two arguments), and all are <strong>left-associative</strong> (if the priorities are equal, they get executed from left to right).
+Parentheses are allowed.</p>
+
+<p>We will set up two stacks: one for numbers, and one for operators and parentheses.
+Initially both stacks are empty.
+For the second stack we will maintain the condition that all operations are ordered by strict descending priority.
+If there are parenthesis on the stack, than each block of operators (corresponding to one pair of parenthesis) is ordered, and the entire stack is not necessarily ordered.</p>
+
+<p>We will iterate over the characters of the expression from left to right.
+If the current character is a digit, then we put the value of this number on the stack.
+If the current character is an opening parenthesis, then we put it on the stack.
+If the current character is a closing parenthesis, the we execute all operators on the stack until we reach the opening bracket (in other words we perform all operations inside the parenthesis).
+Finally if the current character is an operator, then while the top of the stack has an operator with the same or higher priority, we will execute this operation, and put the new operation on the stack.</p>
+
+<p>After we processed the entire string, some operators might still be in the stack, so we execute them.</p>
+
+<p>Here is the implementation of this method for the four operators $+$ $-$ $*$ $/$:</p>
+
+<pre><code class="cpp">bool delim(char c) {
+    return c == ' ';
+}
+
+bool is_op(char c) {
+    return c == '+' || c == '-' || c == '*' || c == '/';
+}
+
+int priority (char op) {
+    if (op == '+' || op == '-')
+        return 1;
+    if (op == '*' || op == '/')
+        return 2;
+    return -1;
+}
+
+void process_op(stack&lt;int&gt;&amp; st, char op) {
+    int r = st.top(); st.pop();
+    int l = st.top(); st.pop();
+    switch (op) {
+        case '+': st.push(l + r); break;
+        case '-': st.push(l - r); break;
+        case '*': st.push(l * r); break;
+        case '/': st.push(l / r); break;
+    }
+}
+
+int evaluate(string&amp; s) {
+    stack&lt;int&gt; st;
+    stack&lt;char&gt; op;
+    for (int i = 0; i &lt; (int)s.size(); i++) {
+        if (delim(s[i]))
+            continue;
+
+        if (s[i] == '(') {
+            op.push('(');
+        } else if (s[i] == ')') {
+            while (op.top() != '(') {
+                process_op(st, op.top());
+                op.pop();
+            }
+            op.pop();
+        } else if (is_op(s[i])) {
+            char cur_op = s[i];
+            while (!op.empty() &amp;&amp; priority(op.top()) &gt;= priority(cur_op)) {
+                process_op(st, op.top());
+                op.pop();
+            }
+            op.push(cur_op);
+        } else {
+            int number = 0;
+            while (i &lt; (int)s.size() &amp;&amp; isalnum(s[i]))
+                number = number * 10 + s[i++] - '0';
+            --i;
+            st.push(number);
+        }
+    }
+
+    while (!op.empty()) {
+        process_op(st, op.top());
+        op.pop();
+    }
+    return st.top();
+}
+</code></pre>
+
+<p>Thus we learned how to calculate the value of an expression in $O(n)$, at the same time we implicitly used the reverse Polish notation.
+By slightly modifying the above implementation it is also possible to obtain the expression in reverse Polish notation in an explicit form.</p>
+
+<h2>Unary operators</h2>
+
+<p>Now suppose that the expression also contains <strong>unary</strong> operators (operators that take one argument).
+The unary plus and unary minus are common examples of such operators.</p>
+
+<p>One of the differences in this case, is that we need to determine whether the current operator is a unary or a binary one.</p>
+
+<p>You can notice, that before an unary operator, there always is another operator or an opening parenthesis, or nothing at all (if it is at the very beginning of the expression).
+On the contrary before a binary operator there will always be an operand (number) or a closing parenthesis.
+Thus it is easy to flag whether the next operator can be unary or not.</p>
+
+<p>Additionally we need to execute a unary and a binary operator differently.
+And we need to chose the priority of a binary operator higher than all of the binary operations.</p>
+
+<p>In addition it should be noted, that some unary operators (e.g. unary plus and unary minus) are actually <strong>right-associative</strong>.</p>
+
+<h2>Right-associativity</h2>
+
+<p>Right-associative means, that whenever the priorities are equal, the operators must be evaluated from right to left.</p>
+
+<p>As noted above, unary operators are usually right-associative.
+Another example for an right-associative operator is the exponentiation operator ($a \wedge b \wedge c$ is usually perceived as $a^{b^c}$ and not as $(a^b)^c$).</p>
+
+<p>What difference do we need to make in order to correctly handle right-associative operators?
+It turns out that the changes are very minimal.
+The only difference will be, if the priorities are equal we will postpone the execution of the right-associative operation.</p>
+
+<p>The only line that needs to be replaced is</p>
+
+<pre><code class="cpp">while (!op.empty() &amp;&amp; priority(op.top()) &gt;= priority(cur_op))
+</code></pre>
+
+<p>with</p>
+
+<pre><code class="cpp">while (!op.empty() &amp;&amp; (
+        (left_assoc(cur_op) &amp;&amp; priority(op.top()) &gt;= priority(cur_op)) ||
+        (!left_assoc(cur_op) &amp;&amp; priority(op.top()) &gt; priority(cur_op))
+    ))
+</code></pre>
+
+<p>where <code>left_assoc</code> is a function that decides if an operator is left_associative or not.</p>
+
+<p>Here is an implementation for the binary operators $+$ $-$ $*$ $/$ and the unary  operators $+$ and $-$.</p>
+
+<pre><code class="cpp">bool delim(char c) {
+    return c == ' ';
+}
+
+bool is_op(char c) {
+    return c == '+' || c == '-' || c == '*' || c == '/';
+}
+
+bool is_unary(char c) {
+    return c == '+' || c=='-';
+}
+
+int priority (char op) {
+    if (op &lt; 0) // unary operator
+        return 3;
+    if (op == '+' || op == '-')
+        return 1;
+    if (op == '*' || op == '/')
+        return 2;
+    return -1;
+}
+
+void process_op(stack&lt;int&gt;&amp; st, char op) {
+    if (op &lt; 0) {
+        int l = st.top(); st.pop();
+        switch (-op) {
+            case '+': st.push(l); break;
+            case '-': st.push(-l); break;
+        }
+    } else {
+        int r = st.top(); st.pop();
+        int l = st.top(); st.pop();
+        switch (op) {
+            case '+': st.push(l + r); break;
+            case '-': st.push(l - r); break;
+            case '*': st.push(l * r); break;
+            case '/': st.push(l / r); break;
+        }
+    }
+}
+
+int evaluate(string&amp; s) {
+    stack&lt;int&gt; st;
+    stack&lt;char&gt; op;
+    bool may_be_unary = true;
+    for (int i = 0; i &lt; (int)s.size(); i++) {
+        if (delim(s[i]))
+            continue;
+
+        if (s[i] == '(') {
+            op.push('(');
+            may_be_unary = true;
+        } else if (s[i] == ')') {
+            while (op.top() != '(') {
+                process_op(st, op.top());
+                op.pop();
+            }
+            op.pop();
+            may_be_unary = false;
+        } else if (is_op(s[i])) {
+            char cur_op = s[i];
+            if (may_be_unary &amp;&amp; is_unary(cur_op))
+                cur_op = -cur_op;
+            while (!op.empty() &amp;&amp; (
+                    (cur_op &gt;= 0 &amp;&amp; priority(op.top()) &gt;= priority(cur_op)) ||
+                    (cur_op &lt; 0 &amp;&amp; priority(op.top()) &gt; priority(cur_op))
+                )) {
+                process_op(st, op.top());
+                op.pop();
+            }
+            op.push(cur_op);
+            may_be_unary = true;
+        } else {
+            int number = 0;
+            while (i &lt; (int)s.size() &amp;&amp; isalnum(s[i]))
+                number = number * 10 + s[i++] - '0';
+            --i;
+            st.push(number);
+            may_be_unary = false;
+        }
+    }
+
+    while (!op.empty()) {
+        process_op(st, op.top());
+        op.pop();
+    }
+    return st.top();
+}
+</code></pre>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

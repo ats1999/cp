@@ -1,0 +1,138 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Lattice points inside non-lattice polygon  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/geometry/lattice-points.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Lattice points inside non-lattice polygon</h1>
+
+<p>For lattice polygons there is Pick's formula to enumerate the lattice points inside the polygon.
+What about polygons with arbitrary vertices?</p>
+
+<p>Let's process each of the polygon's edges individually, and after that we may sum up the amounts of lattice points under each edge considering its orientations to choose a sign (like in calculating the area of a polygon using trapezoids).</p>
+
+<p>First of all we should note that if current edge has endpoints in $A=(x_1;y_1)$ and $B=(x_2;y_2)$ then it can be represented as a linear function:</p>
+
+<p>$$y=y_1+(y_2-y_1) \cdot \dfrac{x-x_1}{x_2-x_1}=\left(\dfrac{y_2-y_1}{x_2-x_1}\right)\cdot x + \left(\dfrac{y_1x_2-x_1y_2}{x_2-x_1}\right)$$</p>
+
+<p>$$y = k \cdot x + b,~k = \dfrac{y_2-y_1}{x_2-x_1},~b = \dfrac{y_1x_2-x_1y_2}{x_2-x_1}$$</p>
+
+<p>Now we will perform a substitution $x=x'+\lceil x_1 \rceil$ so that $b' = b + k \cdot \lceil x_1 \rceil$.
+This allows us to work with $x_1'=0$ and $x_2'=x_2 - \lceil x_1 \rceil$.
+Let's denote $n = \lfloor x_2' \rfloor$.</p>
+
+<p>We will not sum up points at $x = n$ and on $y = 0$ for the integrity of the algorithm.
+They may be added manually afterwards.
+Thus we have to sum up $\sum\limits_{x'=0}^{n - 1} \lfloor k' \cdot x' + b'\rfloor$. We also assume that $k' \geq 0$ and $b'\geq 0$.
+Otherwise one should substitute $x'=-t$ and add $\lceil|b'|\rceil$ to $b'$.</p>
+
+<p>Let's discuss how we can evaluate a sum $\sum\limits_{x=0}^{n - 1} \lfloor k \cdot x + b\rfloor$.
+We have two cases:</p>
+
+<ul>
+<li><p>$k \geq 1$ or $b \geq 1$.
+Then we should start with summing up points below $y=\lfloor k \rfloor \cdot x + \lfloor b \rfloor$. Their amount equals to
+$$\sum\limits_{x=0}^{n - 1} \lfloor k \rfloor \cdot x + \lfloor b \rfloor=\dfrac{(\lfloor k \rfloor(n-1)+2\lfloor b \rfloor) n}{2}.$$
+Now we are interested only in points $(x;y)$ such that $\lfloor k \rfloor \cdot x + \lfloor b \rfloor &lt; y \leq k\cdot x + b$.
+This amount is the same as the number of points such that $0 &lt; y \leq (k - \lfloor k \rfloor) \cdot x + (b - \lfloor b \rfloor)$.
+So we reduced our problem to $k'= k - \lfloor k \rfloor$, $b' = b - \lfloor b \rfloor$ and both $k'$ and $b'$ less than $1$ now.
+Here is a picture, we just summed up blue points and subtracted the blue linear function from the black one to reduce problem to smaller values for $k$ and $b$:
+<center><img src="https://raw.githubusercontent.com/e-maxx-eng/e-maxx-eng/master/img/lattice.png" alt="Subtracting floored linear function" /></center></p></li>
+<li><p>$k &lt; 1$ and $b &lt; 1$.
+If $\lfloor k \cdot n + b\rfloor$ equals $0$, we can safely return $0$.
+If this is not the case, we can say that there are no lattice points such that $x &lt; 0$ and $0 &lt; y \leq k \cdot x + b$.
+That means that we will have the same answer if we consider new reference system in which $O'=(n;\lfloor k\cdot n + b\rfloor)$, axis $x'$ is directed down and axis $y'$ is directed to the left.
+For this reference system we are interested in lattice points on the set
+$$\left&#92;{(x;y)~\bigg|~0 \leq x &lt; \lfloor k \cdot n + b\rfloor,~ 0 &lt; y \leq \dfrac{x+(k\cdot n+b)-\lfloor k\cdot n + b \rfloor}{k}\right&#92;}$$
+which returns us back to the case $k>1$.
+You can see new reference point $O'$ and axes $X'$ and $Y'$ in the picture below:
+<center><img src="https://raw.githubusercontent.com/e-maxx-eng/e-maxx-eng/master/img/mirror.png" alt="New reference and axes" /></center>
+As you see, in new reference system linear function will have coefficient $\tfrac 1 k$ and its zero will be in the point $\lfloor k\cdot n + b \rfloor-(k\cdot n+b)$ which makes formula above correct.</p></li>
+</ul>
+
+<h2>Complexity analysis</h2>
+
+<p>We have to count at most $\dfrac{(k(n-1)+2b)n}{2}$ points.
+Among them we will count $\dfrac{\lfloor k \rfloor (n-1)+2\lfloor b \rfloor}{2}$ on the very first step.
+We may consider that $b$ is negligibly small because we can start with making it less than $1$.
+In that case we cay say that we count about $\dfrac{\lfloor k \rfloor}{k} \geq \dfrac 1 2$  of all points.
+Thus we will finish in $O(\log n)$ steps.</p>
+
+<h2>Implementation</h2>
+
+<p>Here is simple function which calculates number of integer points $(x;y)$ such for $0 \leq x &lt; n$ and $0 &lt; y \leq \lfloor k x+b\rfloor$:</p>
+
+<pre><code class="cpp">int count_lattices(Fraction k, Fraction b, long long n) {
+    auto fk = k.floor();
+    auto fb = b.floor();
+    auto cnt = 0LL;
+    if (k &gt;= 1 || b &gt;= 1) {
+        cnt += (fk * (n - 1) + 2 * fb) * n / 2;
+        k -= fk;
+        b -= fb;
+    }
+    auto t = k * n + b;
+    auto ft = t.floor();
+    if (ft &gt;= 1) {
+        cnt += count_lattices(1 / k, (t - t.floor()) / k, t.floor());
+    }
+    return cnt;
+}
+</code></pre>
+
+<p>Here <code>Fraction</code> is some class handling rational numbers.
+On practice it seems that if all denominators and numerators are at most $C$ by absolute value then in the recursive calls they will be at most $C^2$ if you keep dividing numerators and denominators by their greatest common divisor.
+Given this assumption we can say that one may use doubles and require accuracy of $\varepsilon^2$ where $\varepsilon$ is accuracy with which $k$ and $b$ are given.
+That means that in floor one should consider numbers as integer if they differs at most by $\varepsilon^2$ from an integer.</p>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Convex Hull construction using Graham's Scan  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/geometry/grahams-scan-convex-hull.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Convex Hull construction using Graham's Scan</h1>
+
+<p>In this article we will discuss the problem of constructing a convex hull from a set of points.</p>
+
+<p>Consider $N$ points given on a plane, and the objective is to generate a convex hull, i.e. the smallest
+convex polygon that contains all the given points.</p>
+
+<p>The algorithm used here is <strong>Graham's scan</strong> (proposed in 1972 by Graham) with improvements by Andrew (1979).
+The algorithm allows for the construction of a convex hull in $O(N \log N)$ using only comparison, 
+addition and multiplication operations. The algorithm is asymptotically optimal (as it is proven that there
+is no algorithm asymptotically better), with the exception of a few problems where parallel or online processing
+is involved.</p>
+
+<h2>Description</h2>
+
+<p>The algorithm first finds the leftmost and rightmost points A and B. In the event multiple such points exist,
+the lowest among the left (lowest Y-coordinate) is taken as A, and the highest among the right (highest Y-coordinate)
+is taken as B. Clearly, A and B must both belong to the convex hull as they are the farthest away and they cannot be contained
+by any line formed by a pair among the given points.</p>
+
+<p>Now, draw a line through AB. This divides all the other points into two sets, S1 and S2, where S1 contains all the points
+above the line connecting A and B, and S2 contains all the points below the line joining A and B. The points that lie on
+the line joining A and B may belong to either set. The points A and B belong to both sets. Now the algorithm
+constructs the upper set S1 and the lower set S2 and then combines them to obtain the answer.</p>
+
+<p>To get the upper set, we sort all points by the x-coordinate. For each point we check if either - the current point is the last point,
+(which we defined as B), or if the orientation between the line between A and the current point and the line between the current point and B is clockwise. In those cases the 
+current point belongs to the upper set S1. Checking for clockwise or anticlockwise nature can be done by checking the <a href="./geometry/oriented-triangle-area.html">orientation</a>.</p>
+
+<p>If the given point belongs to the upper set, we check the angle made by the line connecting the second last point and the last point in the upper convex hull,
+with the line connecting the last point in the upper convex hull and the current point. If the angle is not clockwise, we remove the most recent point added
+to the upper convex hull as the current point will be able to contain the previous point once it is added to the convex
+hull.</p>
+
+<p>The same logic applies for the lower set S2. If either - the current point is B, or the orientation of the lines, formed by A and the 
+current point and the current point and B, is counterclockwise - then it belongs to S2.</p>
+
+<p>If the given point belongs to the lower set, we act similarly as for a point on the upper set except we check for a counterclockwise
+orientation instead of a clockwise orientation. Thus, if the angle made by the line connecting the second last point and the last point in the lower convex hull,
+with the line connecting the last point in the lower convex hull and the current point is not counterclockwise, we remove the most recent point added to the lower convex hull as the current point will be able to contain
+the previous point once added to the hull.</p>
+
+<p>The final convex hull is obtained from the union of the upper and lower convex hull, and the implementation is as follows.</p>
+
+<h2>Implementation</h2>
+
+<pre><code class="cpp">struct pt {
+    double x, y;
+};
+
+bool cmp(pt a, pt b) {
+    return a.x &lt; b.x || (a.x == b.x &amp;&amp; a.y &lt; b.y);
+}
+
+bool cw(pt a, pt b, pt c) {
+    return a.x*(b.y-c.y)+b.x*(c.y-a.y)+c.x*(a.y-b.y) &lt; 0;
+}
+
+bool ccw(pt a, pt b, pt c) {
+    return a.x*(b.y-c.y)+b.x*(c.y-a.y)+c.x*(a.y-b.y) &gt; 0;
+}
+
+void convex_hull(vector&lt;pt&gt;&amp; a) {
+    if (a.size() == 1)
+        return;
+
+    sort(a.begin(), a.end(), &amp;cmp);
+    pt p1 = a[0], p2 = a.back();
+    vector&lt;pt&gt; up, down;
+    up.push_back(p1);
+    down.push_back(p1);
+    for (int i = 1; i &lt; (int)a.size(); i++) {
+        if (i == a.size() - 1 || cw(p1, a[i], p2)) {
+            while (up.size() &gt;= 2 &amp;&amp; !cw(up[up.size()-2], up[up.size()-1], a[i]))
+                up.pop_back();
+            up.push_back(a[i]);
+        }
+        if (i == a.size() - 1 || ccw(p1, a[i], p2)) {
+            while(down.size() &gt;= 2 &amp;&amp; !ccw(down[down.size()-2], down[down.size()-1], a[i]))
+                down.pop_back();
+            down.push_back(a[i]);
+        }
+    }
+
+    a.clear();
+    for (int i = 0; i &lt; (int)up.size(); i++)
+        a.push_back(up[i]);
+    for (int i = down.size() - 2; i &gt; 0; i--)
+        a.push_back(down[i]);
+}
+</code></pre>
+
+<h2>Practice Problems</h2>
+
+<ul>
+<li><a href="https://open.kattis.com/problems/convexhull">Kattis - Convex Hull</a></li>
+<li><a href="https://open.kattis.com/problems/parade">Kattis - Keep the Parade Safe</a></li>
+<li><a href="http://acm.timus.ru/problem.aspx?space=1&amp;num=1185">Timus 1185: Wall</a></li>
+<li><a href="http://usaco.org/index.php?page=viewproblem2&amp;cpid=382">Usaco 2014 January Contest, Gold - Cow Curling</a></li>
+</ul>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

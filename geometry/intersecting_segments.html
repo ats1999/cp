@@ -1,0 +1,234 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Search for a pair of intersecting segments  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/geometry/intersecting_segments.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Search for a pair of intersecting segments</h1>
+
+<p>Given $n$ line segments on the plane. It is required to check whether at least two of them intersect with each other.
+If the answer is yes, then print this pair of intersecting segments; it is enough to choose any of them among several answers.</p>
+
+<p>The naive solution algorithm is to iterate over all pairs of segments in $O(n^2)$ and check for each pair whether they intersect or not. This article describes an algorithm with the runtime time $O(n \log n)$, which is based on the <strong>sweep line algorithm</strong>.</p>
+
+<h2>Algorithm</h2>
+
+<p>Let's draw a vertical line $x = -\infty$ mentally and start moving this line to the right.
+In the course of its movement, this line will meet with segments, and at each time a segment intersect with our line it intersects in exactly one point (we will assume that there are no vertical segments).</p>
+
+<p><center><img src="https://raw.githubusercontent.com/e-maxx-eng/e-maxx-eng/master/img/sweep_line_1.png" alt="sweep line and line segment intersection" /></center></p>
+
+<p>Thus, for each segment, at some point in time, its point will appear on the sweep line, then with the movement of the line, this point will move, and finally, at some point, the segment will disappear from the line.</p>
+
+<p>We are interested in the <strong>relative order of the segments</strong> along the vertical.
+Namely, we will store a list of segments crossing the sweep line at a given time, where the segments will be sorted by their $y$-coordinate on the sweep line.</p>
+
+<p><center><img src="https://raw.githubusercontent.com/e-maxx-eng/e-maxx-eng/master/img/sweep_line_2.png" alt="relative order of the segments across sweep line" /></center></p>
+
+<p>This order is interesting because intersecting segments will have the same $y$-coordinate at least at one time:</p>
+
+<p><center><img src="https://raw.githubusercontent.com/e-maxx-eng/e-maxx-eng/master/img/sweep_line_3.png" alt="intersection point having same y-coordinate" /></center></p>
+
+<p>We formulate key statements:</p>
+
+<ul>
+<li>To find an intersecting pair, it is sufficient to consider <strong>only adjacent segments</strong> at each fixed position of the sweep line.</li>
+<li>It is enough to consider the sweep line not in all possible real positions $(-\infty \ldots +\infty)$, but <strong>only in those positions when new segments appear or old ones disappear</strong>. In other words, it is enough to limit yourself only to the positions equal to the abscissas of the end points of the segments.</li>
+<li>When a new line segment appears, it is enough to <strong>insert</strong> it to the desired location in the list obtained for the previous sweep line. We should only check for the intersection of the <strong>added segment with its immediate neighbors in the list above and below</strong>.</li>
+<li>If the segment disappears, it is enough to <strong>remove</strong> it from the current list. After that, it is necessary <strong>check for the intersection of the upper and lower neighbors in the list</strong>.</li>
+<li>Other changes in the sequence of segments in the list, except for those described, do not exist. No other intersection checks are required.</li>
+</ul>
+
+<p>To understand the truth of these statements, the following remarks are sufficient:</p>
+
+<ul>
+<li>Two disjoint segments never change their <strong>relative order</strong>.<br>
+In fact, if one segment was first higher than the other, and then became lower, then between these two moments there was an intersection of these two segments.</li>
+<li>Two non-intersecting segments also cannot have the same $y$-coordinates.</li>
+<li>From this it follows that at the moment of the segment appearance we can find the position for this segment in the queue, and we will not have to rearrange this segment in the queue any more: <strong>its order relative to other segments in the queue will not change</strong>.</li>
+<li>Two intersecting segments at the moment of their intersection point will be neighbors of each other in the queue.</li>
+<li>Therefore, for finding pairs of intersecting line segments is sufficient to check the intersection of all and only those pairs of segments that sometime during the movement of the sweep line at least once were neighbors to each other. <br>
+It is easy to notice that it is enough only to check the added segment with its upper and lower neighbors, as well as when removing the segment — its upper and lower neighbors (which after removal will become neighbors of each other).<br></li>
+<li>It should be noted that at a fixed position of the sweep line, we must <strong>first add all the segments</strong> that start at this x-coordinate, and only <strong>then remove all the segments</strong> that end here.<br>
+Thus, we do not miss the intersection of segments on the vertex: i.e. such cases when two segments have a common vertex.</li>
+<li>Note that <strong>vertical segments</strong> do not actually affect the correctness of the algorithm.<br>
+These segments are distinguished by the fact that they appear and disappear at the same time. However, due to the previous comment, we know that all segments will be added to the queue first, and only then they will be deleted. Therefore, if the vertical segment intersects with some other segment opened at that moment (including the vertical one), it will be detected.<br>
+<strong>In what place of the queue to place vertical segments?</strong> After all, a vertical segment does not have one specific $y$-coordinate, it extends for an entire segment along the $y$-coordinate. However, it is easy to understand that any coordinate from this segment can be taken as a $y$-coordinate.</li>
+</ul>
+
+<p>Thus, the entire algorithm will perform no more than $2n$ tests on the intersection of a pair of segments, and will perform $O(n)$ operations with a queue of segments ($O(1)$ operations at the time of appearance and disappearance of each segment).</p>
+
+<p>The final <strong>asymptotic behavior of the algorithm</strong> is thus $O(n \log n)$.</p>
+
+<h2>Implementation</h2>
+
+<p>We present the full implementation of the described algorithm:</p>
+
+<pre><code class="cpp">const double EPS = 1E-9;
+
+struct pt {
+    double x, y;
+};
+
+struct seg {
+    pt p, q;
+    int id;
+
+    double get_y(double x) const {
+        if (abs(p.x - q.x) &lt; EPS)
+            return p.y;
+        return p.y + (q.y - p.y) * (x - p.x) / (q.x - p.x);
+    }
+};
+
+bool intersect1d(double l1, double r1, double l2, double r2) {
+    if (l1 &gt; r1)
+        swap(l1, r1);
+    if (l2 &gt; r2)
+        swap(l2, r2);
+    return max(l1, l2) &lt;= min(r1, r2) + EPS;
+}
+
+int vec(const pt&amp; a, const pt&amp; b, const pt&amp; c) {
+    double s = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+    return abs(s) &lt; EPS ? 0 : s &gt; 0 ? +1 : -1;
+}
+
+bool intersect(const seg&amp; a, const seg&amp; b)
+{
+    return intersect1d(a.p.x, a.q.x, b.p.x, b.q.x) &amp;&amp;
+           intersect1d(a.p.y, a.q.y, b.p.y, b.q.y) &amp;&amp;
+           vec(a.p, a.q, b.p) * vec(a.p, a.q, b.q) &lt;= 0 &amp;&amp;
+           vec(b.p, b.q, a.p) * vec(b.p, b.q, a.q) &lt;= 0;
+}
+
+bool operator&lt;(const seg&amp; a, const seg&amp; b)
+{
+    double x = max(min(a.p.x, a.q.x), min(b.p.x, b.q.x));
+    return a.get_y(x) &lt; b.get_y(x) - EPS;
+}
+
+struct event {
+    double x;
+    int tp, id;
+
+    event() {}
+    event(double x, int tp, int id) : x(x), tp(tp), id(id) {}
+
+    bool operator&lt;(const event&amp; e) const {
+        if (abs(x - e.x) &gt; EPS)
+            return x &lt; e.x;
+        return tp &gt; e.tp;
+    }
+};
+
+set&lt;seg&gt; s;
+vector&lt;set&lt;seg&gt;::iterator&gt; where;
+
+set&lt;seg&gt;::iterator prev(set&lt;seg&gt;::iterator it) {
+    return it == s.begin() ? s.end() : --it;
+}
+
+set&lt;seg&gt;::iterator next(set&lt;seg&gt;::iterator it) {
+    return ++it;
+}
+
+pair&lt;int, int&gt; solve(const vector&lt;seg&gt;&amp; a) {
+    int n = (int)a.size();
+    vector&lt;event&gt; e;
+    for (int i = 0; i &lt; n; ++i) {
+        e.push_back(event(min(a[i].p.x, a[i].q.x), +1, i));
+        e.push_back(event(max(a[i].p.x, a[i].q.x), -1, i));
+    }
+    sort(e.begin(), e.end());
+
+    s.clear();
+    where.resize(a.size());
+    for (size_t i = 0; i &lt; e.size(); ++i) {
+        int id = e[i].id;
+        if (e[i].tp == +1) {
+            set&lt;seg&gt;::iterator nxt = s.lower_bound(a[id]), prv = prev(nxt);
+            if (nxt != s.end() &amp;&amp; intersect(*nxt, a[id]))
+                return make_pair(nxt-&gt;id, id);
+            if (prv != s.end() &amp;&amp; intersect(*prv, a[id]))
+                return make_pair(prv-&gt;id, id);
+            where[id] = s.insert(nxt, a[id]);
+        } else {
+            set&lt;seg&gt;::iterator nxt = next(where[id]), prv = prev(where[id]);
+            if (nxt != s.end() &amp;&amp; prv != s.end() &amp;&amp; intersect(*nxt, *prv))
+                return make_pair(prv-&gt;id, nxt-&gt;id);
+            s.erase(where[id]);
+        }
+    }
+
+    return make_pair(-1, -1);
+}
+</code></pre>
+
+<p>The main function here is <code>solve()</code>, which returns the number of found intersecting segments, or $(-1, -1)$, if there are no intersections.</p>
+
+<p>Checking for the intersection of two segments is carried out by the <code>intersect ()</code> function, using an <strong>algorithm based on the oriented area of the triangle</strong>.</p>
+
+<p>The queue of segments is the global variable <code>s</code>, a <code>set&lt;event&gt;</code>. Iterators that specify the position of each segment in the queue (for convenient removal of segments from the queue) are stored in the global array <code>where</code>.</p>
+
+<p>Two auxiliary functions <code>prev()</code> and <code>next()</code> are also introduced, which return iterators to the previous and next elements (or <code>end()</code>, if one does not exist).</p>
+
+<p>The constant <code>EPS</code> denotes the error of comparing two real numbers (it is mainly used when checking two segments for intersection).</p>
+
+<h2>Problems</h2>
+
+<ul>
+<li><a href="https://acm.timus.ru/problem.aspx?space=1&amp;num=1469">TIMUS 1469 No Smoking!</a></li>
+</ul>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

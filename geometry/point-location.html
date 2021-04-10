@@ -1,0 +1,353 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Point location in O(log n)  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/geometry/point-location.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Point location in O(log n)</h1>
+
+<p>Consider the following problem: you are given a <a href="https://en.wikipedia.org/wiki/Planar_straight-line_graph">planar subdivision</a> without no vertices of degree one and zero, and a lot of queries.
+Each query is a point, for which we should determine the face of the subdivision it belongs to.
+We will answer each query in $O(\log n)$ offline.<br>
+This problem may arise when you need to locate some points in a Voronoi diagram or in some simple polygon.</p>
+
+<h2>Algorithm</h2>
+
+<p>Firstly, for each query point $p\ (x&#95;0, y&#95;0)$ we want to find such an edge that if the point belongs to any edge, the point lies on the edge we found, otherwise this edge must intersect the line $x = x&#95;0$ at some unique point $(x&#95;0, y)$ where $y &lt; y&#95;0$ and this $y$ is maximum among all such edges.
+The following image shows both cases.</p>
+
+<p><center><img src="https://raw.githubusercontent.com/e-maxx-eng/e-maxx-eng/master/img/point_location_goal.png" alt="Image of Goal" /></center></p>
+
+<p>We will solve this problem offline using the sweep line algorithm. Let's iterate over x-coordinates of query points and edges' endpoints in increasing order and keep a set of edges $s$. For each x-coordinate we will add some events beforehand.</p>
+
+<p>The events will be of four types: <em>add</em>, <em>remove</em>, <em>vertical</em>, <em>get</em>.
+For each vertical edge (both endpoints have the same x-coordinate) we will add one <em>vertical</em> event for the corresponding x-coordinate.
+For every other edge we will add one <em>add</em> event for the minimum of x-coordinates of the endpoints and one <em>remove</em> event for the maximum of x-coordinates of the endpoints.
+Finally, for each query point we will add one <em>get</em> event for its x-coordinate.</p>
+
+<p>For each x-coordinate we will sort the events by their types in order (<em>vertical</em>, <em>get</em>, <em>remove</em>, <em>add</em>).
+The following image shows all events in sorted order for each x-coordinate.</p>
+
+<p><center><img src="https://raw.githubusercontent.com/e-maxx-eng/e-maxx-eng/master/img/point_location_events.png" alt="Image of Events" /></center></p>
+
+<p>We will keep two sets during the sweep-line process.
+A set $t$ for all non-vertical edges, and one set $vert$ especially for the vertical ones.
+We will clear the set $vert$ at the beginning of processing each x-coordinate.</p>
+
+<p>Now let's process the events for a fixed x-coordinate.</p>
+
+<ul>
+<li>If we got a <em>vertical</em> event, we will simply insert the minimum y-coordinate of the corresponding edge's endpoints to $vert$.</li>
+<li>If we got a <em>remove</em> or <em>add</em> event, we will remove the corresponding edge from $t$ or add it to $t$.</li>
+<li>Finally, for each <em>get</em> event we must check if the point lies on some vertical edge by performing a binary search in $vert$.
+If the point doesn't lie on any vertical edge, we must find the answer for this query in $t$.
+To do this, we again make a binary search.
+In order to handle some degenerate cases (e.g. in case of the triangle $(0,~0)$, $(0,~2)$, $(1, 1)$ when we query the point $(0,~0)$), we must answer all <em>get</em> events again after we processed all the events for this x-coordinate and choose the best of two answers.</li>
+</ul>
+
+<p>Now let's choose a comparator for the set $t$.
+This comparator should check if one edge doesn't lie above other for every x-coordinate they both cover. Suppose that we have two edges $(a, b)$ and $(c, d)$. Then the comparator is (in pseudocode):<br></p>
+
+<p>$val = sgn((b - a)\times(c - a)) + sgn((b - a)\times(d - a))$<br>
+<b>if</b> $val \neq 0$<br>
+<b>then return</b> $val > 0$<br>
+$val = sgn((d - c)\times(a - c)) + sgn((d - c)\times(b - c))$<br>
+<b>return</b> $val &lt; 0$<br></p>
+
+<p>Now for every query we have the corresponding edge.
+How to find the face?
+If we couldn't find the edge it means that the point is in the outer face.
+If the point belongs to the edge we found, the face is not unique.
+Otherwise, there are two candidates - the faces that are bounded by this edge.
+How to check which one is the answer? Note that the edge is not vertical.
+Then the answer is the face that is above this edge.
+Let's find such a face for each non-vertical edge.
+Consider a counter-clockwise traversal of each face.
+If during this traversal we increased x-coordinate while passing through the edge, then this face is the face we need to find for this edge.</p>
+
+<h2>Notes</h2>
+
+<p>Actually, with persistent trees this approach can be used to answer the queries online.</p>
+
+<h2>Implementation</h2>
+
+<p>The following code is implemented for integers, but it can be easily modified to work with doubles (by changing the compare methods and the point type).
+This implementation assumes that the subdivision is correctly stored inside a <a href="https://en.wikipedia.org/wiki/Doubly_connected_edge_list">DCEL</a> and the outer face is numbered $-1$.<br>
+For each query a pair $(1, i)$ is returned if the point lies strictly inside the face number $i$, and a pair $(0, i)$ is returned if the point lies on the edge number $i$.</p>
+
+<pre><code class="cpp">typedef long long ll;
+
+bool ge(const ll&amp; a, const ll&amp; b) { return a &gt;= b; }
+bool le(const ll&amp; a, const ll&amp; b) { return a &lt;= b; }
+bool eq(const ll&amp; a, const ll&amp; b) { return a == b; }
+bool gt(const ll&amp; a, const ll&amp; b) { return a &gt; b; }
+bool lt(const ll&amp; a, const ll&amp; b) { return a &lt; b; }
+int sgn(const ll&amp; x) { return le(x, 0) ? eq(x, 0) ? 0 : -1 : 1; }
+
+struct pt {
+    ll x, y;
+    pt() {}
+    pt(ll _x, ll _y) : x(_x), y(_y) {}
+    pt operator-(const pt&amp; a) const { return pt(x - a.x, y - a.y); }
+    ll dot(const pt&amp; a) const { return x * a.x + y * a.y; }
+    ll dot(const pt&amp; a, const pt&amp; b) const { return (a - *this).dot(b - *this); }
+    ll cross(const pt&amp; a) const { return x * a.y - y * a.x; }
+    ll cross(const pt&amp; a, const pt&amp; b) const { return (a - *this).cross(b - *this); }
+    bool operator==(const pt&amp; a) const { return a.x == x &amp;&amp; a.y == y; }
+};
+
+struct Edge {
+    pt l, r;
+};
+
+bool edge_cmp(Edge* edge1, Edge* edge2)
+{
+    const pt a = edge1-&gt;l, b = edge1-&gt;r;
+    const pt c = edge2-&gt;l, d = edge2-&gt;r;
+    int val = sgn(a.cross(b, c)) + sgn(a.cross(b, d));
+    if (val != 0)
+        return val &gt; 0;
+    val = sgn(c.cross(d, a)) + sgn(c.cross(d, b));
+    return val &lt; 0;
+}
+
+enum EventType { DEL = 2, ADD = 3, GET = 1, VERT = 0 };
+
+struct Event {
+    EventType type;
+    int pos;
+    bool operator&lt;(const Event&amp; event) const { return type &lt; event.type; }
+};
+
+vector&lt;Edge*&gt; sweepline(vector&lt;Edge*&gt; planar, vector&lt;pt&gt; queries)
+{
+    using pt_type = decltype(pt::x);
+
+    // collect all x-coordinates
+    auto s =
+        set&lt;pt_type, std::function&lt;bool(const pt_type&amp;, const pt_type&amp;)&gt;&gt;(lt);
+    for (pt p : queries)
+        s.insert(p.x);
+    for (Edge* e : planar) {
+        s.insert(e-&gt;l.x);
+        s.insert(e-&gt;r.x);
+    }
+
+    // map all x-coordinates to ids
+    int cid = 0;
+    auto id =
+        map&lt;pt_type, int, std::function&lt;bool(const pt_type&amp;, const pt_type&amp;)&gt;&gt;(
+            lt);
+    for (auto x : s)
+        id[x] = cid++;
+
+    // create events
+    auto t = set&lt;Edge*, decltype(*edge_cmp)&gt;(edge_cmp);
+    auto vert_cmp = [](const pair&lt;pt_type, int&gt;&amp; l,
+                       const pair&lt;pt_type, int&gt;&amp; r) {
+        if (!eq(l.first, r.first))
+            return lt(l.first, r.first);
+        return l.second &lt; r.second;
+    };
+    auto vert = set&lt;pair&lt;pt_type, int&gt;, decltype(vert_cmp)&gt;(vert_cmp);
+    vector&lt;vector&lt;Event&gt;&gt; events(cid);
+    for (int i = 0; i &lt; (int)queries.size(); i++) {
+        int x = id[queries[i].x];
+        events[x].push_back(Event{GET, i});
+    }
+    for (int i = 0; i &lt; (int)planar.size(); i++) {
+        int lx = id[planar[i]-&gt;l.x], rx = id[planar[i]-&gt;r.x];
+        if (lx &gt; rx) {
+            swap(lx, rx);
+            swap(planar[i]-&gt;l, planar[i]-&gt;r);
+        }
+        if (lx == rx) {
+            events[lx].push_back(Event{VERT, i});
+        } else {
+            events[lx].push_back(Event{ADD, i});
+            events[rx].push_back(Event{DEL, i});
+        }
+    }
+
+    // perform sweep line algorithm
+    vector&lt;Edge*&gt; ans(queries.size(), nullptr);
+    for (int x = 0; x &lt; cid; x++) {
+        sort(events[x].begin(), events[x].end());
+        vert.clear();
+        for (Event event : events[x]) {
+            if (event.type == DEL) {
+                t.erase(planar[event.pos]);
+            }
+            if (event.type == VERT) {
+                vert.insert(make_pair(
+                    min(planar[event.pos]-&gt;l.y, planar[event.pos]-&gt;r.y),
+                    event.pos));
+            }
+            if (event.type == ADD) {
+                t.insert(planar[event.pos]);
+            }
+            if (event.type == GET) {
+                auto jt = vert.upper_bound(
+                    make_pair(queries[event.pos].y, planar.size()));
+                if (jt != vert.begin()) {
+                    --jt;
+                    int i = jt-&gt;second;
+                    if (ge(max(planar[i]-&gt;l.y, planar[i]-&gt;r.y),
+                           queries[event.pos].y)) {
+                        ans[event.pos] = planar[i];
+                        continue;
+                    }
+                }
+                Edge* e = new Edge;
+                e-&gt;l = e-&gt;r = queries[event.pos];
+                auto it = t.upper_bound(e);
+                if (it != t.begin())
+                    ans[event.pos] = *(--it);
+                delete e;
+            }
+        }
+
+        for (Event event : events[x]) {
+            if (event.type != GET)
+                continue;
+            if (ans[event.pos] != nullptr &amp;&amp;
+                eq(ans[event.pos]-&gt;l.x, ans[event.pos]-&gt;r.x))
+                continue;
+
+            Edge* e = new Edge;
+            e-&gt;l = e-&gt;r = queries[event.pos];
+            auto it = t.upper_bound(e);
+            delete e;
+            if (it == t.begin())
+                e = nullptr;
+            else
+                e = *(--it);
+            if (ans[event.pos] == nullptr) {
+                ans[event.pos] = e;
+                continue;
+            }
+            if (e == nullptr)
+                continue;
+            if (e == ans[event.pos])
+                continue;
+            if (id[ans[event.pos]-&gt;r.x] == x) {
+                if (id[e-&gt;l.x] == x) {
+                    if (gt(e-&gt;l.y, ans[event.pos]-&gt;r.y))
+                        ans[event.pos] = e;
+                }
+            } else {
+                ans[event.pos] = e;
+            }
+        }
+    }
+    return ans;
+}
+
+struct DCEL {
+    struct Edge {
+        pt origin;
+        Edge* nxt = nullptr;
+        Edge* twin = nullptr;
+        int face;
+    };
+    vector&lt;Edge*&gt; body;
+};
+
+vector&lt;pair&lt;int, int&gt;&gt; point_location(DCEL planar, vector&lt;pt&gt; queries)
+{
+    vector&lt;pair&lt;int, int&gt;&gt; ans(queries.size());
+    vector&lt;Edge*&gt; planar2;
+    map&lt;intptr_t, int&gt; pos;
+    map&lt;intptr_t, int&gt; added_on;
+    int n = planar.body.size();
+    for (int i = 0; i &lt; n; i++) {
+        if (planar.body[i]-&gt;face &gt; planar.body[i]-&gt;twin-&gt;face)
+            continue;
+        Edge* e = new Edge;
+        e-&gt;l = planar.body[i]-&gt;origin;
+        e-&gt;r = planar.body[i]-&gt;twin-&gt;origin;
+        added_on[(intptr_t)e] = i;
+        pos[(intptr_t)e] =
+            lt(planar.body[i]-&gt;origin.x, planar.body[i]-&gt;twin-&gt;origin.x)
+                ? planar.body[i]-&gt;face
+                : planar.body[i]-&gt;twin-&gt;face;
+        planar2.push_back(e);
+    }
+    auto res = sweepline(planar2, queries);
+    for (int i = 0; i &lt; (int)queries.size(); i++) {
+        if (res[i] == nullptr) {
+            ans[i] = make_pair(1, -1);
+            continue;
+        }
+        pt p = queries[i];
+        pt l = res[i]-&gt;l, r = res[i]-&gt;r;
+        if (eq(p.cross(l, r), 0) &amp;&amp; le(p.dot(l, r), 0)) {
+            ans[i] = make_pair(0, added_on[(intptr_t)res[i]]);
+            continue;
+        }
+        ans[i] = make_pair(1, pos[(intptr_t)res[i]]);
+    }
+    for (auto e : planar2)
+        delete e;
+    return ans;
+}
+</code></pre>
+
+<h2>Problems</h2>
+
+<ul>
+<li><a href="http://acm.timus.ru/problem.aspx?space=1&amp;num=1848&amp;locale=en">TIMUS 1848 Fly Hunt</a></li>
+<li><a href="https://onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;category=297&amp;page=show_problem&amp;problem=3732">UVA 12310 Point Location</a></li>
+</ul>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

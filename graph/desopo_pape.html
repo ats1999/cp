@@ -1,0 +1,149 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>D´Esopo-Pape  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/graph/desopo_pape.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>D´Esopo-Pape algorithm</h1>
+
+<p>Given a graph with $n$ vertices and $m$ edges with weights $w_i$ and a starting vertex $v_0$.
+The task is to find the shortest path from the vertex $v_0$ to every other vertex.</p>
+
+<p>The algorithm from D´Esopo-Pape will work faster than <a href="./graph/dijkstra.html">Dijkstra's algorithm</a> and the <a href="./graph/bellman_ford.html">Bellman-Ford algorithm</a> in most cases, and will also work for negative edges.
+However not for negative cycles.</p>
+
+<h2>Description</h2>
+
+<p>Let the array $d$ contain the shortest path lengths, i.e. $d_i$ is the current length of the shortest path from the vertex $v_0$ to the vertex $i$.
+Initially this array is filled with infinity for every vertex, except $d_{v_0} = 0$.
+After the algorithm finishes, this array will contain the shortest distances.</p>
+
+<p>Let the array $p$ contain the current ancestors, i.e. $p_i$ is the direct ancestor of the vertex $i$ on the current shortest path from $v_0$ to $i$.
+Just like the array $d$, the array $p$ changes gradually during the algorithm and at the end takes its final values.</p>
+
+<p>Now to the algorithm.
+At each step three sets of vertices are maintained:</p>
+
+<ul>
+<li>$M_0$ - vertices, for which the distance has already been calculated (although it might not be the final distance)</li>
+<li>$M_1$ - vertices, for which the distance currently is calculated</li>
+<li>$M_2$ - vertices, for which the distance has not yet been calculated</li>
+</ul>
+
+<p>The vertices in the set $M_1$ are stored in a bidirectional queue (deque).</p>
+
+<p>At each step of the algorithm we take a vertex from the set $M_1$ (from the front of the queue).
+Let $u$ be the selected vertex.
+We put this vertex $u$ into the set $M_0$.
+Then we iterate over all edges coming out of this vertex.
+Let $v$ be the second end of the current edge, and $w$ its weight.</p>
+
+<ul>
+<li>If $v$ belongs to $M_2$, then $v$ is inserted into the set $M_1$ by inserting it at the back of the queue.
+$d_v$ is set to $d_u + w$.</li>
+<li>If $v$ belongs to $M_1$, then we try to improve the value of $d_v$: $d_v = \min(d_v, d_u + w)$.
+Since $v$ is already in $M_1$, we don't need to insert it into $M_1$ and the queue.</li>
+<li>If $v$ belongs to $M_0$, and if $d_v$ can be improved $d_v > d_u + w$, then we improve $d_v$ and insert the vertex $v$ back to the set $M_1$, placing it at the beginning of the queue.</li>
+</ul>
+
+<p>And of course, with each update in the array $d$ we also have to update the corresponding element in the array $p$.</p>
+
+<h2>Implementation</h2>
+
+<p>We will use an array $m$ to store in which set each vertex is currently.</p>
+
+<pre><code class="cpp">struct Edge {
+    int to, w;
+};
+
+int n;
+vector&lt;vector&lt;Edge&gt;&gt; adj;
+
+const int INF = 1e9;
+
+void shortest_paths(int v0, vector&lt;int&gt;&amp; d, vector&lt;int&gt;&amp; p) {
+    d.assign(n, INF);
+    d[v0] = 0;
+    vector&lt;int&gt; m(n, 2);
+    deque&lt;int&gt; q;
+    q.push_back(v0);
+    p.assign(n, -1);
+
+    while (!q.empty()) {
+        int u = q.front();
+        q.pop_front();
+        m[u] = 0;
+        for (Edge e : adj[u]) {
+            if (d[e.to] &gt; d[u] + e.w) {
+                d[e.to] = d[u] + e.w;
+                p[e.to] = u;
+                if (m[e.to] == 2) {
+                    m[e.to] = 1;
+                    q.push_back(e.to);
+                } else if (m[e.to] == 0) {
+                    m[e.to] = 1;
+                    q.push_front(e.to);
+                }
+            }
+        }
+    }
+}
+</code></pre>
+
+<h2>Complexity</h2>
+
+<p>The algorithm performs usually quite fast.
+In most cases even faster than Dijkstra's algorithm.
+However there exist cases for which the algorithm takes exponential time.</p>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

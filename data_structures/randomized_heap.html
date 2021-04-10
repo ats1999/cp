@@ -1,0 +1,177 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Randomized Heap  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/data_structures/randomized_heap.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Randomized Heap</h1>
+
+<p>A randomized heap is a heap that, through using randomization, allows to perform all operations in expected logarithmic time.</p>
+
+<p>A <strong>min heap</strong> is a binary tree in which the value of each vertex is less than or equal to the values of its children.
+Thus the minimum of the tree is always in the root vertex.</p>
+
+<p>A max heap can be defined in a similar way: by replacing less with greater.</p>
+
+<p>The default operations of a heap are:</p>
+
+<ul>
+<li>Adding a value</li>
+<li>Extracting the minimum</li>
+<li>Removing the minimum</li>
+<li>Merging two heaps (without deleting duplicates)</li>
+<li>Removing an arbitrary element (if its position in the tree is known)</li>
+</ul>
+
+<p>A randomized heap can perform all these operations in expected $O(\log n)$ time with a very simple implementation.</p>
+
+<h2>Data structure</h2>
+
+<p>We can immediately describe the structure of the binary heap:</p>
+
+<pre><code class="cpp">struct Tree {
+    int value;
+    Tree * l = nullptr;
+    Tree * r = nullptr;
+};
+</code></pre>
+
+<p>In the vertex we store a value.
+In addition we have pointers to the left and right children, which are point to null if the corresponding child doesn't exist.</p>
+
+<h2>Operations</h2>
+
+<p>It is not difficult to see, that all operations can be reduced to a single one: <strong>merging</strong> two heaps into one.
+Indeed, adding a new value to the heap is equivalent to merging the heap with a heap consisting of a single vertex with that value. 
+Finding a minimum doesn't require any operation at all - the minimum is simply the value at the root.
+Removing the minimum is equivalent to the result of merging the left and right children of the root vertex.
+And removing an arbitrary element is similar.
+We merge the children of the vertex and replace the vertex with the result of the merge.</p>
+
+<p>So we actually only need to implement the operation of merging two heaps.
+All other operations are trivially reduced to this operation.</p>
+
+<p>Let two heaps $T_1$ and $T_2$ be given.
+It is clear that the root of each of these heaps contains its minimum.
+So the root of the resulting heap will be the minimum of these two values.
+So we compare both values, and use the smaller one as the new root.
+Now we have to combine the children of the selected vertex with the remaining heap.
+For this we select one of the children, and merge it with the remaining heap.
+Thus we again have the operation of merging two heaps.
+Sooner of later this process will end (the number of such steps is limited by the sum of the heights of the two heaps)</p>
+
+<p>To achieve logarithmic complexity on average, we need to specify a method for choosing one of the two children so that the average path length is logarithmic.
+It is not difficult to guess, that we will make this decision <strong>randomly</strong>.
+Thus the implementation of the merging operation is as follows:</p>
+
+<pre><code class="cpp">Tree* merge(Tree* t1, Tree* t2) {
+    if (!t1 || !t2)
+        return t1 ? t1 : t2;
+    if (t2-&gt;value &lt; t1-&gt;value)
+        swap(t1, t2);
+    if (rand() &amp; 1)
+        swap(t1-&gt;l, t1-&gt;r);
+    t1-&gt;l = merge(t1-&gt;l, t2);
+    return t1;
+}
+</code></pre>
+
+<p>Here first we check if one of the heaps is empty, then we don't need to perform any merge action at all.
+Otherwise we make the heap <code>t1</code> the one with the smaller value (by swapping <code>t1</code> and <code>t2</code> if necessary).
+We want to merge the left child of <code>t1</code> with <code>t2</code>, therefore we randomly swap the children of <code>t1</code>, and then perform the merge.</p>
+
+<h2>Complexity</h2>
+
+<p>We introduce the random variable $h(T)$ which will denote the <strong>length of the random path</strong> from the root to the leaf (the length in the number of edges).
+It is clear that the algorithm <code>merge</code> performs $O(h(T_1) + h(T_2))$ steps.
+Therefore to understand the complexity of the operations, we must look into the random variable $h(T)$.</p>
+
+<h3>Expected value</h3>
+
+<p>We assume that the expectation $h(T)$ can be estimated from above by the logarithm of the number of vertices in the heap:
+$$\mathbf{E} h(T) \le \log(n+1)$$</p>
+
+<p>This can be easily proven by induction.
+Let $L$ and $R$ be the left and the right subtrees of the root $T$, and $n_L$ and $n_R$ the number of vertices in them ($n = n_L + n_R + 1$).</p>
+
+<p>The following shows the induction step:</p>
+
+<p>$$\begin{align}
+\mathbf{E} h(T) &amp;= 1 + \frac{\mathbf{E} h(L) + \mathbf{E} h(R)}{2} 
+\le 1 + \frac{\log(n_L + 1) \log(n_R + 1)}{2} &#92;&#92;
+&amp;= 1 + \log\sqrt{(n_L + 1)(n_R + 1)} = \log 2\sqrt{(n_L + 1)(n_R + 1)} &#92;&#92;
+&amp;\le \log \frac{2\left((n_L + 1) + (n_R + 1)\right)}{2} = \log(n_L + n_R + 2) = \log(n+1)
+\end{align}$$</p>
+
+<h3>Exceeding the expected value</h3>
+
+<p>Of course we are still not happy.
+The expected value of $h(T)$ doesn't say anything about the worst case.
+It is still possible that the paths from the root to the vertices is on average much greater than $\log(n + 1)$ for a specific tree.</p>
+
+<p>Let us prove that exceeding the expected value is indeed very small:
+$$P&#92;{h(T > (c+1) \log n&#92;} &lt; \frac{1}{n^c}$$
+for any positive constant $c$.</p>
+
+<p>Here we denote by $P$ the set of paths from the root of the heap to the leaves where the length exceeds $(c+1) \log n$.
+Note that for any path $p$ of length $|p|$ the probability that it will be chosen as random path is $2^{-|p|}$.
+Therefore we get:
+$$P&#92;{h(T > (c+1) \log n&#92;} = \sum_{p \in P} 2^{-|p|} &lt; \sum_{p \in P} 2^{-(c+1) \log n} = |P| n^{-(c+1)} \le n^{-c}$$</p>
+
+<h3>Complexity of the algorithm</h3>
+
+<p>Thus the algorithm <code>merge</code>, and hence all other operations expressed with it, can be performed in $O(\log n)$ on average.</p>
+
+<p>Moreover for any positive constant $\epsilon$ there is a positive constant $c$, such that the probability that the operation will require more than $c \log n$ steps is less than $n^{-\epsilon}$ (in some sense this describes the worst case behavior of the algorithm).</p>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

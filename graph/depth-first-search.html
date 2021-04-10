@@ -1,0 +1,211 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Depth First Search - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/graph/depth-first-search.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Depth First Search</h1>
+
+<p>Depth First Search is one of the main graph algorithms.</p>
+
+<p>Depth First Search finds the lexicographical first path in the graph from a source vertex $u$ to each vertex.
+Depth First Search will also find the shortest paths in a tree (because there only exists one simple path), but on general graphs this is not the case.</p>
+
+<p>The algorithm works in $O(m + n)$ time where $n$ is the number of vertices and $m$ is the number of edges.</p>
+
+<h2>Description of the algorithm</h2>
+
+<p>The idea behind DFS is to go as deep into the graph as possible, and backtrack once you are at a vertex without any unvisited adjacent vertices.</p>
+
+<p>It is very easy to describe / implement the algorithm recursively:
+We start the search at one vertex.
+After visiting a vertex, we further perform a DFS for each adjacent vertex that we haven't visited before.
+This way we visit all vertices that are reachable from the starting vertex.</p>
+
+<p>For more details check out the implementation.</p>
+
+<h2>Applications of Depth First Search</h2>
+
+<ul>
+<li><p>Find any path in the graph from source vertex $u$ to all vertices.</p></li>
+<li><p>Find lexicographical first path in the graph from source $u$ to all vertices.</p></li>
+<li><p>Check if a vertex in a tree is an ancestor of some other vertex:</p>
+
+<p>At the beginning and end of each search call we remember the entry and exit "time" of each vertex.
+Now you can find the answer for any pair of vertices $(i, j)$ in $O(1)$:
+vertex $i$ is an ancestor of vertex $j$ if and only if $\text{entry}[i] &lt; \text{entry}[j]$ and $\text{exit}[i] > \text{exit}[j]$.</p></li>
+<li><p>Find the lowest common ancestor (LCA) of two vertices.</p></li>
+<li><p>Topological sorting:</p>
+
+<p>Run a series of depth first searches so as to visit each vertex exactly once in $O(n + m)$ time.
+The required topological ordering will be the vertices sorted in descending order of exit time.</p></li>
+<li><p>Check whether a given graph is acyclic and find cycles in a graph. (As mentioned above by counting back edges in every connected components).</p></li>
+<li><p>Find strongly connected components in a directed graph:</p>
+
+<p>First do a topological sorting of the graph.
+Then transpose the graph and run another series of depth first searches in the order defined by the topological sort. For each DFS call the component created by it is a strongly connected component.</p></li>
+<li><p>Find bridges in an undirected graph:</p>
+
+<p>First convert the given graph into a directed graph by running a series of depth first searches and making each edge directed as we go through it, in the direction we went. Second, find the strongly connected components in this directed graph. Bridges are the edges whose ends belong to different strongly connected components.</p></li>
+</ul>
+
+<h2>Classification of edges of a graph</h2>
+
+<p>We can classify the edges using the entry and exit time of the end nodes $u$ and $v$ of the edges $(u,v)$.
+These classifications are often used for problems like <a href="./graph/bridge-searching.html">finding bridges</a> and <a href="./graph/cutpoints.html">finding articulation points</a>.</p>
+
+<p>We perform a DFS and classify the encountered edges using the following rules:</p>
+
+<p>If $v$ is not visited:</p>
+
+<ul>
+<li>Tree Edge - If $v$ is visited after $u$ then edge $(u,v)$ is called a tree edge. In other words, if $v$ is visited for the first time and $u$ is currently being visited then $(u,v)$ is called tree edge.
+These edges form a DFS tree and hence the name tree edges.</li>
+</ul>
+
+<p>If $v$ is visited before $u$:</p>
+
+<ul>
+<li><p>Back edges - If $v$ is an ancestor of $u$, then the edge $(u,v)$ is a back edge. $v$ is an ancestor exactly if we already entered $v$, but not exited it yet. Back edges complete a cycle as there is a path from ancestor $v$ to descendant $u$ (in the recursion of DFS) and an edge from descendant $u$ to ancestor $v$ (back edge), thus a cycle is formed. Cycles can be detected using back edges.</p></li>
+<li><p>Forward Edges - If $v$ is a descendant of $u$, then edge $(u, v)$ is a forward edge. In other words, if we already visited and exited $v$ and $\text{entry}[u] &lt; \text{entry}[v]$ then the edge $(u,v)$ forms a forward edge.</p></li>
+<li>Cross Edges: if $v$ is neither an ancestor or descendant of $u$, then edge $(u, v)$ is a cross edge. In other words, if we already visited and exited $v$ and $\text{entry}[u] > \text{entry}[v]$ then $(u,v)$ is a cross edge.</li>
+</ul>
+
+<p>Note: Forward edges and cross edges only exist in directed graphs.</p>
+
+<h2>Implementation</h2>
+
+<pre><code class="cpp">vector&lt;vector&lt;int&gt;&gt; adj; // graph represented as an adjacency list
+int n; // number of vertices
+
+vector&lt;bool&gt; visited;
+
+void dfs(int v) {
+    visited[v] = true;
+    for (int u : adj[v]) {
+        if (!visited[u])
+            dfs(u);
+    }
+}
+</code></pre>
+
+<p>This is the most simple implementation of Depth First Search.
+As described in the applications it might be useful to also compute the entry and exit times and vertex color.
+We will color all vertices with the color 0, if we haven't visited them, with the color 1 if we visited them, and with the color 2, if we already exited the vertex.</p>
+
+<p>Here is a generic implementation that additionally computes those:</p>
+
+<pre><code class="cpp">vector&lt;vector&lt;int&gt;&gt; adj; // graph represented as an adjacency list
+int n; // number of vertices
+
+vector&lt;int&gt; color;
+
+vector&lt;int&gt; time_in, time_out;
+int dfs_timer = 0;
+
+void dfs(int v) {
+    time_in[v] = dfs_timer++;
+    color[v] = 1;
+    for (int u : adj[v])
+        if (color[u] == 0)
+            dfs(u);
+    color[v] = 2;
+    time_out[v] = dfs_timer++;
+}
+</code></pre>
+
+<h2>Practice Problems</h2>
+
+<ul>
+<li><a href="http://www.spoj.com/problems/ABCPATH/">SPOJ: ABCPATH</a></li>
+<li><a href="http://www.spoj.com/problems/EAGLE1/">SPOJ: EAGLE1</a></li>
+<li><a href="http://codeforces.com/problemset/problem/580/C">Codeforces: Kefa and Park</a></li>
+<li><a href="http://acm.timus.ru/problem.aspx?space=1&amp;num=1242">Timus:Werewolf</a></li>
+<li><a href="http://acm.timus.ru/problem.aspx?space=1&amp;num=1709">Timus:Penguin Avia</a></li>
+<li><a href="http://acm.timus.ru/problem.aspx?space=1&amp;num=1106">Timus:Two Teams</a></li>
+<li><a href="http://www.spoj.com/problems/ADASEA/">SPOJ - Ada and Island</a></li>
+<li><a href="https://uva.onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;page=show_problem&amp;problem=598">UVA 657 - The die is cast</a></li>
+<li><a href="http://www.spoj.com/problems/KOZE/">SPOJ - Sheep</a></li>
+<li><a href="http://www.spoj.com/problems/RIOI_2_3/">SPOJ - Path of the Rightenous Man</a></li>
+<li><a href="http://www.spoj.com/problems/MAKEMAZE/">SPOJ - Validate the Maze</a></li>
+<li><a href="http://www.spoj.com/problems/GHOSTS/">SPOJ - Ghosts having Fun</a></li>
+<li><a href="http://codeforces.com/contest/781/problem/C">Codeforces - Underground Lab</a></li>
+<li><a href="https://devskill.com/CodingProblems/ViewProblem/3">DevSkills - Maze Tester</a></li>
+<li><a href="https://devskill.com/CodingProblems/ViewProblem/17">DevSkills - Tourist</a></li>
+<li><a href="http://codeforces.com/contest/734/problem/E">Codeforces - Anton and Tree</a></li>
+<li><a href="http://codeforces.com/contest/727/problem/A">Codeforces - Transformation: From A to B</a></li>
+<li><a href="http://codeforces.com/contest/723/problem/E">Codeforces - One Way Reform</a></li>
+<li><a href="http://codeforces.com/contest/709/problem/E">Codeforces - Centroids</a></li>
+<li><a href="http://codeforces.com/contest/710/problem/E">Codeforces - Generate a String</a></li>
+<li><a href="http://codeforces.com/contest/758/problem/E">Codeforces - Broken Tree</a></li>
+<li><a href="http://codeforces.com/contest/761/problem/E">Codeforces - Dasha and Puzzle</a></li>
+<li><a href="http://codeforces.com/contest/638/problem/B">Codeforces - Making genome In Berland</a></li>
+<li><a href="http://codeforces.com/contest/638/problem/C">Codeforces - Road Improvement</a></li>
+<li><a href="http://codeforces.com/contest/767/problem/C">Codeforces - Garland</a></li>
+<li><a href="http://codeforces.com/contest/794/problem/D">Codeforces - Labeling Cities</a></li>
+<li><a href="http://codeforces.com/contest/802/problem/K">Codeforces - Send the Fool Futher!</a></li>
+<li><a href="http://codeforces.com/contest/813/problem/C">Codeforces - The tag Game</a></li>
+<li><a href="http://codeforces.com/contest/841/problem/D">Codeforces - Leha and Another game about graphs</a></li>
+<li><a href="http://codeforces.com/contest/845/problem/G">Codeforces - Shortest path problem</a></li>
+<li><a href="http://codeforces.com/contest/844/problem/E">Codeforces - Upgrading Tree</a></li>
+<li><a href="http://codeforces.com/contest/849/problem/C">Codeforces - From Y to Y</a></li>
+<li><a href="http://codeforces.com/contest/846/problem/E">Codeforces - Chemistry in Berland</a></li>
+<li><a href="http://codeforces.com/contest/861/problem/F">Codeforces - Wizards Tour</a></li>
+<li><a href="http://codeforces.com/contest/24/problem/A">Codeforces - Ring Road</a></li>
+<li><a href="http://codeforces.com/contest/29/problem/C">Codeforces - Mail Stamps</a></li>
+<li><a href="http://codeforces.com/contest/29/problem/D">Codeforces - Ant on the Tree</a></li>
+<li><a href="http://www.spoj.com/problems/CAC/">SPOJ - Cactus</a></li>
+<li><a href="http://www.spoj.com/problems/AMR10J/">SPOJ - Mixing Chemicals</a></li>
+</ul>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Ternary Search and its Applications  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/num_methods/ternary_search.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Ternary Search</h1>
+
+<p>We are given a function $f(x)$ which is unimodal on an interval $[l, r]$. By unimodal function, we mean one of two behaviors of the function:</p>
+
+<ol>
+<li><p>The function strictly increases first, reaches a maximum (at a single point or over an interval), and then strictly decreases.</p></li>
+<li><p>The function strictly decreases first, reaches a minimum, and then strictly increases.</p></li>
+</ol>
+
+<p>In this article, we will assume the first scenario.
+The second scenario is completely symmetrical to the first.</p>
+
+<p>The task is to find the maximum of function $f(x)$ on the interval $[l, r]$.</p>
+
+<h2>Algorithm</h2>
+
+<p>Consider any 2 points $m_1$, and $m_2$ in this interval: $l &lt; m_1 &lt; m_2 &lt; r$. We evaluate the function at $m_1$ and $m_2$, i.e. find the values of $f(m_1)$ and $f(m_2)$. Now, we get one of three options:</p>
+
+<ul>
+<li><p>$f(m_1) &lt; f(m_2)$</p>
+
+<p>The desired maximum can not be located on the left side of $m_1$, i.e. on the interval $[l, m_1]$, since either both points $m_1$ and $m_2$ or just $m_1$ belong to the area where the function increases. In either case, this means that we have to search for the maximum in the segment $[m_1, r]$.</p></li>
+<li><p>$f(m_1) > f(m_2)$</p>
+
+<p>This situation is symmetrical to the previous one: the maximum can not be located on the right side of $m_2$, i.e. on the interval $[m_2, r]$, and the search space is reduced to the segment $[l, m_2]$.</p></li>
+<li><p>$f(m_1) = f(m_2)$</p>
+
+<p>We can see that either both of these points belong to the area where the value of the function is maximized, or $m_1$ is in the area of increasing values and $m_2$ is in the area of descending values (here we used the strictness of function increasing/decreasing). Thus, the search space is reduced to $[m_1, m_2]$. To simplify the code, this case can be combined with any of the previous cases.</p></li>
+</ul>
+
+<p>Thus, based on the comparison of the values in the two inner points, we can replace the current interval $[l, r]$ with a new, shorter interval $[l^\prime, r^\prime]$. Repeatedly applying the described procedure to the interval, we can get an arbitrarily short interval. Eventually, its length will be less than a certain pre-defined constant (accuracy), and the process can be stopped. This is a numerical method, so we can assume that after that the function reaches its maximum at all points of the last interval $[l, r]$. Without loss of generality, we can take $f(l)$ as the return value.</p>
+
+<p>We didn't impose any restrictions on the choice of points $m_1$ and $m_2$. This choice will define the convergence rate and the accuracy of the implementation. The most common way is to choose the points so that they divide the interval $[l, r]$ into three equal parts. Thus, we have</p>
+
+<p>$$m_1 = l + \frac{(r - l)}{3}$$</p>
+
+<p>$$m_2 = r - \frac{(r - l)}{3}$$</p>
+
+<p>If $m_1$ and $m_2$ are chosen to be closer to each other, the convergence rate will increase slightly.</p>
+
+<h3>Run time analysis</h3>
+
+<p>$$T(n) = T({2n}/{3}) + 1 = \Theta(\log n)$$</p>
+
+<p>It can be visualized as follows: every time after evaluating the function at points $m_1$ and $m_2$, we are essentially ignoring about one third of the interval, either the left or right one. Thus the size of the search space is ${2n}/{3}$ of the original one.</p>
+
+<p>Applying <a href="https://en.wikipedia.org/wiki/Master_theorem_(analysis_of_algorithms)">Master's Theorem</a>, we get the desired complexity estimate.</p>
+
+<h3>The case of the integer arguments</h3>
+
+<p>If $f(x)$ takes integer parameter, the interval $[l, r]$ becomes discrete. Since we did not impose any restrictions on the choice of points $m_1$ and $m_2$, the correctness of the algorithm is not affected. $m_1$ and $m_2$ can still be chosen to divide $[l, r]$ into 3 approximately equal parts.</p>
+
+<p>The difference occurs in the stopping criterion of the algorithm. Ternary search will have to stop when $(r - l) &lt; 3$, because in that case we can no longer select $m_1$ and $m_2$ to be different from each other as well as from $l$ and $r$, and this can cause an infinite loop. Once $(r - l) &lt; 3$, the remaining pool of candidate points $(l, l + 1, \ldots, r)$ needs to be checked to find the point which produces the maximum value $f(x)$.</p>
+
+<h2>Implementation</h2>
+
+<pre><code class="cpp">double ternary_search(double l, double r) {
+    double eps = 1e-9;              //set the error limit here
+    while (r - l &gt; eps) {
+        double m1 = l + (r - l) / 3;
+        double m2 = r - (r - l) / 3;
+        double f1 = f(m1);      //evaluates the function at m1
+        double f2 = f(m2);      //evaluates the function at m2
+        if (f1 &lt; f2)
+            l = m1;
+        else
+            r = m2;
+    }
+    return f(l);                    //return the maximum of f(x) in [l, r]
+}
+</code></pre>
+
+<p>Here <code>eps</code> is in fact the absolute error (not taking into account errors due to the inaccurate calculation of the function).</p>
+
+<p>Instead of the criterion <code>r - l &gt; eps</code>, we can select a constant number of iterations as a stopping criterion. The number of iterations should be chosen to ensure the required accuracy. Typically, in most programming challenges the error limit is ${10}^{-6}$ and thus 200 - 300 iterations are sufficient. Also, the number of iterations doesn't depend on the values of $l$ and $r$, so the number of iterations corresponds to the required relative error.</p>
+
+<h2>Practice Problems</h2>
+
+<ul>
+<li><a href="https://www.codechef.com/problems/AMCS03">Codechef - Race time</a></li>
+<li><a href="https://www.hackerearth.com/september-circuits/algorithm/rescuer-1/">Hackerearth - Rescuer</a></li>
+<li><a href="http://www.spoj.com/problems/KOPC12A/">Spoj - Building Construction</a></li>
+<li><a href="http://codeforces.com/problemset/problem/578/C">Codeforces - Weakness and Poorness</a></li>
+<li><a href="http://lightoj.com/volume_showproblem.php?problem=1146">LOJ - Closest Distance</a></li>
+<li><a href="http://codeforces.com/gym/101309">GYM - Dome of Circus (D)</a></li>
+<li><a href="https://uva.onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;page=show_problem&amp;problem=4898">UVA - Galactic Taxes</a></li>
+<li><a href="http://codeforces.com/gym/100829">GYM - Chasing the Cheetahs (A)</a></li>
+<li><a href="https://uva.onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;page=show_problem&amp;problem=3349">UVA - 12197 - Trick or Treat</a></li>
+<li><a href="http://www.spoj.com/problems/KOPC12A/">SPOJ - Building Construction</a></li>
+<li><a href="https://codeforces.com/problemset/problem/439/D">Codeforces - Devu and his Brother</a></li>
+<li><a href="https://www.codechef.com/problems/ICM2003">Codechef - Is This JEE </a></li>
+<li><a href="https://codeforces.com/contest/1355/problem/E">Codeforces - Restorer Distance</a></li>
+<li><a href="https://acm.timus.ru/problem.aspx?space=1&amp;num=1719">TIMUS 1719 Kill the Shaitan-Boss</a></li>
+<li><a href="https://acm.timus.ru/problem.aspx?space=1&amp;num=1913">TIMUS 1913 Titan Ruins: Alignment of Forces</a></li>
+</ul>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

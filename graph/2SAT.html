@@ -1,0 +1,210 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>2-SAT  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/graph/2SAT.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>2 - SAT</h1>
+
+<p>SAT (Boolean satisfiability problem) is the problem of assigning Boolean values to variables to satisfy a given Boolean formula.
+The Boolean formula will usually be given in CNF (conjunctive normal form), which is a conjunction of multiple clauses, where each clause is a disjunction of literals (variables or negation of variables).
+2-SAT (2-satisfiability) is a restriction of the SAT problem, in 2-SAT every clause has exactly two literals.
+Here is an example of such a 2-SAT problem.
+Find an assignment of $a, b, c$ such that the following formula is true:</p>
+
+<p>$$(a \lor \lnot b) \land (\lnot a \lor b) \land (\lnot a \lor \lnot b) \land (a \lor \lnot c)$$</p>
+
+<p>SAT is NP-complete, there is no known efficient solution known for it.
+However 2SAT can be solved efficiently in $O(n + m)$ where $n$ is the number of variables and $m$ is the number of clauses.</p>
+
+<h2>Algorithm:</h2>
+
+<p>First we need to convert the problem to a different form, the so-called implicative normal form.
+Note that the expression $a \lor b$ is equivalent to $\lnot a \Rightarrow b \land \lnot b \Rightarrow a$ (if one of the two variables is false, then the other one must be true).</p>
+
+<p>We now construct a directed graph of these implications:
+for each variable $x$ there will be two vertices $v_x$ and $v_{\lnot x}$.
+The edges will correspond to the implications.</p>
+
+<p>Let's look at the example in 2-CNF form:</p>
+
+<p>$$(a \lor \lnot b) \land (\lnot a \lor b) \land (\lnot a \lor \lnot b) \land (a \lor \lnot c)$$</p>
+
+<p>The oriented graph will contain the following vertices and edges:</p>
+
+<p>$$\begin{array}{cccc}
+\lnot a \Rightarrow \lnot b &amp; a \Rightarrow b &amp; a \Rightarrow \lnot b &amp; \lnot a \Rightarrow \lnot c&#92;&#92;
+b \Rightarrow a &amp; \lnot b \Rightarrow \lnot a &amp; b \Rightarrow \lnot a &amp; c \Rightarrow a&#92;&#92;
+\end{array}$$</p>
+
+<p>You can see the implication graph in the following image:</p>
+
+<p><center><img src="https://raw.githubusercontent.com/e-maxx-eng/e-maxx-eng/master/img/2SAT.png" alt="&quot;Implication Graph of 2-SAT example&quot;" /></center></p>
+
+<p>It is worth paying attention to the property of the implication graph:
+if there is an edge $a \Rightarrow b$, then there also is an edge $\lnot b \Rightarrow \lnot a$.</p>
+
+<p>Also note, that if $x$ is reachable from $\lnot x$, and $\lnot x$ is reachable from $x$, then the problem has no solution.
+Whatever value we choose for the variable $x$, it will always end in a contradiction - if $x$ will be assigned $\text{true}$ then the implication tell us that $\lnot x$ should also be $\text{true}$ and visa versa.
+It turns out, that this condition is not only necessary, but also sufficient.
+We will prove this in a few paragraphs below.
+First recall, if a vertex if reachable from a second one, and the second one is reachable from the first one, then these two vertices are in the same strongly connected component.
+Therefore we can formulate the criterion for the existence of a solution as follows:</p>
+
+<p>In order for this 2-SAT problem to have a solution, it is necessary and sufficient that for any variable $x$ the vertices $x$ and $\lnot x$ are in different strongly connected components of the strong connection of the implication graph.</p>
+
+<p>This criterion can be verified in $O(n + m)$ time by finding all strongly connected components.</p>
+
+<p>The following image shows all strongly connected components for the example.
+As we can check easily, neither of the four components contain a vertex $x$ and its negation $\lnot x$, therefore the example has a solution.
+We will learn in the next paragraphs how to compute a valid assignment, but just for demonstration purposes the solution $a = \text{false}$, $b = \text{false}$, $c = \text{false}$ is given.</p>
+
+<p><center><img src="https://raw.githubusercontent.com/e-maxx-eng/e-maxx-eng/master/img/2SAT_SCC.png" alt="&quot;Strongly Connected Components of the 2-SAT example&quot;" /></center></p>
+
+<p>Now we construct the algorithm for finding the solution of the 2-SAT problem on the assumption that the solution exists.</p>
+
+<p>Note that, in spite of the fact that the solution exists, it can happen that $\lnot x$ is reachable from $x$ in the implication graph, or that (but not simultaneously) $x$ is reachable from $\lnot x$.
+In that case the choice of either $\text{true}$ or $\text{false}$ for $x$ will lead to a contradiction, while the choice of the other one will not.
+Let's learn how to choose a value, such that we don't generate a contradiction.</p>
+
+<p>Let us sort the strongly connected components in topological order (i.e. $\text{comp}[v] \le \text{comp}[u]$ if there is a path from $v$ to $u$) and let $\text{comp}[v]$ denote the index of strongly connected component to which the vertex $v$ belongs.
+Then, if $\text{comp}[x] &lt; \text{comp}[\lnot x]$ we assign $x$ with $\text{false}$ and $\text{true}$ otherwise.</p>
+
+<p>Let us prove that with this assignment of the variables we do not arrive at a contradiction.
+Suppose $x$ is assigned with $\text{true}$.
+The other case can be proven in a similar way.</p>
+
+<p>First we prove that the vertex $x$ cannot reach the vertex $\lnot x$.
+Because we assigned $\text{true}$ it has to hold that the index of strongly connected component of $x$ is greater than the index of the component of $\lnot x$.
+This means that $\lnot x$ is located on the left of the component containing $x$, and the later vertex cannot reach the first.</p>
+
+<p>Secondly we prove that there doesn't exist a variable $y$, such that the vertices $y$ and $\lnot y$ are both reachable from $x$ in the implication graph.
+This would cause a contradiction, because $x = \text{true}$ implies that $y = \text{true}$ and $\lnot y = \text{true}$.
+Let us prove this by contradiction.
+Suppose that $y$ and $\lnot y$ are both reachable from $x$, then by the property of the implication graph $\lnot x$ is reachable from both $y$ and $\lnot y$.
+By transitivity this results that $\lnot x$ is reachable by $x$, which contradicts the assumption.</p>
+
+<p>So we have constructed an algorithm that finds the required values of variables under the assumption that for any variable $x$ the vertices $x$ and $\lnot x$ are in different strongly connected components.
+Above showed the correctness of this algorithm.
+Consequently we simultaneously proved the above criterion for the existence of a solution.</p>
+
+<h2>Implementation:</h2>
+
+<p>Now we can implement the entire algorithm.
+First we construct the graph of implications and find all strongly connected components.
+This can be accomplished with Kosaraju's algorithm in $O(n + m)$ time.
+In the second traversal of the graph Kosaraju's algorithm visits the strongly connected components in topological order, therefore it is easy to compute $\text{comp}[v]$ for each vertex $v$.</p>
+
+<p>Afterwards we can choose the assignment of $x$ by comparing $\text{comp}[x]$ and $\text{comp}[\lnot x]$. 
+If $\text{comp}[x] = \text{comp}[\lnot x]$ we return $\text{false}$ to indicate that there doesn't exist a valid assignment that satisfies the 2-SAT problem.</p>
+
+<p>Below is the implementation of the solution of the 2-SAT problem for the already constructed graph of implication $g$ and the transpose graph $g^{\intercal}$ (in which the direction of each edge is reversed).
+In the graph the vertices with indices $2k$ and $2k+1$ are the two vertices corresponding to variable $k$ with $2k+1$ corresponding to the negated variable.</p>
+
+<pre><code class="cpp">int n;
+vector&lt;vector&lt;int&gt;&gt; g, gt;
+vector&lt;bool&gt; used;
+vector&lt;int&gt; order, comp;
+vector&lt;bool&gt; assignment;
+
+void dfs1(int v) {
+    used[v] = true;
+    for (int u : g[v]) {
+        if (!used[u])
+            dfs1(u);
+    }
+    order.push_back(v);
+}
+
+void dfs2(int v, int cl) {
+    comp[v] = cl;
+    for (int u : gt[v]) {
+        if (comp[u] == -1)
+            dfs2(u, cl);
+    }
+}
+
+bool solve_2SAT() {
+    used.assign(n, false);
+    for (int i = 0; i &lt; n; ++i) {
+        if (!used[i])
+            dfs1(i);
+    }
+
+    comp.assign(n, -1);
+    for (int i = 0, j = 0; i &lt; n; ++i) {
+        int v = order[n - i - 1];
+        if (comp[v] == -1)
+            dfs2(v, j++);
+    }
+
+    assignment.assign(n / 2, false);
+    for (int i = 0; i &lt; n; i += 2) {
+        if (comp[i] == comp[i + 1])
+            return false;
+        assignment[i / 2] = comp[i] &gt; comp[i + 1];
+    }
+    return true;
+}
+</code></pre>
+
+<h2>Practice Problems</h2>
+
+<ul>
+<li><a href="https://uva.onlinejudge.org/index.php?option=com_onlinejudge&amp;Itemid=8&amp;page=show_problem&amp;problem=3081">UVA: Rectangles</a></li>
+<li><a href="http://codeforces.com/contest/776/problem/D">Codeforces: The Door Problem</a></li>
+<li><a href="https://codeforces.com/problemset/problem/1215/F">Codeforces : Radio Stations</a></li>
+<li><a href="https://cses.fi/problemset/task/1684">CSES : Giant Pizza</a></li>
+</ul>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>

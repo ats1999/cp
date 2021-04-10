@@ -1,0 +1,255 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <base href="https://cp-algorithms.com"/>
+    <title>Lowest Common Ancestor - Farach-Colton and Bender algorithm  - Competitive Programming Algorithms</title>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/jq.js"></script>
+    <script src="https://e-maxx-eng.github.io/e-maxx-eng/js/common.js"></script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    </script>
+    <script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <link rel="stylesheet" href="https://e-maxx-eng.github.io/e-maxx-eng/css/common.css"/>
+
+    <!-- highlightjs for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/styles/xcode.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.3/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <!-- end highlightjs -->
+    <meta name="google-site-verification" content="qSnbeMPNVgZ3kIpGVsPIAPIvEdwYSg583kPdwgJtFO8" />
+    <meta name="yandex-verification" content="f327630b02a1e115" />
+</head>
+<body data-v="2021-04-09:11085/5227 2021-04-08:11726/5372 2021-04-07:13654/6237 2021-04-06:11712/5778 2021-04-05:12035/5549 2021-04-04:10850/5064 2021-04-03:10290/4974">
+<div id="container">
+    <div id="navbar">
+        <span id="title">
+            <a href="./">CP-Algorithms</a>
+        </span>
+        <span id="menu">
+            <a href="https://github.com/e-maxx-eng/e-maxx-eng/commits/master/src/graph/lca_farachcoltonbender.md" title="Changes History">Page Authors</a>
+        </span>
+        <span id="search" style="display:inline-block;width:200px;float:right;margin-top:7px;margin-right:20px;">
+            <div class="ya-site-form ya-site-form_inited_no" onclick="return {'action':'https://cp-algorithms.com/search-results.html','arrow':false,'bg':'transparent','fontsize':12,'fg':'#000000','language':'en','logo':'rb','publicname':'search e-maxx-eng','suggest':true,'target':'_self','tld':'com','type':2,'usebigdictionary':true,'searchid':2314495,'input_fg':'#000000','input_bg':'#ffffff','input_fontStyle':'normal','input_fontWeight':'normal','input_placeholder':null,'input_placeholderColor':'#000000','input_borderColor':'#7f9db9'}"><form action="https://yandex.com/search/site/" method="get" target="_self" accept-charset="utf-8"><input type="hidden" name="searchid" value="2314495"/><input type="hidden" name="l10n" value="en"/><input type="hidden" name="reqenc" value=""/><input type="search" name="text" value=""/><input type="submit" value="Search"/></form></div><style type="text/css">.ya-page_js_yes .ya-site-form_inited_no { display: none; }</style><script type="text/javascript">(function(w,d,c){var s=d.createElement('script'),h=d.getElementsByTagName('script')[0],e=d.documentElement;if((' '+e.className+' ').indexOf(' ya-page_js_yes ')===-1){e.className+=' ya-page_js_yes';}s.type='text/javascript';s.async=true;s.charset='utf-8';s.src=(d.location.protocol==='https:'?'https:':'http:')+'//site.yandex.net/v2.0/js/all.js';h.parentNode.insertBefore(s,h);(w[c]||(w[c]=[])).push(function(){Ya.Site.Form.init()})})(window,document,'yandex_site_callbacks');</script>
+        </span>
+    </div>
+<h1>Lowest Common Ancestor - Farach-Colton and Bender Algorithm</h1>
+
+<p>Let $G$ be a tree.
+For every query of the form $(u, v)$ we want to find the lowest common ancestor of the nodes $u$ and $v$, i.e. we want to find a node $w$ that lies on the path from $u$ to the root node, that lies on the path from $v$ to the root node, and if there are multiple nodes we pick the one that is farthest away from the root node.
+In other words the desired node $w$ is the lowest ancestor of $u$ and $v$.
+In particular if $u$ is an ancestor of $v$, then $u$ is their lowest common ancestor.</p>
+
+<p>The algorithm which will be described in this article was developed by Farach-Colton and Bender.
+It is asymptotically optimal.</p>
+
+<h2>Algorithm</h2>
+
+<p>We use the classical reduction of the LCA problem to the RMQ problem.
+We traverse all nodes of the tree with <a href="./graph/depth-first-search.html">DFS</a> and keep an array with all visited nodes and the heights of these nodes. 
+The LCA of two nodes $u$ and $v$ is the node between the occurrences of $u$ and $v$ in the tour, that has the smallest height.</p>
+
+<p>In the following picture you can see a possible Euler-Tour of a graph and in the list below you can see the visited nodes and their heights.</p>
+
+<p><center><img src="https://raw.githubusercontent.com/e-maxx-eng/e-maxx-eng/master/img/LCA_Euler.png" alt="LCA_Euler_Tour" /></center>
+$$\begin{array}{|l|c|c|c|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\text{Nodes:}   &amp; 1 &amp; 2 &amp; 5 &amp; 2 &amp; 6 &amp; 2 &amp; 1 &amp; 3 &amp; 1 &amp; 4 &amp; 7 &amp; 4 &amp; 1 &#92;&#92; \hline
+\text{Heights:} &amp; 1 &amp; 2 &amp; 3 &amp; 2 &amp; 3 &amp; 2 &amp; 1 &amp; 2 &amp; 1 &amp; 2 &amp; 3 &amp; 2 &amp; 1 &#92;&#92; \hline
+\end{array}$$</p>
+
+<p>You can read more about this reduction in the article <a href="./graph/lca.html">Lowest Common Ancestor</a>.
+In that article the minimum of a range was either found by sqrt-decomposition in $O(\sqrt{N})$ or in $O(\log N)$ using a Segment tree.
+In this article we look at how we can solve the given range minimum queries in $O(1)$ time, while still only taking $O(N)$ time for preprocessing.</p>
+
+<p>Note that the reduced RMQ problem is very specific:
+any two adjacent elements in the array differ exactly by one (since the elements of the array are nothing more than the heights of the nodes visited in order of traversal, and we either go to a descendant, in which case the next element is one bigger, or go back to the ancestor, in which case the next element is one lower).
+The Farach-Colton and Bender algorithm describes a solution for exactly this specialized RMQ problem.</p>
+
+<p>Let's denote with $A$ the array on which we want to perform the range minimum queries.
+And $N$ will be the size of $A$.</p>
+
+<p>There is an easy data structure that we can use for solving the RMQ problem with $O(N \log N)$ preprocessing and $O(1)$ for each query: the <a href="./data_structures/sparse-table.html">Sparse Table</a>.
+We create a table $T$ where each element $T[i][j]$ is equal to the minimum of $A$ in the interval $[i, i + 2^j - 1]$.
+Obviously $0 \leq j \leq \lceil \log N \rceil$, and therefore the size of the Sparse Table will be $O(N \log N)$.
+You can build the table easily in $O(N \log N)$ by noting that $T[i][j] = \min(T[i][j-1], T[i+2^{j-1}][j-1])$.</p>
+
+<p>How can we answer a query RMQ in $O(1)$ using this data structure?
+Let the received query be $[l, r]$, then the answer is $\min(T[l][\text{sz}], T[r-2^{\text{sz}}+1][\text{sz}])$, where $\text{sz}$ is the biggest exponent such that $2^{\text{sz}}$ is not bigger than the range length $r-l+1$. 
+Indeed we can take the range $[l, r]$ and cover it two segments of length $2^{\text{sz}}$ - one starting in $l$ and the other ending in $r$.
+These segments overlap, but this doesn't interfere with our computation.
+To really achieve the time complexity of $O(1)$ per query, we need to know the values of $\text{sz}$ for all possible lengths from $1$ to $N$.
+But this can be easily precomputed.</p>
+
+<p>Now we want to improve the complexity of the preprocessing down to $O(N)$.</p>
+
+<p>We divide the array $A$ into blocks of size $K = 0.5 \log N$ with $\log$ being the logarithm to base 2.
+For each block we calculate the minimum element and store them in an array $B$.
+$B$ has the size $\frac{N}{K}$.
+We construct a sparse table from the array $B$.
+The size and the time complexity of it will be:
+$$\frac{N}{K}\log\left(\frac{N}{K}\right) = \frac{2N}{\log(N)} \log\left(\frac{2N}{\log(N)}\right) =$$
+$$= \frac{2N}{\log(N)} \left(1 + \log\left(\frac{N}{\log(N)}\right)\right) \leq \frac{2N}{\log(N)} + 2N = O(N)$$</p>
+
+<p>Now we only have to learn how to quickly answer range minimum queries within each block.
+In fact if the received range minimum query is $[l, r]$ and $l$ and $r$ are in different blocks then the answer is the minimum of the following three values:
+the minimum of the suffix of block of $l$ starting at $l$, the minimum of the prefix of block of $r$ ending at $r$, and the minimum of the blocks between those.
+The minimum of the blocks in between can be answered in $O(1)$ using the Sparse Table.
+So this leaves us only the range minimum queries inside blocks.</p>
+
+<p>Here we will exploit the property of the array.
+Remember that the values in the array - which are just height values in the tree - will always differ by one.
+If we remove the first element of a block, and subtract it from every other item in the block, every block can be identified by a sequence of length $K - 1$ consisting of the number $+1$ and $-1$.
+Because these blocks are so small, there are only a few different sequences that can occur.
+The number of possible sequences is:
+$$2^{K-1} = 2^{0.5 \log(N) - 1} = 0.5 \left(2^{\log(N)}\right)^{0.5} = 0.5 \sqrt{N}$$</p>
+
+<p>Thus the number of different blocks is $O(\sqrt{N})$, and therefore we can precompute the results of range minimum queries inside all different blocks in $O(\sqrt{N} K^2) = O(\sqrt{N} \log^2(N)) = O(N)$ time.
+For the implementation we can characterize a block by a bitmask of length $K-1$ (which will fit in a standard int) and store the index of the minimum in an array $\text{block}[\text{mask}][l][r]$ of size $O(\sqrt{N} \log^2(N))$.</p>
+
+<p>So we learned how to precompute range minimum queries within each block, as well as range minimum queries over a range of blocks, all in $O(N)$.
+With these precomputations we can answer each query in $O(1)$, by using at most four precomputed values: the minimum of the block containing <code>l</code>, the minimum of the block containing <code>r</code>, and the two minima of the overlapping segments of the blocks between them.</p>
+
+<h2>Implementation</h2>
+
+<pre><code class="cpp">int n;
+vector&lt;vector&lt;int&gt;&gt; adj;
+
+int block_size, block_cnt;
+vector&lt;int&gt; first_visit;
+vector&lt;int&gt; euler_tour;
+vector&lt;int&gt; height;
+vector&lt;int&gt; log_2;
+vector&lt;vector&lt;int&gt;&gt; st;
+vector&lt;vector&lt;vector&lt;int&gt;&gt;&gt; blocks;
+vector&lt;int&gt; block_mask;
+
+void dfs(int v, int p, int h) {
+    first_visit[v] = euler_tour.size();
+    euler_tour.push_back(v);
+    height[v] = h;
+
+    for (int u : adj[v]) {
+        if (u == p)
+            continue;
+        dfs(u, v, h + 1);
+        euler_tour.push_back(v);
+    }
+}
+
+int min_by_h(int i, int j) {
+    return height[euler_tour[i]] &lt; height[euler_tour[j]] ? i : j;
+}
+
+void precompute_lca(int root) {
+    // get euler tour &amp; indices of first occurences
+    first_visit.assign(n, -1);
+    height.assign(n, 0);
+    euler_tour.reserve(2 * n);
+    dfs(root, -1, 0);
+
+    // precompute all log values
+    int m = euler_tour.size();
+    log_2.reserve(m + 1);
+    log_2.push_back(-1);
+    for (int i = 1; i &lt;= m; i++)
+        log_2.push_back(log_2[i / 2] + 1);
+
+    block_size = max(1, log_2[m] / 2);
+    block_cnt = (m + block_size - 1) / block_size;
+
+    // precompute minimum of each block and build sparse table
+    st.assign(block_cnt, vector&lt;int&gt;(log_2[block_cnt] + 1));
+    for (int i = 0, j = 0, b = 0; i &lt; m; i++, j++) {
+        if (j == block_size)
+            j = 0, b++;
+        if (j == 0 || min_by_h(i, st[b][0]) == i)
+            st[b][0] = i;
+    }
+    for (int l = 1; l &lt;= log_2[block_cnt]; l++) {
+        for (int i = 0; i &lt; block_cnt; i++) {
+            int ni = i + (1 &lt;&lt; (l - 1));
+            if (ni &gt;= block_cnt)
+                st[i][l] = st[i][l-1];
+            else
+                st[i][l] = min_by_h(st[i][l-1], st[ni][l-1]);
+        }
+    }
+
+    // precompute mask for each block
+    block_mask.assign(block_cnt, 0);
+    for (int i = 0, j = 0, b = 0; i &lt; m; i++, j++) {
+        if (j == block_size)
+            j = 0, b++;
+        if (j &gt; 0 &amp;&amp; (i &gt;= m || min_by_h(i - 1, i) == i - 1))
+            block_mask[b] += 1 &lt;&lt; (j - 1);
+    }
+
+    // precompute RMQ for each unique block
+    int possibilities = 1 &lt;&lt; (block_size - 1);
+    blocks.resize(possibilities);
+    for (int b = 0; b &lt; block_cnt; b++) {
+        int mask = block_mask[b];
+        if (!blocks[mask].empty())
+            continue;
+        blocks[mask].assign(block_size, vector&lt;int&gt;(block_size));
+        for (int l = 0; l &lt; block_size; l++) {
+            blocks[mask][l][l] = l;
+            for (int r = l + 1; r &lt; block_size; r++) {
+                blocks[mask][l][r] = blocks[mask][l][r - 1];
+                if (b * block_size + r &lt; m)
+                    blocks[mask][l][r] = min_by_h(b * block_size + blocks[mask][l][r], 
+                            b * block_size + r) - b * block_size;
+            }
+        }
+    }
+}
+
+int lca_in_block(int b, int l, int r) {
+    return blocks[block_mask[b]][l][r] + b * block_size;
+}
+
+int lca(int v, int u) {
+    int l = first_visit[v];
+    int r = first_visit[u];
+    if (l &gt; r)
+        swap(l, r);
+    int bl = l / block_size;
+    int br = r / block_size;
+    if (bl == br)
+        return euler_tour[lca_in_block(bl, l % block_size, r % block_size)];
+    int ans1 = lca_in_block(bl, l % block_size, block_size - 1);
+    int ans2 = lca_in_block(br, 0, r % block_size);
+    int ans = min_by_h(ans1, ans2);
+    if (bl + 1 &lt; br) {
+        int l = log_2[br - bl - 1];
+        int ans3 = st[bl+1][l];
+        int ans4 = st[br - (1 &lt;&lt; l)][l];
+        ans = min_by_h(ans, min_by_h(ans3, ans4));
+    }
+    return euler_tour[ans];
+}
+</code></pre>
+
+    <div id="footer">
+    (c) 2014-2021 translation by <a href="http://github.com/e-maxx-eng">http://github.com/e-maxx-eng</a>
+    </div>
+</div>
+
+<script>
+if (/e\-maxx\-eng|cp\-algorithms/.test(location.href)) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-85220282-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+</body>
+</html>
